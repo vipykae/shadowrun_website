@@ -154,13 +154,17 @@ SQLite — table `inscriptions` :
 
 **Principe clé : la protection est côté serveur, pas côté front.** Le mot de
 passe ne « déverrouille » pas seulement l'affichage : chaque endpoint de l'API
-exige un cookie de session valide et renvoie 401 sinon — sauf deux exceptions
-volontaires : `/api/login` (forcément public) et `/api/calendrier.ics`
-(destiné aux applis calendrier, qui ne savent pas se connecter avec un mot
-de passe ; protégé par son propre jeton `CALENDRIER_TOKEN`, voir V3).
-Impossible d'appeler le reste de l'API directement (curl, script) sans
-s'être authentifié. La seule surface attaquable en brute-force est donc
-`/api/login`, qui est
+exige un cookie de session valide et renvoie 401 sinon — sauf trois
+exceptions volontaires, chacune justifiée par un consommateur qui ne peut
+pas présenter de cookie : `/api/login` (forcément public), `/api/calendrier.ics`
+(applis calendrier, protégé par son propre jeton `CALENDRIER_TOKEN`, voir V3)
+et `GET /api/uploads/<nom>` (Discord doit charger l'image lui-même pour
+l'aperçu du message publié ; protégé non par un jeton mais par le nom de
+fichier aléatoire — uuid4, impossible à deviner — et ne sert jamais que des
+images, jamais de données de la campagne). Écrire une image (POST/DELETE)
+reste authentifié comme le reste de l'API. Impossible d'appeler le reste de
+l'API directement (curl, script) sans s'être authentifié. La seule surface
+attaquable en brute-force est donc `/api/login`, qui est
 spécifiquement durcie :
 
 - **Rate limiting** sur `/api/login` (middleware FastAPI type slowapi :
@@ -216,8 +220,9 @@ Objectif : les joueuses s'inscrivent réellement depuis chez elles.
 ### V2 — Confort MJ ✅ FAIT
 - ✅ Interface web MJ : créer/modifier/supprimer une run via formulaire, placer
   le pin en cliquant sur la carte, marquer une run « jouée » + compte rendu,
-  éditer un district. L'API écrit les YAML (`/api/mj/...`, rôle MJ requis,
-  validation Pydantic) — les fichiers restent la source de vérité.
+  éditer un district, illustrer une run d'une image (téléversée, compressée,
+  publiée avec elle sur Discord). L'API écrit les YAML (`/api/mj/...`, rôle
+  MJ requis, validation Pydantic) — les fichiers restent la source de vérité.
 - ✅ Historique par district (runs jouées cliquables dans la fiche district).
 - ✅ Responsive mobile : barre compacte (icônes), sidebar en panneau bas,
   formulaires empilés, pins agrandis au toucher, fond de particules coupé.
@@ -238,9 +243,10 @@ Objectif : les joueuses s'inscrivent réellement depuis chez elles.
 - ✅ **Notification Discord** : le backend poste directement sur un webhook
   Discord (`DISCORD_WEBHOOK_URL`) — jamais via un service tiers, c'est ce
   même serveur qui fait l'appel HTTPS sortant. Déclenchée à la publication
-  d'une run, à une inscription, et au passage d'une run en « jouée ». Aucun
-  effet si la variable est absente ; une panne Discord ne fait jamais
-  échouer la requête (appel en tâche de fond après la réponse).
+  d'une run, à une inscription, et au passage d'une run en « jouée ». Si la
+  run a une image, elle est jointe au message (embed). Aucun effet si la
+  variable est absente ; une panne Discord ne fait jamais échouer la
+  requête (appel en tâche de fond après la réponse).
 - ✅ **Export calendrier (.ics)** : flux à l'URL `/api/calendrier.ics`,
   protégé par un jeton dédié (`CALENDRIER_TOKEN`) indépendant du login —
   les applis calendrier (Google/Apple/Outlook) ne savent pas se connecter

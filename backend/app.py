@@ -136,11 +136,14 @@ contenu.charger()
 # donc toujours invoquée via BackgroundTasks après la réponse.
 
 
-def notifier_discord(message: str):
+def notifier_discord(message: str, image_url: str | None = None):
     if not DISCORD_WEBHOOK_URL:
         return
+    charge = {"content": message[:2000]}
+    if image_url:
+        charge["embeds"] = [{"image": {"url": image_url}}]
     try:
-        corps = json.dumps({"content": message[:2000]}).encode("utf-8")
+        corps = json.dumps(charge).encode("utf-8")
         requete = urllib.request.Request(
             DISCORD_WEBHOOK_URL, data=corps,
             headers={"Content-Type": "application/json"}, method="POST",
@@ -155,7 +158,7 @@ def notifier_discord(message: str):
 ORDRE_RUN = [
     "id", "titre", "district", "position", "mj", "type", "places", "statut",
     "date", "duree_estimee", "lieu", "paiement", "difficulte", "risques",
-    "themes", "avertissements", "notes", "brief", "compte_rendu",
+    "themes", "avertissements", "notes", "brief", "image", "compte_rendu",
 ]
 ORDRE_DISTRICT = ["id", "nom", "gang_dominant", "gangs_presents", "description", "runs_jouees", "polygone"]
 ENTETE_DISTRICTS = (
@@ -424,10 +427,11 @@ class RunEntree(BaseModel):
     avertissements: list[str] = []
     notes: str | None = Field(None, max_length=5000)
     brief: str | None = Field(None, max_length=10000)
+    image: str | None = Field(None, max_length=500)
     compte_rendu: str | None = Field(None, max_length=20000)
 
     @field_validator("mj", "type", "date", "duree_estimee", "lieu", "paiement", "risques",
-                     "notes", "brief", "compte_rendu", "titre", mode="before")
+                     "notes", "brief", "image", "compte_rendu", "titre", mode="before")
     @classmethod
     def _nettoyer(cls, v):
         return _vide_vers_none(v)
@@ -475,8 +479,18 @@ def _run_avec_inscrites(run_id: str) -> dict:
     return run
 
 
+def _url_absolue(request: Request, chemin: str | None) -> str | None:
+    """Les images doivent être une URL absolue pour Discord, qui les
+    récupère lui-même depuis ses propres serveurs (pas relatif à une page)."""
+    if not chemin:
+        return None
+    if chemin.startswith("http://") or chemin.startswith("https://"):
+        return chemin
+    return f"{str(request.base_url).rstrip('/')}{chemin}"
+
+
 @app.post("/api/mj/runs", status_code=201)
-def creer_run(entree: RunEntree, arriere_plan: BackgroundTasks, role: str = Depends(role_mj)):
+def creer_run(entree: RunEntree, request: Request, arriere_plan: BackgroundTasks, role: str = Depends(role_mj)):
     entree.verifier()
     if entree.id in contenu.fichiers:
         raise HTTPException(409, f"Une run avec l'id « {entree.id} » existe déjà.")
@@ -490,6 +504,7 @@ def creer_run(entree: RunEntree, arriere_plan: BackgroundTasks, role: str = Depe
         notifier_discord,
         f"📢 **Nouvelle run publiée** : *{entree.titre}* — "
         f"{contenu.nom_district(entree.district)} · {entree.date or 'date à définir'}",
+        _url_absolue(request, entree.image),
     )
     return _run_avec_inscrites(entree.id)
 
@@ -502,9 +517,12 @@ def modifier_run(run_id: str, entree: RunEntree, arriere_plan: BackgroundTasks, 
     if entree.id != run_id:
         raise HTTPException(422, "L'id d'une run ne se modifie pas.")
     entree.verifier()
-    ancien_statut = _run_ou_404(run_id).get("statut")
+    ancienne = _run_ou_404(run_id)
+    ancien_statut, ancienne_image = ancienne.get("statut"), ancienne.get("image")
     chemin.write_text(dump_yaml(entree.vers_yaml()), encoding="utf-8")
     contenu.charger()
+    if ancienne_image != entree.image:
+        _supprimer_upload_si_interne(ancienne_image)
     if ancien_statut != "jouee" and entree.statut == "jouee":
         arriere_plan.add_task(
             notifier_discord, f"📜 **Run jouée** : *{entree.titre}* — compte-rendu disponible sur le site"
@@ -517,10 +535,12 @@ def supprimer_run(run_id: str, role: str = Depends(role_mj)):
     chemin = contenu.fichiers.get(run_id)
     if chemin is None:
         raise HTTPException(404, "Run inconnue")
+    ancienne_image = _run_ou_404(run_id).get("image")
     chemin.unlink()
     with db() as con:
         con.execute("DELETE FROM inscriptions WHERE run_id = ?", (run_id,))
     contenu.charger()
+    _supprimer_upload_si_interne(ancienne_image)
     return {"ok": True}
 
 
@@ -593,7 +613,13 @@ def supprimer_upload(nom: str, role: str = Depends(role_courant)):
 
 
 @app.get("/api/uploads/{nom}")
-def upload_image(nom: str, role: str = Depends(role_courant)):
+def upload_image(nom: str):
+    # Volontairement public (pas de Depends(role_courant)), contrairement au
+    # reste de l'API : Discord doit pouvoir charger l'image lui-même pour
+    # l'aperçu du message publié, sans jamais avoir de cookie de session.
+    # Le nom du fichier est un uuid4 aléatoire — impossible à deviner — donc
+    # ça ne révèle jamais que l'existence d'une image déjà connue de qui la
+    # partage. Aucune autre route de l'API n'a cette exception.
     if not NOM_UPLOAD_RE.match(nom) or not _chemin_upload(nom).exists():
         raise HTTPException(404)
     return FileResponse(_chemin_upload(nom))

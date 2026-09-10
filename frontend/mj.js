@@ -16,8 +16,24 @@ const mj = (() => {
   let marqueurTemp = null;  // pin blanc pendant l'édition
   let idModifieALaMain = false;
 
+  // Nom (pas l'URL complète) d'une image de run envoyée pendant l'édition
+  // en cours et pas encore confirmée par un enregistrement — voir
+  // personnages.js, même logique.
+  let uploadEnAttente = null;
+
   const contenu = () => document.getElementById("sidebar-content");
   const val = (v) => echapper(v ?? "");
+
+  function nomUpload(url) {
+    return url && url.startsWith("/api/uploads/") ? url.slice("/api/uploads/".length) : null;
+  }
+
+  function nettoyerUploadEnAttente() {
+    if (!uploadEnAttente) return;
+    const nom = uploadEnAttente;
+    uploadEnAttente = null;
+    fetch(`/api/uploads/${nom}`, { method: "DELETE" }).catch(() => {});
+  }
 
   function slug(texte) {
     return String(texte).normalize("NFD").replace(/[̀-ͯ]/g, "")
@@ -50,6 +66,7 @@ const mj = (() => {
   // ---------- Formulaire run ----------
 
   function formulaireRun(run, options = {}) {
+    nettoyerUploadEnAttente(); // un formulaire déjà ouvert (autre run) est abandonné
     const creation = !run;
     const r = run || {
       statut: "ouverte", places: 4, difficulte: 3, themes: [], avertissements: [],
@@ -94,6 +111,17 @@ const mj = (() => {
           </div>`)}
         ${champ("Lieu", `<input name="lieu" maxlength="300" value="${val(r.lieu)}">`)}
         ${champ("Paiement", `<input name="paiement" maxlength="300" value="${val(r.paiement)}">`)}
+        ${champ("Image (optionnelle)", `<div class="champ-image">
+              <div class="champ-image-apercu" id="run-apercu-image">${r.image ? `<img src="${val(r.image)}" alt="">` : `<span class="champ-image-vide">Aucune image</span>`}</div>
+              <div class="champ-image-boutons">
+                <label class="btn btn-secondaire champ-image-parcourir">
+                  Choisir un fichier…
+                  <input type="file" id="run-image-fichier" accept="image/*" class="cache">
+                </label>
+                <button type="button" class="btn btn-secondaire" id="run-btn-retirer-image" data-mj-action="retirer-image" ${r.image ? "" : "hidden"}>✕ Retirer</button>
+              </div>
+              <input type="hidden" name="image" value="${val(r.image)}">
+            </div>`, "compressée automatiquement à l'envoi ; publiée avec la run sur Discord")}
         ${champ("Thèmes", `<input name="themes" value="${val((r.themes || r.tags || []).join(", "))}">`, "séparés par des virgules")}
         ${champ("Avertissements de contenu", `<input name="avertissements" value="${val((r.avertissements || []).join(", "))}">`, "séparés par des virgules")}
         ${champ("Brief", `<textarea name="brief" rows="5">${val(r.brief || r.synopsis)}</textarea>`)}
@@ -126,7 +154,8 @@ const mj = (() => {
       date: texte("date"), duree_estimee: texte("duree_estimee"), lieu: texte("lieu"), paiement: texte("paiement"),
       difficulte: Number(f.get("difficulte")), risques: texte("risques"),
       themes: liste("themes"), avertissements: liste("avertissements"),
-      notes: texte("notes"), brief: texte("brief"), compte_rendu: texte("compte_rendu"),
+      notes: texte("notes"), brief: texte("brief"), image: texte("image"),
+      compte_rendu: texte("compte_rendu"),
     };
   }
 
@@ -137,12 +166,57 @@ const mj = (() => {
       const run = creation
         ? await api("/api/mj/runs", donnees)
         : await api(`/api/mj/runs/${donnees.id}`, donnees, "PUT");
+      uploadEnAttente = null; // enregistré avec succès : on ne l'efface plus
       nettoyer();
       await rafraichir();
       ouvrirSidebarRun(DONNEES.runs.find((r) => r.id === run.id));
     } catch (e) {
       afficherErreur(e.message);
     }
+  }
+
+  // ---------- Envoi d'image (compressée côté serveur) ----------
+
+  async function televerserFichier(fichier) {
+    const donnees = new FormData();
+    donnees.append("fichier", fichier);
+    const reponse = await fetch("/api/uploads/image", { method: "POST", body: donnees });
+    if (!reponse.ok) {
+      let message = `Erreur ${reponse.status}`;
+      try { message = (await reponse.json()).detail || message; } catch {}
+      throw new Error(message);
+    }
+    return reponse.json(); // { url }
+  }
+
+  async function surChoixFichierRun(input) {
+    const fichier = input.files[0];
+    if (!fichier) return;
+    const form = input.closest("form");
+    const apercu = form.querySelector("#run-apercu-image");
+    apercu.innerHTML = `<span class="champ-image-vide">Envoi…</span>`;
+    try {
+      const { url } = await televerserFichier(fichier);
+      nettoyerUploadEnAttente();
+      uploadEnAttente = nomUpload(url);
+      form.elements.image.value = url;
+      apercu.innerHTML = `<img src="${val(url)}" alt="">`;
+      form.querySelector("#run-btn-retirer-image").hidden = false;
+    } catch (e) {
+      apercu.innerHTML = `<span class="champ-image-vide">Échec : ${val(e.message)}</span>`;
+    } finally {
+      input.value = "";
+    }
+  }
+
+  function retirerImageRun(bouton) {
+    const form = bouton.closest("form");
+    if (nomUpload(form.elements.image.value) === uploadEnAttente) {
+      nettoyerUploadEnAttente();
+    }
+    form.elements.image.value = "";
+    form.querySelector("#run-apercu-image").innerHTML = `<span class="champ-image-vide">Aucune image</span>`;
+    bouton.hidden = true;
   }
 
   async function supprimerRun(run) {
@@ -234,10 +308,12 @@ const mj = (() => {
     return !!document.getElementById("form-run") || !!document.getElementById("form-district");
   }
 
-  // Retire le pin temporaire et sort du mode placement (changement de panneau).
+  // Retire le pin temporaire, sort du mode placement et efface un envoi
+  // d'image non sauvegardé — appelé à chaque fois qu'on quitte un formulaire.
   function nettoyer() {
     finPlacement();
     if (marqueurTemp) { marqueurTemp.remove(); marqueurTemp = null; }
+    nettoyerUploadEnAttente();
   }
 
   // ---------- Événements (délégation sur la sidebar) ----------
@@ -253,6 +329,7 @@ const mj = (() => {
     zone.addEventListener("click", (evt) => {
       const cible = evt.target.closest("[data-mj-action]");
       if (!cible) return;
+      if (cible.dataset.mjAction === "retirer-image") { retirerImageRun(cible); return; }
       const run = DONNEES.runs.find((r) => r.id === cible.dataset.run);
       const district = DONNEES.districts.find((d) => d.id === cible.dataset.district);
       switch (cible.dataset.mjAction) {
@@ -289,6 +366,9 @@ const mj = (() => {
     zone.addEventListener("change", (evt) => {
       if (evt.target.id === "date-picker" && evt.target.value) {
         evt.target.form.elements.date.value = evt.target.value;
+      }
+      if (evt.target.id === "run-image-fichier") {
+        surChoixFichierRun(evt.target);
       }
     });
 

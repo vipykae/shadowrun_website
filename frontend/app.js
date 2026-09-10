@@ -393,6 +393,7 @@ function ouvrirSidebarRun(run) {
   sidebarContent.innerHTML = `
     <div class="run-kicker">${kicker}</div>
     <div class="run-titre ${estJouee(run) ? "run-titre-jouee" : ""}">${echapper(run.titre)}</div>
+    ${run.image ? `<img class="perso-portrait" src="${echapper(run.image)}" alt="">` : ""}
     <div class="run-meta">${meta}</div>
     ${tags ? `<div class="run-tags">${tags}</div>` : ""}
     ${section("Brief", run.brief || run.synopsis, "run-synopsis")}

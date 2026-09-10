@@ -58,8 +58,11 @@ dans la fiche d'une run, boutons « ✎ Modifier », « ✓ Marquer jouée » (o
 formulaire avec le statut prérempli et le curseur sur le compte rendu) et
 « ✕ Supprimer » ; dans la fiche d'un district, « ✎ Modifier le district »
 (gangs, description, historique). Le pin se place en cliquant « ◎ Placer sur
-la carte » puis sur la carte (Échap pour annuler). Le fichier est écrit sous
-`content/runs/<date>_<id>.yaml`.
+la carte » puis sur la carte (Échap pour annuler). Le champ « Image » du
+formulaire de run est un vrai envoi de fichier (même mécanisme que les
+portraits de personnages, voir plus bas) : elle s'affiche dans la fiche de
+la run et est jointe à la notification Discord de publication. Le fichier
+YAML est écrit sous `content/runs/<date>_<id>.yaml`.
 
 **À la main, dans les fichiers** :
 
@@ -118,24 +121,31 @@ Fichiers : `content/personnages/pj.yaml` et `pnj.yaml`, éditables à la main
 de la même façon que `districts.yaml` (le champ `image` y est alors une URL
 externe ou un chemin `/api/uploads/...`).
 
-**Portrait** : le champ « Portrait » du formulaire est un vrai envoi de
-fichier, pas un champ URL — cliquer « Choisir un fichier… » téléverse une
-image, qui est automatiquement redimensionnée (800 px max) et recompressée
-en JPEG par le serveur (`backend/app.py`, via Pillow) avant d'être stockée
-dans `data/uploads/` (comme la base SQLite : ni versionné dans git, ni
-servi publiquement — l'image se récupère via `GET /api/uploads/<nom>`,
-qui exige une session comme le reste de l'API). Remplacer une image ou
-supprimer le personnage efface automatiquement l'ancien fichier ; annuler
-le formulaire après un envoi non sauvegardé l'efface aussi.
+**Portrait / image de run** : le champ « Portrait » (personnages) ou
+« Image » (runs) est un vrai envoi de fichier, pas un champ URL — cliquer
+« Choisir un fichier… » téléverse une image, automatiquement redimensionnée
+(800 px max) et recompressée en JPEG par le serveur (`backend/app.py`, via
+Pillow) avant d'être stockée dans `data/uploads/` (comme la base SQLite :
+ni versionné dans git, ni géré par la MJ — un nom de fichier aléatoire). La
+lecture (`GET /api/uploads/<nom>`) est la **seule autre exception**, avec
+le calendrier, à l'exigence de session sur l'API : Discord doit pouvoir
+charger l'image lui-même pour l'aperçu du message, sans jamais présenter de
+cookie ; le nom aléatoire (uuid4) rend le fichier impossible à deviner.
+Remplacer une image ou supprimer la run/le personnage efface automatiquement
+l'ancien fichier ; annuler le formulaire après un envoi non sauvegardé
+l'efface aussi.
 
 ## Notifications Discord
 
 Si `DISCORD_WEBHOOK_URL` est renseigné dans `.env`, le serveur poste
 directement sur Discord (aucun relais tiers) lors de la publication d'une
-run, d'une inscription, et du passage d'une run en « jouée ». Laisser la
-variable vide désactive silencieusement la fonctionnalité. Une panne Discord
-ne fait jamais échouer une requête de l'API (l'appel est fait en tâche de
-fond, après la réponse).
+run, d'une inscription, et du passage d'une run en « jouée ». Si la run
+publiée a une image, elle est jointe au message (embed Discord) — l'URL
+envoyée à Discord est complète (`https://ton-domaine/api/uploads/...`),
+construite à partir de l'adresse à laquelle la requête est arrivée. Laisser
+la variable vide désactive silencieusement la fonctionnalité. Une panne
+Discord ne fait jamais échouer une requête de l'API (l'appel est fait en
+tâche de fond, après la réponse).
 
 ## Export calendrier (.ics)
 
