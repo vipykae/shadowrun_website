@@ -110,32 +110,21 @@ html, body {
 }
 .leaflet-bar a:hover { background: var(--bg-panel-2) !important; }
 
-/* ---------- Infobulle district ---------- */
+/* ---------- Label district (survol) ---------- */
 
-.leaflet-tooltip.district-tip {
-  background: var(--bg-panel);
+.leaflet-tooltip.district-label {
+  background: rgba(10, 15, 28, 0.92);
   border: 1px solid var(--neon-dim);
-  border-radius: 4px;
-  box-shadow: 0 0 18px rgba(41, 182, 255, 0.25);
-  color: var(--text);
-  padding: 10px 14px;
-  max-width: 260px;
-  white-space: normal;
-}
-.leaflet-tooltip.district-tip::before { display: none; }
-
-.district-tip h3 {
-  font-family: var(--font-title);
-  font-size: 13px;
-  letter-spacing: 1.5px;
+  border-radius: 3px;
+  box-shadow: 0 0 12px rgba(41, 182, 255, 0.2);
   color: var(--neon);
-  margin-bottom: 6px;
+  font-family: var(--font-title);
+  font-size: 11px;
+  letter-spacing: 2px;
   text-transform: uppercase;
+  padding: 4px 10px;
 }
-
-.district-tip .tip-row { font-size: 14px; line-height: 1.45; }
-.district-tip .tip-label { color: var(--text-dim); text-transform: uppercase; font-size: 11px; letter-spacing: 1px; }
-.district-tip .tip-runs { margin-top: 6px; font-size: 13px; color: var(--text-dim); font-style: italic; }
+.leaflet-tooltip.district-label::before { display: none; }
 
 /* ---------- Pins ---------- */
 
@@ -240,6 +229,45 @@ html, body {
 }
 
 .meta-item .meta-value { font-size: 16px; font-weight: 600; color: var(--text); }
+.meta-item .meta-value-small { font-size: 14px; line-height: 1.35; }
+
+.kicker-lien { color: var(--neon); cursor: pointer; }
+.kicker-lien:hover { text-decoration: underline; }
+
+/* Liste des runs dans la fiche district */
+
+.runs-district { list-style: none; margin-bottom: 18px; }
+
+.runs-district .run-lien {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 10px;
+  margin-bottom: 6px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: rgba(41, 182, 255, 0.04);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.runs-district .run-lien:hover {
+  border-color: var(--neon);
+  background: rgba(41, 182, 255, 0.1);
+}
+
+.run-lien-titre { font-size: 15px; font-weight: 600; }
+
+.run-lien-places {
+  font-family: var(--font-title);
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  color: var(--neon);
+  white-space: nowrap;
+}
+
+.run-lien-complete .run-lien-places { color: var(--magenta); }
 
 .difficulte { color: var(--neon); letter-spacing: 2px; }
 

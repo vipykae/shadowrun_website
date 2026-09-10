@@ -39,20 +39,16 @@ DISTRICTS.forEach((d) => {
     fillOpacity: 0.03,
   }).addTo(map);
 
-  const runsJouees = d.runs_jouees.length
-    ? `<div class="tip-runs">Runs jouées : ${d.runs_jouees.join(", ")}</div>`
-    : `<div class="tip-runs">Aucune run jouée ici… pour l'instant.</div>`;
-
-  poly.bindTooltip(
-    `<h3>${d.nom}</h3>
-     <div class="tip-row"><span class="tip-label">Contrôlé par</span><br>${d.gang_dominant}</div>
-     <div class="tip-row"><span class="tip-label">Aussi présents</span><br>${d.gangs_presents.join(", ")}</div>
-     ${runsJouees}`,
-    { className: "district-tip", sticky: true }
-  );
+  // Au survol : simple surlignage + nom du district. Le détail est
+  // dans la sidebar (au clic) — plus lisible, et compatible mobile.
+  poly.bindTooltip(d.nom, { className: "district-label", sticky: true, direction: "top" });
 
   poly.on("mouseover", () => poly.setStyle({ opacity: 0.9, fillOpacity: 0.12, weight: 2 }));
   poly.on("mouseout", () => poly.setStyle({ opacity: 0.35, fillOpacity: 0.03, weight: 1.5 }));
+  poly.on("click", () => {
+    clicSurCouche = true;
+    ouvrirSidebarDistrict(d);
+  });
 });
 
 // ---------- Pins des runs ----------
@@ -78,7 +74,14 @@ RUNS.forEach((run) => {
 const sidebar = document.getElementById("sidebar");
 const sidebarContent = document.getElementById("sidebar-content");
 document.getElementById("sidebar-close").addEventListener("click", fermerSidebar);
-map.on("click", fermerSidebar);
+
+// Un clic sur un polygone déclenche aussi le clic carte : ce drapeau
+// évite que la sidebar se referme aussitôt ouverte.
+let clicSurCouche = false;
+map.on("click", () => {
+  if (clicSurCouche) { clicSurCouche = false; return; }
+  fermerSidebar();
+});
 
 function fermerSidebar() {
   sidebar.classList.remove("open");
@@ -107,7 +110,7 @@ function ouvrirSidebar(run) {
        </div>`;
 
   sidebarContent.innerHTML = `
-    <div class="run-kicker">${district ? district.nom : ""} · ${dateFmt}</div>
+    <div class="run-kicker">${district ? `<span class="kicker-lien" id="lien-district">${district.nom}</span> · ` : ""}${dateFmt}</div>
     <div class="run-titre">${run.titre}</div>
     <div class="run-meta">
       <div class="meta-item"><div class="meta-label">Difficulté</div>
@@ -122,6 +125,11 @@ function ouvrirSidebar(run) {
     ${formulaire}
   `;
 
+  const lienDistrict = document.getElementById("lien-district");
+  if (lienDistrict && district) {
+    lienDistrict.addEventListener("click", () => ouvrirSidebarDistrict(district));
+  }
+
   const btn = document.getElementById("btn-inscription");
   if (btn) {
     btn.addEventListener("click", () => {
@@ -134,6 +142,51 @@ function ouvrirSidebar(run) {
       ouvrirSidebar(run);
     });
   }
+
+  sidebar.classList.add("open");
+  sidebar.setAttribute("aria-hidden", "false");
+}
+
+function ouvrirSidebarDistrict(d) {
+  const runs = runsParDistrict(d.id);
+
+  const listeRuns = runs.length
+    ? runs
+        .map((r) => {
+          const complete = r.statut === "complete" || r.inscrites.length >= r.places;
+          return `<li class="run-lien ${complete ? "run-lien-complete" : ""}" data-run="${r.id}">
+                    <span class="run-lien-titre">${r.titre}</span>
+                    <span class="run-lien-places">${complete ? "COMPLÈTE" : `${r.inscrites.length}/${r.places}`}</span>
+                  </li>`;
+        })
+        .join("")
+    : `<li class="slot-libre">Aucune run proposée ici pour le moment.</li>`;
+
+  const runsJouees = d.runs_jouees.length
+    ? `<ul class="inscrites">${d.runs_jouees.map((r) => `<li>${r}</li>`).join("")}</ul>`
+    : `<p class="slot-libre">Aucune run jouée ici… pour l'instant.</p>`;
+
+  sidebarContent.innerHTML = `
+    <div class="run-kicker">District</div>
+    <div class="run-titre">${d.nom}</div>
+    <div class="run-meta">
+      <div class="meta-item"><div class="meta-label">Contrôlé par</div>
+        <div class="meta-value">${d.gang_dominant}</div></div>
+      <div class="meta-item"><div class="meta-label">Aussi présents</div>
+        <div class="meta-value meta-value-small">${d.gangs_presents.join(", ")}</div></div>
+    </div>
+    <div class="section-title">Runs disponibles</div>
+    <ul class="runs-district">${listeRuns}</ul>
+    <div class="section-title">Runs jouées</div>
+    ${runsJouees}
+  `;
+
+  sidebarContent.querySelectorAll(".run-lien[data-run]").forEach((li) => {
+    li.addEventListener("click", () => {
+      const run = RUNS.find((r) => r.id === li.dataset.run);
+      if (run) ouvrirSidebar(run);
+    });
+  });
 
   sidebar.classList.add("open");
   sidebar.setAttribute("aria-hidden", "false");
