@@ -154,7 +154,14 @@ def notifier_discord(message: str, image_url: str | None = None):
         corps = json.dumps(charge).encode("utf-8")
         requete = urllib.request.Request(
             DISCORD_WEBHOOK_URL, data=corps,
-            headers={"Content-Type": "application/json"}, method="POST",
+            headers={
+                "Content-Type": "application/json",
+                # Sans ça, Cloudflare (devant l'API Discord) renvoie 403
+                # « error code: 1010 » : le user-agent par défaut d'urllib
+                # (Python-urllib/x.y) est reconnu comme un script et bloqué.
+                "User-Agent": "Mozilla/5.0 (compatible; Seattle2080RunsBot/1.0)",
+            },
+            method="POST",
         )
         urllib.request.urlopen(requete, timeout=5)
     except (urllib.error.URLError, OSError, TimeoutError) as e:
