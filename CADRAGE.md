@@ -209,6 +209,8 @@ Objectif : les joueuses s'inscrivent réellement depuis chez elles.
   éditer un district. L'API écrit les YAML (`/api/mj/...`, rôle MJ requis,
   validation Pydantic) — les fichiers restent la source de vérité.
 - ✅ Historique par district (runs jouées cliquables dans la fiche district).
+- ✅ Responsive mobile : barre compacte (icônes), sidebar en panneau bas,
+  formulaires empilés, pins agrandis au toucher, fond de particules coupé.
 - Responsive mobile soigné.
 
 ### V2.5 — Polish visuel ✅ FAIT (avant la V2, à la demande de la MJ)

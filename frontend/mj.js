@@ -202,14 +202,7 @@ const mj = (() => {
 
   function afficherMarqueurTemp(x, y) {
     if (marqueurTemp) marqueurTemp.remove();
-    marqueurTemp = L.marker(px(x, y), {
-      interactive: false,
-      icon: L.divIcon({
-        className: "",
-        html: `<div class="pin pin-temp"><div class="pin-ring"></div><div class="pin-core"></div></div>`,
-        iconSize: [22, 22], iconAnchor: [11, 11],
-      }),
-    }).addTo(map);
+    marqueurTemp = L.marker(px(x, y), { interactive: false, icon: iconeDivPin("pin-temp") }).addTo(map);
   }
 
   function commencerPlacement() {

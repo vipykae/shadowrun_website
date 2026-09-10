@@ -9,6 +9,18 @@ let DONNEES = null;   // { carte, districts, runs }
 let map = null;
 const marqueurs = {}; // run.id -> marker Leaflet
 
+// Pins plus gros au doigt (doit correspondre à --pin dans style.css)
+const TAILLE_PIN = matchMedia("(pointer: coarse)").matches ? 30 : 22;
+
+function iconeDivPin(classe) {
+  return L.divIcon({
+    className: "",
+    html: `<div class="pin ${classe}"><div class="pin-ring"></div><div class="pin-core"></div></div>`,
+    iconSize: [TAILLE_PIN, TAILLE_PIN],
+    iconAnchor: [TAILLE_PIN / 2, TAILLE_PIN / 2],
+  });
+}
+
 // Filtre : par défaut on ne montre que les runs à venir.
 let afficherJouees = false;
 try { afficherJouees = localStorage.getItem("afficherJouees") === "1"; } catch {}
@@ -87,7 +99,8 @@ async function chargerEtAfficher() {
   DONNEES = await api("/api/carte");
   ROLE = DONNEES.role;
 
-  document.getElementById("badge-role").textContent = `ACCÈS : ${ROLE === "mj" ? "MJ" : "JOUEUSE"}`;
+  document.getElementById("badge-role-nom").textContent = ROLE === "mj" ? "MJ" : "JOUEUSE";
+  document.getElementById("badge-role").hidden = false;
   document.getElementById("btn-reload").hidden = ROLE !== "mj";
   document.getElementById("btn-nouvelle-run").hidden = ROLE !== "mj";
   document.getElementById("btn-logout").hidden = false;
@@ -137,7 +150,7 @@ function appliquerFiltre() {
   });
 
   const bouton = document.getElementById("btn-filtre");
-  bouton.textContent = afficherJouees ? "◉ RUNS JOUÉES" : "○ RUNS JOUÉES";
+  bouton.querySelector(".ico").textContent = afficherJouees ? "◉" : "○";
   bouton.classList.toggle("badge-actif", afficherJouees);
   bouton.title = afficherJouees ? "Masquer les runs jouées" : "Afficher les runs jouées";
 
@@ -158,12 +171,7 @@ function iconePour(run) {
   if (estJouee(run)) classe = "pin-jouee";
   else if (statutDe(run) === "annulee") classe = "pin-annulee";
   else if (estComplete(run)) classe = "pin-complete";
-  return L.divIcon({
-    className: "",
-    html: `<div class="pin ${classe}"><div class="pin-ring"></div><div class="pin-core"></div></div>`,
-    iconSize: [22, 22],
-    iconAnchor: [11, 11],
-  });
+  return iconeDivPin(classe);
 }
 
 let couches = []; // polygones des districts, pour les reconstruire au rafraîchissement
