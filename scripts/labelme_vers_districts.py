@@ -1,4 +1,4 @@
-"""Convertit l'export labelme en content/districts.yaml + frontend/districts.generated.js.
+"""Convertit l'export labelme en content/districts.yaml.
 
 Usage :
     python scripts/labelme_vers_districts.py
@@ -8,8 +8,7 @@ Usage :
 - Fusionne avec l'existant : si un district est déjà dans districts.yaml,
   seul son polygone est mis à jour — les infos éditées à la main
   (gangs, description, runs jouées) sont conservées.
-- Régénère frontend/districts.generated.js (consommé par le site en V0 ;
-  en V1 ce sera l'API qui servira le YAML).
+- Le site lit ce YAML via l'API (GET /api/carte).
 """
 
 import json
@@ -21,7 +20,6 @@ import yaml
 RACINE = Path(__file__).resolve().parent.parent
 LABELME = RACINE / "content" / "carte" / "carte_seattle_web.json"
 YAML_OUT = RACINE / "content" / "districts.yaml"
-JS_OUT = RACINE / "frontend" / "districts.generated.js"
 
 TOLERANCE_PX = 2.5  # simplification : écart max entre tracé original et simplifié
 
@@ -103,14 +101,7 @@ def main():
         encoding="utf-8",
     )
 
-    JS_OUT.write_text(
-        "// FICHIER GÉNÉRÉ — ne pas éditer à la main.\n"
-        "// Source : content/districts.yaml (via scripts/labelme_vers_districts.py)\n"
-        "const DISTRICTS = " + json.dumps(districts, ensure_ascii=False) + ";\n",
-        encoding="utf-8",
-    )
-
-    print(f"\n{len(districts)} districts -> {YAML_OUT.relative_to(RACINE)} + {JS_OUT.relative_to(RACINE)}")
+    print(f"\n{len(districts)} districts -> {YAML_OUT.relative_to(RACINE)}")
 
 
 if __name__ == "__main__":

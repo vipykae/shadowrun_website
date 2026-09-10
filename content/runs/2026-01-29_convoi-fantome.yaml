@@ -1,0 +1,15 @@
+id: convoi-fantome
+titre: "Le convoi fantôme"
+district: tacoma
+position: [854, 2482]
+date: 2026-01-29T20:30
+duree_estimee: 3h
+difficulte: 3
+tags: [escorte, combat, docks]
+places: 4
+statut: complete
+synopsis: >
+  Trois camions quittent les docks de Tacoma à minuit. Cargaison
+  inconnue, itinéraire secret, et déjà deux équipes d'interception
+  signalées sur le trajet.
+compte_rendu: null

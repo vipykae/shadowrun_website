@@ -1,0 +1,5 @@
+# La carte affichée. Les coordonnées (polygones des districts, positions
+# des pins) sont en pixels de cette image, origine en haut à gauche.
+image: carte_seattle_web.jpg
+largeur: 2048
+hauteur: 3974

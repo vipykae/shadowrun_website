@@ -178,19 +178,23 @@ Autres mesures :
 
 ## 6. Roadmap
 
-### V0 — Maquette statique (validation UX/DA)
+### V0 — Maquette statique (validation UX/DA) ✅ FAIT
 Objectif : voir la carte et le thème, valider l'ergonomie avant tout backend.
 - Page unique servie en statique : thème cyberpunk (noir/bleu, fond mesh).
 - Carte image dans Leaflet, 2–3 districts polygonés à la main, 3 pins factices.
 - Infobulle district au survol, sidebar run au clic (données en dur dans un JS).
 - **Livrable : une page qu'on ouvre en local et qu'on valide ensemble.**
 
-### V1 — MVP jouable (mise en ligne)
+### V1 — MVP jouable (mise en ligne) ✅ DÉVELOPPÉE (reste : déploiement Pi)
 Objectif : les joueuses s'inscrivent réellement depuis chez elles.
-- Backend FastAPI : login 2 rôles, chargement YAML, API carte, inscriptions SQLite.
-- Tous les districts polygonés, contenu réel des premières runs.
-- Inscription/désinscription par nom, compteur de places, statut « complète ».
-- Docker Compose (app + Caddy), déploiement sur la Pi, HTTPS, sauvegardes.
+- ✅ Backend FastAPI : login 2 rôles (cookie signé), chargement YAML, API carte,
+  inscriptions SQLite (WAL), rate limiting login, échappement des entrées.
+- ✅ Tous les districts polygonés, contenu réel des premières runs.
+- ✅ Inscription/désinscription par nom, compteur de places, statut « complète ».
+- ✅ Écran de login, bouton MJ « recharger le contenu », déconnexion.
+- ✅ Docker Compose (app + Caddy) + Caddyfile + .env.example prêts.
+- ⏳ Reste à faire par la MJ : déploiement sur la Pi, DNS/domaine, HTTPS réel,
+  sauvegardes nocturnes de `data/app.db`.
 - Cartographie des districts : tracé des polygones **à la main avec labelme**
   (outil Python d'annotation d'images : `pip install labelme`, polygones à la
   souris, export JSON en coordonnées pixel) + petit script de conversion

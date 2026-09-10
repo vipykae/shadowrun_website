@@ -1,0 +1,15 @@
+id: extraction-euphoria
+titre: "Extraction : Euphoria"
+district: redmond
+position: [1629, 993]
+date: 2026-01-15T20:30
+duree_estimee: 3h30
+difficulte: 2   # 1 à 5
+tags: [infiltration, matrice]
+places: 4
+statut: ouverte   # ouverte | complete | jouee | annulee
+synopsis: >
+  Un Johnson au costume trop propre veut récupérer Euphoria, chanteuse
+  de synth-rock retenue dans un squat fortifié des Barrens. Discrétion
+  exigée — les Crimson Crush n'aiment pas les visites.
+compte_rendu: null

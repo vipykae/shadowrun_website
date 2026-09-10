@@ -1,0 +1,33 @@
+# Lancement depuis le dossier deploy/ :
+#   cp .env.example .env   puis remplir .env (voir scripts/genere_hash.py)
+#   docker compose up -d --build
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ../content:/app/content:ro
+      - donnees:/app/data
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - DOMAINE=${DOMAINE}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+
+volumes:
+  donnees:
+  caddy_data:
+  caddy_config:

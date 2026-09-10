@@ -1,0 +1,15 @@
+id: data-heist-mitsuhama
+titre: "Data heist : tour Mitsuhama"
+district: downtown-seattle
+position: [993, 1390]
+date: 2026-01-22T20:30
+duree_estimee: 4h
+difficulte: 4
+tags: [corpo, matrice, haute sécurité]
+places: 5
+statut: ouverte
+synopsis: >
+  Une puce de recherche dort au 47e étage de la tour Mitsuhama.
+  Le commanditaire paie triple tarif. Personne ne paie triple tarif
+  sans une bonne raison.
+compte_rendu: null

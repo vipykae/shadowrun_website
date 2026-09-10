@@ -18,8 +18,9 @@
       <span class="subtitle">tableau des runs</span>
     </div>
     <div class="topbar-right">
-      <span class="badge badge-v0">V0 · MAQUETTE</span>
-      <span class="badge badge-role">ACCÈS : JOUEUSE</span>
+      <button id="btn-reload" class="badge badge-bouton" hidden title="Recharger les fichiers YAML">⟳ CONTENU</button>
+      <span id="badge-role" class="badge badge-role"></span>
+      <button id="btn-logout" class="badge badge-bouton" hidden title="Se déconnecter">⏻</button>
     </div>
   </header>
 
@@ -30,15 +31,24 @@
     <div id="sidebar-content"></div>
   </aside>
 
+  <div id="login" class="login-overlay" hidden>
+    <form id="login-form" class="login-panel">
+      <div class="login-glyph">◢◤</div>
+      <h2>SEATTLE<span class="accent">//</span>2080</h2>
+      <p class="login-sub">Identifie-toi, runneuse.</p>
+      <input id="login-mdp" type="password" placeholder="Phrase de passe…" autocomplete="current-password">
+      <button class="btn" type="submit">Connexion</button>
+      <div id="login-erreur" class="login-erreur"></div>
+    </form>
+  </div>
+
   <footer class="statusbar">
     <span id="status-coords">—</span>
     <span class="status-sep">|</span>
-    <span>3 runs affichées · données factices</span>
+    <span id="status-runs">connexion…</span>
   </footer>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-  <script src="districts.generated.js"></script>
-  <script src="data.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

@@ -1,0 +1,5 @@
+fastapi>=0.115
+uvicorn[standard]>=0.30
+pyyaml>=6.0
+itsdangerous>=2.2
+argon2-cffi>=23.1
