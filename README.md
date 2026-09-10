@@ -27,11 +27,24 @@ python -m http.server 8300
 
 puis ouvrir http://localhost:8300/frontend/
 
+## Districts : du tracé labelme au site
+
+Les districts sont tracés dans labelme sur `content/carte/carte_seattle_web.jpg`
+(un polygone par district, le label devient le nom affiché). Après un nouveau
+tracé ou une retouche :
+
+```
+python scripts/labelme_vers_districts.py
+```
+
+Le script simplifie les polygones et régénère `content/districts.yaml`
+(source de vérité, éditable : gangs, description, runs jouées — ces champs
+sont préservés à la régénération) et `frontend/districts.generated.js`
+(consommé par le site, à ne pas éditer). Dépendance : `pip install pyyaml`.
+
 ## Notes V0
 
-- Données factices en dur dans `frontend/data.js` (3 districts, 3 runs).
+- Les runs restent factices dans `frontend/data.js` (3 runs).
 - L'inscription fonctionne mais reste en mémoire (perdue au rechargement).
 - La barre de statut en bas affiche les coordonnées pixel sous le curseur —
   pratique pour relever la position d'un pin.
-- Les polygones réels des districts seront tracés avec labelme sur
-  `content/carte/carte_seattle_web.jpg`.

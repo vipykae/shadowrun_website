@@ -12,47 +12,8 @@ const CARTE = {
   hauteur: 3974,
 };
 
-// Polygones tracés grossièrement pour la maquette.
-// Les vrais tracés seront faits avec labelme sur l'image web.
-const DISTRICTS = [
-  {
-    id: "redmond",
-    nom: "Redmond Barrens",
-    gang_dominant: "Crimson Crush",
-    gangs_presents: ["Halloweeners", "Rusted Stilettos"],
-    runs_jouees: ["Blackout au Glow City"],
-    polygone: [
-      [1390, 655], [1649, 596], [1787, 655], [1907, 854], [1927, 1112],
-      [1847, 1370], [1708, 1648], [1589, 1549], [1470, 1390], [1390, 1231],
-      [1430, 1072], [1351, 933], [1370, 794],
-    ],
-  },
-  {
-    id: "seattle",
-    nom: "Seattle Downtown",
-    gang_dominant: "First Nations",
-    gangs_presents: ["Troll Killers", "Disassemblers"],
-    runs_jouees: [],
-    polygone: [
-      [884, 834], [1053, 854], [1112, 993], [1192, 1112], [1211, 1271],
-      [1192, 1450], [1152, 1628], [1192, 1787], [1172, 1986], [1112, 2105],
-      [1033, 2046], [953, 1887], [913, 1708], [894, 1509], [874, 1291],
-      [854, 1072], [844, 933],
-    ],
-  },
-  {
-    id: "tacoma",
-    nom: "Tacoma",
-    gang_dominant: "Kabuki Ronin",
-    gangs_presents: ["Eye-Fivers"],
-    runs_jouees: [],
-    polygone: [
-      [655, 2383], [854, 2244], [1033, 2145], [1112, 2224], [1152, 2343],
-      [1132, 2502], [1072, 2641], [953, 2760], [794, 2820], [655, 2780],
-      [576, 2641], [596, 2502],
-    ],
-  },
-];
+// Les districts (avec leurs polygones tracés dans labelme) sont dans
+// districts.generated.js — régénéré par scripts/labelme_vers_districts.py.
 
 const RUNS = [
   {
@@ -75,7 +36,7 @@ const RUNS = [
   {
     id: "data-heist-mitsuhama",
     titre: "Data heist : tour Mitsuhama",
-    district: "seattle",
+    district: "downtown-seattle",
     position: [993, 1390],
     date: "2026-01-22T20:30",
     duree_estimee: "4h",
