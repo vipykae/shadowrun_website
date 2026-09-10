@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Données dynamiques (SQLite) — jamais versionnées
+data/
+*.db
+
+# Secrets
+.env
+
+# OS / IDE
+Thumbs.db
+.DS_Store
+.vscode/
+.idea/
+ShadowRun_Anarchy.pdf

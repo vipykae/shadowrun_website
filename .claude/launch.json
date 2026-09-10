@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "site-v0",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "8300"],
+      "port": 8300
+    }
+  ]
+}

@@ -1,0 +1,354 @@
+/* ============================================================
+   Thème cyberpunk — noir & bleu néon
+   ============================================================ */
+
+:root {
+  --bg: #06080f;
+  --bg-panel: #0a0f1c;
+  --bg-panel-2: #0d1526;
+  --neon: #29b6ff;
+  --neon-dim: #1477b8;
+  --neon-glow: rgba(41, 182, 255, 0.55);
+  --magenta: #ff2e88;
+  --text: #cfe6f5;
+  --text-dim: #7c93a6;
+  --danger: #ff4d4d;
+  --ok: #38e88b;
+  --border: rgba(41, 182, 255, 0.25);
+  --font-title: "Orbitron", sans-serif;
+  --font-body: "Rajdhani", sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  overflow: hidden;
+}
+
+/* ---------- Barre du haut ---------- */
+
+.topbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 56px;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 18px;
+  background: linear-gradient(180deg, rgba(10, 15, 28, 0.97), rgba(10, 15, 28, 0.88));
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 0 24px rgba(41, 182, 255, 0.12);
+}
+
+.topbar-title {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.topbar-title .glyph {
+  color: var(--neon);
+  font-size: 18px;
+  text-shadow: 0 0 8px var(--neon-glow);
+}
+
+.topbar h1 {
+  font-family: var(--font-title);
+  font-weight: 900;
+  font-size: 20px;
+  letter-spacing: 3px;
+  color: #fff;
+  text-shadow: 0 0 12px var(--neon-glow);
+}
+
+.topbar h1 .accent { color: var(--neon); }
+
+.topbar .subtitle {
+  font-size: 14px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.topbar-right { display: flex; gap: 10px; }
+
+.badge {
+  font-family: var(--font-title);
+  font-size: 10px;
+  letter-spacing: 2px;
+  padding: 5px 10px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  color: var(--text-dim);
+  background: rgba(41, 182, 255, 0.05);
+}
+
+.badge-v0 { color: var(--magenta); border-color: rgba(255, 46, 136, 0.4); }
+.badge-role { color: var(--neon); }
+
+/* ---------- Carte ---------- */
+
+#map {
+  position: fixed;
+  inset: 56px 0 30px 0;
+  background: var(--bg);
+  cursor: crosshair;
+}
+
+.leaflet-container { background: var(--bg); font-family: var(--font-body); }
+
+/* Contrôles zoom */
+.leaflet-bar a {
+  background: var(--bg-panel) !important;
+  color: var(--neon) !important;
+  border-color: var(--border) !important;
+}
+.leaflet-bar a:hover { background: var(--bg-panel-2) !important; }
+
+/* ---------- Infobulle district ---------- */
+
+.leaflet-tooltip.district-tip {
+  background: var(--bg-panel);
+  border: 1px solid var(--neon-dim);
+  border-radius: 4px;
+  box-shadow: 0 0 18px rgba(41, 182, 255, 0.25);
+  color: var(--text);
+  padding: 10px 14px;
+  max-width: 260px;
+  white-space: normal;
+}
+.leaflet-tooltip.district-tip::before { display: none; }
+
+.district-tip h3 {
+  font-family: var(--font-title);
+  font-size: 13px;
+  letter-spacing: 1.5px;
+  color: var(--neon);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.district-tip .tip-row { font-size: 14px; line-height: 1.45; }
+.district-tip .tip-label { color: var(--text-dim); text-transform: uppercase; font-size: 11px; letter-spacing: 1px; }
+.district-tip .tip-runs { margin-top: 6px; font-size: 13px; color: var(--text-dim); font-style: italic; }
+
+/* ---------- Pins ---------- */
+
+.pin {
+  position: relative;
+  width: 22px;
+  height: 22px;
+}
+
+.pin .pin-core {
+  position: absolute;
+  inset: 5px;
+  border-radius: 50%;
+  background: var(--neon);
+  box-shadow: 0 0 10px var(--neon-glow), 0 0 22px var(--neon-glow);
+}
+
+.pin .pin-ring {
+  position: absolute;
+  inset: 0;
+  border: 2px solid var(--neon);
+  border-radius: 50%;
+  animation: pin-pulse 2s ease-out infinite;
+}
+
+.pin.pin-complete .pin-core { background: var(--magenta); box-shadow: 0 0 10px rgba(255,46,136,.5); }
+.pin.pin-complete .pin-ring { border-color: var(--magenta); animation: none; opacity: .5; }
+
+@keyframes pin-pulse {
+  0%   { transform: scale(0.7); opacity: 1; }
+  100% { transform: scale(2.1); opacity: 0; }
+}
+
+/* ---------- Sidebar run ---------- */
+
+.sidebar {
+  position: fixed;
+  top: 56px; bottom: 30px; right: 0;
+  width: min(400px, 92vw);
+  z-index: 1200;
+  background: linear-gradient(200deg, var(--bg-panel-2), var(--bg-panel));
+  border-left: 1px solid var(--neon-dim);
+  box-shadow: -8px 0 30px rgba(0, 0, 0, 0.6), inset 1px 0 0 rgba(41,182,255,.15);
+  transform: translateX(105%);
+  transition: transform 0.28s cubic-bezier(.2,.8,.25,1);
+  overflow-y: auto;
+  padding: 22px;
+}
+
+.sidebar.open { transform: translateX(0); }
+
+.sidebar-close {
+  position: absolute;
+  top: 10px; right: 12px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  color: var(--text-dim);
+  font-size: 14px;
+  width: 30px; height: 30px;
+  cursor: pointer;
+}
+.sidebar-close:hover { color: var(--neon); border-color: var(--neon); }
+
+.run-kicker {
+  font-family: var(--font-title);
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+
+.run-titre {
+  font-family: var(--font-title);
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 0 14px var(--neon-glow);
+  margin: 6px 0 16px;
+  line-height: 1.3;
+}
+
+.run-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.meta-item {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 8px 10px;
+  background: rgba(41, 182, 255, 0.04);
+}
+
+.meta-item .meta-label {
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.meta-item .meta-value { font-size: 16px; font-weight: 600; color: var(--text); }
+
+.difficulte { color: var(--neon); letter-spacing: 2px; }
+
+.run-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+
+.tag {
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--neon);
+  border: 1px solid var(--neon-dim);
+  border-radius: 999px;
+  padding: 2px 10px;
+  background: rgba(41, 182, 255, 0.07);
+}
+
+.run-synopsis {
+  font-size: 15.5px;
+  line-height: 1.55;
+  color: var(--text);
+  border-left: 2px solid var(--neon-dim);
+  padding-left: 12px;
+  margin-bottom: 20px;
+}
+
+.section-title {
+  font-family: var(--font-title);
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--neon);
+  margin-bottom: 8px;
+}
+
+.inscrites { list-style: none; margin-bottom: 14px; }
+
+.inscrites li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 2px;
+  font-size: 15px;
+  border-bottom: 1px dashed rgba(41, 182, 255, 0.15);
+}
+
+.inscrites li::before {
+  content: "▸";
+  color: var(--neon);
+  font-size: 12px;
+}
+
+.slot-libre { color: var(--text-dim); font-style: italic; }
+
+.inscription-form { display: flex; gap: 8px; margin-top: 4px; }
+
+.inscription-form input {
+  flex: 1;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 15px;
+  padding: 8px 10px;
+  outline: none;
+}
+.inscription-form input:focus { border-color: var(--neon); box-shadow: 0 0 8px rgba(41,182,255,.25); }
+
+.btn {
+  font-family: var(--font-title);
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--bg);
+  background: var(--neon);
+  border: none;
+  border-radius: 3px;
+  padding: 8px 14px;
+  cursor: pointer;
+  box-shadow: 0 0 12px rgba(41, 182, 255, 0.35);
+}
+.btn:hover { background: #5ecbff; }
+.btn:disabled { background: var(--text-dim); cursor: not-allowed; box-shadow: none; }
+
+.statut-complete {
+  color: var(--magenta);
+  font-family: var(--font-title);
+  font-size: 11px;
+  letter-spacing: 2px;
+}
+
+/* ---------- Barre de statut ---------- */
+
+.statusbar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: 30px;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  font-size: 12.5px;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+  background: var(--bg-panel);
+  border-top: 1px solid var(--border);
+}
+
+.status-sep { color: var(--neon-dim); }
+
+#status-coords { color: var(--neon); font-variant-numeric: tabular-nums; }
