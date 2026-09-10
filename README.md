@@ -40,8 +40,15 @@ passe **`joueuse`** et **`mj`** (à ne jamais utiliser en production).
 - **Créer une run** : ajouter un fichier dans `content/runs/` (voir les
   exemples). L'`id` doit être unique ; `position: [x, y]` en pixels de la carte
   (les coordonnées s'affichent en bas de l'écran au survol) ; `district` doit
-  correspondre à un `id` de `content/districts.yaml` ; `statut` vaut
-  `ouverte`, `complete`, `jouee` ou `annulee`.
+  correspondre à un `id` de `content/districts.yaml`.
+- **Cycle de vie d'une run** (`statut`) : `ouverte` (inscriptions possibles)
+  → `complete` (tu fermes les inscriptions à la main) → `jouee` après la
+  séance, en remplissant `compte_rendu`. Les runs `jouee` et `annulee`
+  disparaissent de la carte par défaut ; le bouton « ○ RUNS JOUÉES » en haut
+  les affiche (pins en pointillés), et elles restent listées dans la fiche
+  de leur district, cliquables pour relire le compte rendu.
+- Le champ `runs_jouees` de `districts.yaml` sert uniquement d'historique
+  texte pour les runs d'avant le site (non cliquables).
 - **Éditer les districts** : remplir gangs / description dans
   `content/districts.yaml`.
 - **Prendre en compte les changements** : bouton « ⟳ CONTENU » en haut à

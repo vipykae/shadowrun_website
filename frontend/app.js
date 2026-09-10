@@ -9,6 +9,21 @@ let DONNEES = null;   // { carte, districts, runs }
 let map = null;
 const marqueurs = {}; // run.id -> marker Leaflet
 
+// Filtre : par défaut on ne montre que les runs à venir.
+let afficherJouees = false;
+try { afficherJouees = localStorage.getItem("afficherJouees") === "1"; } catch {}
+
+// ---------- Statuts ----------
+// ouverte | complete  -> run à venir (inscriptions possibles ou équipe pleine)
+// jouee               -> run passée, visible avec le filtre « runs jouées »
+// annulee             -> visible avec le filtre aussi, grisée
+
+const statutDe = (run) => run.statut || "ouverte";
+const estAVenir = (run) => ["ouverte", "complete"].includes(statutDe(run));
+const estJouee = (run) => statutDe(run) === "jouee";
+const estComplete = (run) => statutDe(run) === "complete" || run.inscrites.length >= run.places;
+const estVisible = (run) => estAVenir(run) || afficherJouees;
+
 // ---------- Appels API ----------
 
 async function api(chemin, corps) {
@@ -62,14 +77,13 @@ async function chargerEtAfficher() {
   DONNEES = await api("/api/carte");
   ROLE = DONNEES.role;
 
-  const badge = document.getElementById("badge-role");
-  badge.textContent = `ACCÈS : ${ROLE === "mj" ? "MJ" : "JOUEUSE"}`;
+  document.getElementById("badge-role").textContent = `ACCÈS : ${ROLE === "mj" ? "MJ" : "JOUEUSE"}`;
   document.getElementById("btn-reload").hidden = ROLE !== "mj";
   document.getElementById("btn-logout").hidden = false;
-  document.getElementById("status-runs").textContent =
-    `${DONNEES.runs.length} run${DONNEES.runs.length > 1 ? "s" : ""} · ${DONNEES.districts.length} districts`;
+  document.getElementById("btn-filtre").hidden = false;
 
   initCarte();
+  appliquerFiltre();
 }
 
 document.getElementById("btn-logout").addEventListener("click", async () => {
@@ -86,22 +100,46 @@ document.getElementById("btn-reload").addEventListener("click", async () => {
   }
 });
 
+document.getElementById("btn-filtre").addEventListener("click", () => {
+  afficherJouees = !afficherJouees;
+  try { localStorage.setItem("afficherJouees", afficherJouees ? "1" : "0"); } catch {}
+  appliquerFiltre();
+});
+
+// ---------- Filtre ----------
+
+function appliquerFiltre() {
+  DONNEES.runs.forEach((run) => {
+    const marqueur = marqueurs[run.id];
+    if (estVisible(run)) marqueur.addTo(map);
+    else marqueur.remove();
+  });
+
+  const bouton = document.getElementById("btn-filtre");
+  bouton.textContent = afficherJouees ? "◉ RUNS JOUÉES" : "○ RUNS JOUÉES";
+  bouton.classList.toggle("badge-actif", afficherJouees);
+  bouton.title = afficherJouees ? "Masquer les runs jouées" : "Afficher les runs jouées";
+
+  const aVenir = DONNEES.runs.filter(estAVenir).length;
+  const jouees = DONNEES.runs.filter(estJouee).length;
+  document.getElementById("status-runs").textContent =
+    `${aVenir} run${aVenir > 1 ? "s" : ""} à venir · ${jouees} jouée${jouees > 1 ? "s" : ""} · ${DONNEES.districts.length} districts`;
+}
+
 // ---------- Carte ----------
 
 function px(x, y) {
   return [DONNEES.carte.hauteur - y, x];
 }
 
-function estComplete(run) {
-  return run.statut !== "ouverte" || run.inscrites.length >= run.places;
-}
-
 function iconePour(run) {
+  let classe = "";
+  if (estJouee(run)) classe = "pin-jouee";
+  else if (statutDe(run) === "annulee") classe = "pin-annulee";
+  else if (estComplete(run)) classe = "pin-complete";
   return L.divIcon({
     className: "",
-    html: `<div class="pin ${estComplete(run) ? "pin-complete" : ""}">
-             <div class="pin-ring"></div><div class="pin-core"></div>
-           </div>`,
+    html: `<div class="pin ${classe}"><div class="pin-ring"></div><div class="pin-core"></div></div>`,
     iconSize: [22, 22],
     iconAnchor: [11, 11],
   });
@@ -112,6 +150,7 @@ function initCarte() {
   const W = DONNEES.carte.largeur;
 
   if (map) { map.remove(); map = null; }
+  for (const id in marqueurs) delete marqueurs[id];
 
   map = L.map("map", {
     crs: L.CRS.Simple,
@@ -133,27 +172,23 @@ function initCarte() {
       opacity: 0.35,
       fillColor: "#29b6ff",
       fillOpacity: 0.03,
+      // Le clic sur un district ne doit pas remonter jusqu'à la carte
+      // (qui, elle, ferme la sidebar).
+      bubblingMouseEvents: false,
     }).addTo(map);
 
     poly.bindTooltip(d.nom, { className: "district-label", sticky: true, direction: "top" });
     poly.on("mouseover", () => poly.setStyle({ opacity: 0.9, fillOpacity: 0.12, weight: 2 }));
     poly.on("mouseout", () => poly.setStyle({ opacity: 0.35, fillOpacity: 0.03, weight: 1.5 }));
-    poly.on("click", () => {
-      clicSurCouche = true;
-      ouvrirSidebarDistrict(d);
-    });
+    poly.on("click", () => ouvrirSidebarDistrict(d));
   });
 
   DONNEES.runs.forEach((run) => {
     marqueurs[run.id] = L.marker(px(run.position[0], run.position[1]), { icon: iconePour(run) })
-      .addTo(map)
       .on("click", () => ouvrirSidebarRun(run));
   });
 
-  map.on("click", () => {
-    if (clicSurCouche) { clicSurCouche = false; return; }
-    fermerSidebar();
-  });
+  map.on("click", fermerSidebar);
 
   map.on("mousemove", (evt) => {
     const x = Math.round(evt.latlng.lng);
@@ -168,10 +203,6 @@ const sidebar = document.getElementById("sidebar");
 const sidebarContent = document.getElementById("sidebar-content");
 document.getElementById("sidebar-close").addEventListener("click", fermerSidebar);
 
-// Un clic sur un polygone déclenche aussi le clic carte : ce drapeau
-// évite que la sidebar se referme aussitôt ouverte.
-let clicSurCouche = false;
-
 function fermerSidebar() {
   sidebar.classList.remove("open");
   sidebar.setAttribute("aria-hidden", "true");
@@ -180,41 +211,64 @@ function fermerSidebar() {
 function ouvrirSidebar() {
   sidebar.classList.add("open");
   sidebar.setAttribute("aria-hidden", "false");
+  sidebar.scrollTop = 0;
 }
 
 const runsParDistrict = (id) => DONNEES.runs.filter((r) => r.district === id);
 
+function formaterDate(valeur) {
+  const date = new Date(valeur);
+  if (isNaN(date)) return String(valeur ?? "date à venir");
+  return date.toLocaleString("fr-FR", {
+    weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit",
+  });
+}
+
+function libelleStatut(run) {
+  switch (statutDe(run)) {
+    case "jouee": return "RUN JOUÉE";
+    case "annulee": return "RUN ANNULÉE";
+    case "complete": return "INSCRIPTIONS FERMÉES";
+    default: return run.inscrites.length >= run.places ? "ÉQUIPE COMPLÈTE" : "";
+  }
+}
+
 function ouvrirSidebarRun(run) {
   const district = DONNEES.districts.find((d) => d.id === run.district);
-  const complete = estComplete(run);
-
-  const date = new Date(run.date);
-  const dateFmt = isNaN(date)
-    ? String(run.date ?? "date à venir")
-    : date.toLocaleString("fr-FR", {
-        weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit",
-      });
-
-  const lignes = run.inscrites.map(
-    (nom) => `<li><span class="ins-nom">${echapper(nom)}</span>
-              <button class="ins-suppr" data-nom="${echapper(nom)}" title="Désinscrire">✕</button></li>`
-  );
-  for (let i = run.inscrites.length; i < run.places; i++) {
-    lignes.push(`<li class="slot-libre">— place libre —</li>`);
-  }
-
-  const formulaire = complete
-    ? `<div class="statut-complete">▮ ${run.statut === "ouverte" ? "ÉQUIPE COMPLÈTE" : "INSCRIPTIONS FERMÉES"}</div>`
-    : `<div class="inscription-form">
-         <input id="nom-joueuse" type="text" maxlength="30" placeholder="Ton nom de runneuse…">
-         <button class="btn" id="btn-inscription">S'inscrire</button>
-       </div>`;
-
+  const aVenir = estAVenir(run);
+  const inscriptionsOuvertes = statutDe(run) === "ouverte" && run.inscrites.length < run.places;
   const difficulte = Math.max(1, Math.min(5, run.difficulte || 1));
 
+  const lignes = run.inscrites.map((nom) =>
+    `<li><span class="ins-nom">${echapper(nom)}</span>
+     ${aVenir ? `<button class="ins-suppr" data-nom="${echapper(nom)}" title="Désinscrire">✕</button>` : ""}</li>`
+  );
+  if (aVenir) {
+    for (let i = run.inscrites.length; i < run.places; i++) {
+      lignes.push(`<li class="slot-libre">— place libre —</li>`);
+    }
+  } else if (!run.inscrites.length) {
+    lignes.push(`<li class="slot-libre">Équipe non renseignée.</li>`);
+  }
+
+  let pied;
+  if (inscriptionsOuvertes) {
+    pied = `<div class="inscription-form">
+              <input id="nom-joueuse" type="text" maxlength="30" placeholder="Ton nom de runneuse…">
+              <button class="btn" id="btn-inscription">S'inscrire</button>
+            </div>`;
+  } else {
+    pied = `<div class="statut-complete ${estJouee(run) ? "statut-jouee" : ""}">▮ ${libelleStatut(run)}</div>`;
+  }
+
+  const compteRendu = estJouee(run) && run.compte_rendu
+    ? `<div class="section-title">Compte rendu</div>
+       <p class="run-synopsis compte-rendu">${echapper(run.compte_rendu)}</p>`
+    : "";
+
   sidebarContent.innerHTML = `
-    <div class="run-kicker">${district ? `<span class="kicker-lien" id="lien-district">${echapper(district.nom)}</span> · ` : ""}${dateFmt}</div>
-    <div class="run-titre">${echapper(run.titre)}</div>
+    <div class="run-kicker">${district ? `<span class="kicker-lien" id="lien-district">${echapper(district.nom)}</span> · ` : ""}${formaterDate(run.date)}</div>
+    <div class="run-titre ${estJouee(run) ? "run-titre-jouee" : ""}">${echapper(run.titre)}</div>
     <div class="run-meta">
       <div class="meta-item"><div class="meta-label">Difficulté</div>
         <div class="meta-value difficulte">${"◆".repeat(difficulte)}${"◇".repeat(5 - difficulte)}</div></div>
@@ -223,9 +277,10 @@ function ouvrirSidebarRun(run) {
     </div>
     <div class="run-tags">${(run.tags || []).map((t) => `<span class="tag">${echapper(t)}</span>`).join("")}</div>
     <p class="run-synopsis">${echapper(run.synopsis || "")}</p>
-    <div class="section-title">Équipe (${run.inscrites.length}/${run.places})</div>
+    ${compteRendu}
+    <div class="section-title">Équipe${aVenir ? ` (${run.inscrites.length}/${run.places})` : ""}</div>
     <ul class="inscrites">${lignes.join("")}</ul>
-    ${formulaire}
+    ${pied}
     <div class="sidebar-erreur" id="sidebar-erreur"></div>
   `;
 
@@ -266,24 +321,34 @@ async function modifierInscription(run, action, nom) {
   }
 }
 
+function ligneRun(run) {
+  const jouee = estJouee(run);
+  const complete = !jouee && estComplete(run);
+  const droite = jouee
+    ? formaterDate(run.date).split(" à ")[0]
+    : complete ? "COMPLÈTE" : `${run.inscrites.length}/${run.places}`;
+  return `<li class="run-lien ${complete ? "run-lien-complete" : ""} ${jouee ? "run-lien-jouee" : ""}" data-run="${run.id}">
+            <span class="run-lien-titre">${echapper(run.titre)}</span>
+            <span class="run-lien-places">${echapper(droite)}</span>
+          </li>`;
+}
+
 function ouvrirSidebarDistrict(d) {
   const runs = runsParDistrict(d.id);
+  const disponibles = runs.filter(estAVenir);
+  const jouees = runs.filter(estJouee);
 
-  const listeRuns = runs.length
-    ? runs
-        .map((r) => {
-          const complete = estComplete(r);
-          return `<li class="run-lien ${complete ? "run-lien-complete" : ""}" data-run="${r.id}">
-                    <span class="run-lien-titre">${echapper(r.titre)}</span>
-                    <span class="run-lien-places">${complete ? "COMPLÈTE" : `${r.inscrites.length}/${r.places}`}</span>
-                  </li>`;
-        })
-        .join("")
+  const listeDisponibles = disponibles.length
+    ? disponibles.map(ligneRun).join("")
     : `<li class="slot-libre">Aucune run proposée ici pour le moment.</li>`;
 
-  const runsJouees = (d.runs_jouees || []).length
-    ? `<ul class="inscrites">${d.runs_jouees.map((r) => `<li>${echapper(r)}</li>`).join("")}</ul>`
-    : `<p class="slot-libre">Aucune run jouée ici… pour l'instant.</p>`;
+  // Runs jouées via le site (cliquables) + historique saisi à la main dans
+  // districts.yaml (simples libellés, pour les runs d'avant le site).
+  const historique = (d.runs_jouees || []).map((r) => `<li class="run-lien run-lien-histo">
+      <span class="run-lien-titre">${echapper(r)}</span></li>`);
+  const listeJouees = jouees.length || historique.length
+    ? jouees.map(ligneRun).join("") + historique.join("")
+    : `<li class="slot-libre">Aucune run jouée ici… pour l'instant.</li>`;
 
   sidebarContent.innerHTML = `
     <div class="run-kicker">District</div>
@@ -296,9 +361,9 @@ function ouvrirSidebarDistrict(d) {
     </div>
     ${d.description ? `<p class="run-synopsis">${echapper(d.description)}</p>` : ""}
     <div class="section-title">Runs disponibles</div>
-    <ul class="runs-district">${listeRuns}</ul>
+    <ul class="runs-district">${listeDisponibles}</ul>
     <div class="section-title">Runs jouées</div>
-    ${runsJouees}
+    <ul class="runs-district">${listeJouees}</ul>
   `;
 
   sidebarContent.querySelectorAll(".run-lien[data-run]").forEach((li) => {

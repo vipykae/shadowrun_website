@@ -98,6 +98,7 @@ html, body {
   transition: border-color 0.15s, color 0.15s;
 }
 .badge-bouton:hover { color: #fff; border-color: var(--neon); }
+.badge-actif { color: var(--neon); border-color: var(--neon); background: rgba(41, 182, 255, 0.12); }
 
 /* ---------- Carte ---------- */
 
@@ -160,6 +161,14 @@ html, body {
 
 .pin.pin-complete .pin-core { background: var(--magenta); box-shadow: 0 0 10px rgba(255,46,136,.5); }
 .pin.pin-complete .pin-ring { border-color: var(--magenta); animation: none; opacity: .5; }
+
+/* Run jouée : pin éteint, cerclé, sans pulsation */
+.pin.pin-jouee .pin-core { background: var(--bg-panel); box-shadow: inset 0 0 0 2px var(--text-dim); }
+.pin.pin-jouee .pin-ring { border-color: var(--text-dim); border-style: dashed; animation: none; opacity: .7; }
+
+/* Run annulée : rouge sombre */
+.pin.pin-annulee .pin-core { background: var(--danger); opacity: .6; box-shadow: none; }
+.pin.pin-annulee .pin-ring { border-color: var(--danger); animation: none; opacity: .3; }
 
 @keyframes pin-pulse {
   0%   { transform: scale(0.7); opacity: 1; }
@@ -276,6 +285,17 @@ html, body {
 }
 
 .run-lien-complete .run-lien-places { color: var(--magenta); }
+
+.runs-district .run-lien-jouee { border-style: dashed; opacity: 0.8; }
+.run-lien-jouee .run-lien-places { color: var(--text-dim); }
+
+/* Historique saisi à la main (pas de fiche à ouvrir) */
+.runs-district .run-lien-histo { cursor: default; border-style: dashed; opacity: 0.6; }
+.runs-district .run-lien-histo:hover { border-color: var(--border); background: rgba(41, 182, 255, 0.04); }
+
+.run-titre-jouee { color: var(--text-dim); text-shadow: none; }
+.statut-complete.statut-jouee { color: var(--text-dim); }
+.compte-rendu { border-left-color: var(--text-dim); color: var(--text); font-style: italic; }
 
 .difficulte { color: var(--neon); letter-spacing: 2px; }
 

@@ -345,8 +345,7 @@
   - Halloweeners
   - Rusted Stilettos
   description: ''
-  runs_jouees:
-  - Blackout au Glow City
+  runs_jouees: []
   polygone:
   - - 1914
     - 1688

@@ -1,0 +1,18 @@
+id: blackout-glow-city
+titre: "Blackout au Glow City"
+district: redmond
+position: [1760, 1180]
+date: 2025-12-11T20:30
+duree_estimee: 3h
+difficulte: 3
+tags: [sabotage, radioactif]
+places: 4
+statut: jouee
+synopsis: >
+  Couper l'alimentation d'un labo clandestin planqué dans la zone
+  irradiée de Glow City, sans se faire repérer par les Rusted Stilettos
+  qui en gardent l'entrée.
+compte_rendu: >
+  Le labo a bien été plongé dans le noir, mais l'équipe a laissé derrière
+  elle un drone de surveillance intact. Les Rusted Stilettos savent
+  désormais qu'on leur a rendu visite. Contrat payé, réputation entamée.
