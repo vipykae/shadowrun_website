@@ -55,6 +55,7 @@ async function demarrer() {
 function afficherLogin() {
   document.getElementById("login").hidden = false;
   document.getElementById("login-mdp").focus();
+  effets.glitcher(document.querySelector(".login-panel h2"));
 }
 
 document.getElementById("login-form").addEventListener("submit", async (evt) => {
@@ -69,6 +70,7 @@ document.getElementById("login-form").addEventListener("submit", async (evt) => 
     await chargerEtAfficher();
   } catch (e) {
     erreur.textContent = e.message;
+    effets.secouer(document.querySelector(".login-panel"));
     champ.select();
   }
 });
@@ -161,7 +163,12 @@ function initCarte() {
   });
 
   const bornes = [[0, 0], [H, W]];
-  L.imageOverlay("/api/carte/image", bornes).addTo(map);
+  const conteneur = document.getElementById("map");
+  conteneur.classList.remove("pret");
+  const image = L.imageOverlay("/api/carte/image", bornes);
+  image.on("load", () => conteneur.classList.add("pret"));
+  setTimeout(() => conteneur.classList.add("pret"), 2500); // filet de sécurité
+  image.addTo(map);
   map.fitBounds(bornes);
   map.setMaxBounds([[-H * 0.1, -W * 0.1], [H * 1.1, W * 1.1]]);
 
@@ -212,6 +219,8 @@ function ouvrirSidebar() {
   sidebar.classList.add("open");
   sidebar.setAttribute("aria-hidden", "false");
   sidebar.scrollTop = 0;
+  const titre = sidebarContent.querySelector(".run-titre");
+  if (titre) effets.decoder(titre);
 }
 
 const runsParDistrict = (id) => DONNEES.runs.filter((r) => r.district === id);
@@ -429,4 +438,5 @@ function echapper(texte) {
     .replaceAll("'", "&#39;");
 }
 
+effets.glitchPeriodique(document.querySelector(".topbar h1"));
 demarrer();

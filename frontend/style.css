@@ -32,6 +32,34 @@ html, body {
   overflow: hidden;
 }
 
+body {
+  background: radial-gradient(ellipse at 50% -10%, #0c1a33 0%, var(--bg) 55%);
+}
+
+/* Fond réactif (canvas), tout au fond */
+#fond {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Scanlines très légères par-dessus tout */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(255, 255, 255, 0.025) 0px,
+    rgba(255, 255, 255, 0.025) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+}
+
 /* ---------- Barre du haut ---------- */
 
 .topbar {
@@ -105,11 +133,15 @@ html, body {
 #map {
   position: fixed;
   inset: 56px 0 30px 0;
-  background: var(--bg);
+  z-index: 1;
+  background: transparent;
   cursor: crosshair;
+  opacity: 0;
+  transition: opacity 0.9s ease-out;
 }
+#map.pret { opacity: 1; }
 
-.leaflet-container { background: var(--bg); font-family: var(--font-body); }
+.leaflet-container { background: transparent; font-family: var(--font-body); }
 
 /* Contrôles zoom */
 .leaflet-bar a {
@@ -141,6 +173,12 @@ html, body {
   position: relative;
   width: 22px;
   height: 22px;
+  animation: pin-spawn 0.6s cubic-bezier(.2,.9,.3,1.3) both;
+}
+
+@keyframes pin-spawn {
+  from { transform: scale(0); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
 }
 
 .pin .pin-core {
@@ -448,7 +486,8 @@ html, body {
   background:
     radial-gradient(ellipse at 30% 20%, rgba(41, 182, 255, 0.08), transparent 55%),
     radial-gradient(ellipse at 75% 80%, rgba(255, 46, 136, 0.05), transparent 55%),
-    var(--bg);
+    rgba(6, 8, 15, 0.72);
+  backdrop-filter: blur(3px);
 }
 
 .login-panel {
@@ -457,11 +496,24 @@ html, body {
   gap: 14px;
   width: min(360px, 90vw);
   padding: 34px 30px;
-  background: var(--bg-panel);
+  background: rgba(10, 15, 28, 0.92);
   border: 1px solid var(--neon-dim);
   border-radius: 6px;
   box-shadow: 0 0 40px rgba(41, 182, 255, 0.15);
   text-align: center;
+  animation: panneau-in 0.6s cubic-bezier(.2,.8,.25,1) both;
+}
+
+@keyframes panneau-in {
+  from { opacity: 0; transform: translateY(14px) scale(0.97); }
+  to   { opacity: 1; transform: none; }
+}
+
+.secousse { animation: secousse 0.4s ease-in-out; }
+@keyframes secousse {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-7px); }
+  40%, 80% { transform: translateX(7px); }
 }
 
 .login-glyph {
@@ -497,6 +549,64 @@ html, body {
 .login-panel input:focus { border-color: var(--neon); box-shadow: 0 0 10px rgba(41,182,255,.25); }
 
 .login-erreur { color: var(--danger); font-size: 14px; min-height: 18px; }
+
+/* ---------- Animations ---------- */
+
+/* Apparition en cascade du contenu de la sidebar */
+@keyframes apparition {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+#sidebar-content > * { animation: apparition 0.4s cubic-bezier(.2,.8,.25,1) both; }
+#sidebar-content > :nth-child(1)  { animation-delay: 0.05s; }
+#sidebar-content > :nth-child(2)  { animation-delay: 0.10s; }
+#sidebar-content > :nth-child(3)  { animation-delay: 0.15s; }
+#sidebar-content > :nth-child(4)  { animation-delay: 0.20s; }
+#sidebar-content > :nth-child(5)  { animation-delay: 0.25s; }
+#sidebar-content > :nth-child(6)  { animation-delay: 0.30s; }
+#sidebar-content > :nth-child(7)  { animation-delay: 0.35s; }
+#sidebar-content > :nth-child(8)  { animation-delay: 0.40s; }
+#sidebar-content > :nth-child(9)  { animation-delay: 0.45s; }
+#sidebar-content > :nth-child(n+10) { animation-delay: 0.50s; }
+
+/* Glitch : deux copies du texte décalées et découpées */
+.glitch { position: relative; display: inline-block; }
+.glitch::before, .glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  left: 0; top: 0;
+  width: 100%;
+  opacity: 0;
+  pointer-events: none;
+  text-shadow: none;
+}
+.glitch.glitch-actif::before { color: var(--magenta); animation: glitch-a 0.45s steps(1) both; }
+.glitch.glitch-actif::after  { color: var(--neon);    animation: glitch-b 0.45s steps(1) both; }
+
+@keyframes glitch-a {
+  0%   { opacity: .9; clip-path: inset(10% 0 60% 0); transform: translate(-4px, 0); }
+  20%  { clip-path: inset(55% 0 15% 0); transform: translate(4px, 0); }
+  40%  { clip-path: inset(30% 0 45% 0); transform: translate(-3px, 0); }
+  60%  { clip-path: inset(75% 0 5% 0);  transform: translate(3px, 0); }
+  80%  { clip-path: inset(5% 0 80% 0);  transform: translate(-2px, 0); }
+  100% { opacity: 0; }
+}
+@keyframes glitch-b {
+  0%   { opacity: .9; clip-path: inset(60% 0 10% 0); transform: translate(4px, 0); }
+  20%  { clip-path: inset(15% 0 55% 0); transform: translate(-4px, 0); }
+  40%  { clip-path: inset(45% 0 30% 0); transform: translate(3px, 0); }
+  60%  { clip-path: inset(5% 0 75% 0);  transform: translate(-3px, 0); }
+  80%  { clip-path: inset(80% 0 5% 0);  transform: translate(2px, 0); }
+  100% { opacity: 0; }
+}
+
+.btn, .badge-bouton, .tag, .runs-district .run-lien { transition: all 0.18s ease; }
+.btn:hover { box-shadow: 0 0 18px rgba(41, 182, 255, 0.6); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  #map { opacity: 1; }
+}
 
 /* ---------- Barre de statut ---------- */
 

@@ -10,6 +10,9 @@ Voir [CADRAGE.md](CADRAGE.md) pour le périmètre, l'architecture et la roadmap.
 
 ```
 frontend/          Le site (HTML/CSS/JS + Leaflet), servi par le backend
+  app.js           Logique : login, carte, sidebar, inscriptions
+  fond.js          Fond réseau de particules réactif au curseur (canvas)
+  effets.js        Effets : décodage des titres, glitch, secousse
 backend/           API FastAPI (app.py) + requirements.txt
 content/           Contenu éditable par la MJ (versionné dans git)
   carte.yaml       Image de la carte + dimensions

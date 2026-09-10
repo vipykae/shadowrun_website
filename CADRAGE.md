@@ -209,11 +209,16 @@ Objectif : les joueuses s'inscrivent réellement depuis chez elles.
 - Historique par district (runs jouées listées dans l'infobulle).
 - Responsive mobile soigné.
 
-### V2.5 — Polish visuel
-- Animations d'apparition des panneaux et infobulles (fade, slide, effet
-  glitch) — CSS + GSAP.
-- Fond mesh / réseau de neurones réactif au survol de la souris (tsParticles
-  ou canvas maison), désactivable sur mobile pour la batterie.
+### V2.5 — Polish visuel ✅ FAIT (avant la V2, à la demande de la MJ)
+- ✅ Fond réseau de particules réactif au curseur — canvas maison
+  (`frontend/fond.js`, sans dépendance), coupé sur mobile et si
+  `prefers-reduced-motion`.
+- ✅ Animations : apparition en cascade du contenu de la sidebar, « décodage »
+  des titres, glitch périodique du logo et de l'écran de login, fondu de la
+  carte au chargement, pins qui surgissent, secousse en cas de mauvais mot
+  de passe, scanlines discrètes (`frontend/effets.js` + CSS).
+- Finalement sans GSAP ni tsParticles : le CSS et ~150 lignes de canvas
+  suffisaient.
 
 ### V3 — Vie de la campagne (idées, à prioriser plus tard)
 - Notification Discord (webhook) à la publication d'une run ou inscription.
