@@ -46,7 +46,10 @@ réactif au survol de la souris (réseau de particules en canvas).
   fermer la porte.
 - **Onglet Ressources** : accès aux documents de la campagne (PDF de règles,
   aides de jeu) derrière l'accès joueuse.
-- **Onglet Personnages** : galerie des PJ et PNJ avec leurs infos.
+- **Onglet Personnages** ✅ FAIT : galerie des PJ et PNJ avec leurs infos.
+  Permissions volontairement différentes du reste du site : un PJ se
+  modifie par n'importe qui de connecté (joueuse ou MJ), un PNJ ne se
+  modifie que par la MJ.
 - **Polish visuel** : animations futuristes (fade/slide/glitch à l'apparition
   des panneaux), fond mesh réactif à la souris.
 
@@ -148,9 +151,13 @@ SQLite — table `inscriptions` :
 
 **Principe clé : la protection est côté serveur, pas côté front.** Le mot de
 passe ne « déverrouille » pas seulement l'affichage : chaque endpoint de l'API
-(sauf `/api/login`) exige un cookie de session valide et renvoie 401 sinon.
-Impossible d'appeler l'API directement (curl, script) sans s'être authentifié.
-La seule surface attaquable en brute-force est donc `/api/login`, qui est
+exige un cookie de session valide et renvoie 401 sinon — sauf deux exceptions
+volontaires : `/api/login` (forcément public) et `/api/calendrier.ics`
+(destiné aux applis calendrier, qui ne savent pas se connecter avec un mot
+de passe ; protégé par son propre jeton `CALENDRIER_TOKEN`, voir V3).
+Impossible d'appeler le reste de l'API directement (curl, script) sans
+s'être authentifié. La seule surface attaquable en brute-force est donc
+`/api/login`, qui est
 spécifiquement durcie :
 
 - **Rate limiting** sur `/api/login` (middleware FastAPI type slowapi :
@@ -224,9 +231,20 @@ Objectif : les joueuses s'inscrivent réellement depuis chez elles.
 - Finalement sans GSAP ni tsParticles : le CSS et ~150 lignes de canvas
   suffisaient.
 
-### V3 — Vie de la campagne (idées, à prioriser plus tard)
-- Notification Discord (webhook) à la publication d'une run ou inscription.
-- Export calendrier (.ics) des séances.
+### V3 — Vie de la campagne
+- ✅ **Notification Discord** : le backend poste directement sur un webhook
+  Discord (`DISCORD_WEBHOOK_URL`) — jamais via un service tiers, c'est ce
+  même serveur qui fait l'appel HTTPS sortant. Déclenchée à la publication
+  d'une run, à une inscription, et au passage d'une run en « jouée ». Aucun
+  effet si la variable est absente ; une panne Discord ne fait jamais
+  échouer la requête (appel en tâche de fond après la réponse).
+- ✅ **Export calendrier (.ics)** : flux à l'URL `/api/calendrier.ics`,
+  protégé par un jeton dédié (`CALENDRIER_TOKEN`) indépendant du login —
+  les applis calendrier (Google/Apple/Outlook) ne savent pas se connecter
+  avec un mot de passe, donc ce SEUL endpoint sort volontairement du modèle
+  « cookie de session obligatoire ». Le lien complet se récupère via le
+  bouton « CALENDRIER » une fois connectée. Seules les runs à date fixe
+  apparaissent (pas les sondages, pas les dates « à définir »).
 - Onglet **Ressources** : PDF et aides de jeu téléchargeables (accès joueuse).
 - Onglet **Personnages** : galerie PJ / PNJ avec portraits et infos.
 - **Multi-cartes** : autres villes ou plans de lieux (le schéma prévoit

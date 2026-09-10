@@ -20,7 +20,10 @@
       <span class="subtitle">tableau des runs</span>
     </div>
     <div class="topbar-right">
+      <button id="btn-vue" class="badge badge-bouton" hidden title="Voir les personnages"><span class="ico">▣</span><span class="txt">PERSONNAGES</span></button>
+      <button id="btn-calendrier" class="badge badge-bouton" hidden title="S'abonner au calendrier des runs"><span class="ico">📅</span><span class="txt">CALENDRIER</span></button>
       <button id="btn-nouvelle-run" class="badge badge-bouton badge-mj" hidden title="Créer une run"><span class="ico">+</span><span class="txt">RUN</span></button>
+      <button id="btn-nouveau-perso" class="badge badge-bouton" hidden title="Ajouter un personnage"><span class="ico">+</span><span class="txt">PERSO</span></button>
       <button id="btn-filtre" class="badge badge-bouton" hidden title="Afficher les runs jouées"><span class="ico">○</span><span class="txt">RUNS JOUÉES</span></button>
       <button id="btn-reload" class="badge badge-bouton" hidden title="Recharger les fichiers YAML"><span class="ico">⟳</span><span class="txt">CONTENU</span></button>
       <span id="badge-role" class="badge badge-role" hidden><span class="txt">ACCÈS :</span><span id="badge-role-nom"></span></span>
@@ -29,6 +32,17 @@
   </header>
 
   <main id="map"></main>
+
+  <main id="personnages" hidden>
+    <section class="perso-section">
+      <h2 class="perso-titre-section">Personnages joueuses</h2>
+      <div class="perso-grid" id="grille-pj"></div>
+    </section>
+    <section class="perso-section">
+      <h2 class="perso-titre-section">PNJ notables</h2>
+      <div class="perso-grid" id="grille-pnj"></div>
+    </section>
+  </main>
 
   <aside id="sidebar" class="sidebar" aria-hidden="true">
     <button id="sidebar-close" class="sidebar-close" title="Fermer">✕</button>
@@ -56,6 +70,7 @@
   <script src="effets.js"></script>
   <script src="fond.js"></script>
   <script src="mj.js"></script>
+  <script src="personnages.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

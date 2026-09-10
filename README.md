@@ -10,8 +10,9 @@ Voir [CADRAGE.md](CADRAGE.md) pour le périmètre, l'architecture et la roadmap.
 
 ```
 frontend/          Le site (HTML/CSS/JS + Leaflet), servi par le backend
-  app.js           Logique : login, carte, sidebar, inscriptions
+  app.js           Logique : login, carte, sidebar, inscriptions, calendrier
   mj.js            Interface MJ : formulaires run/district, placement du pin
+  personnages.js   Onglet Personnages : galerie PJ/PNJ, formulaires
   fond.js          Fond réseau de particules réactif au curseur (canvas)
   effets.js        Effets : décodage des titres, glitch, secousse
 backend/           API FastAPI (app.py) + requirements.txt
@@ -22,6 +23,7 @@ content/           Contenu éditable par la MJ (versionné dans git)
   carte/source/    carte_seattle.png — original haute résolution (36 Mo)
   districts.yaml   Les districts (généré par le script, champs éditables)
   runs/            Une run = un fichier YAML
+  personnages/      pj.yaml (PJ) et pnj.yaml (PNJ)
 scripts/           genere_hash.py, labelme_vers_districts.py
 deploy/            Docker Compose, Caddy, .env.example
 data/              (non versionné) app.db — inscriptions SQLite
@@ -92,6 +94,43 @@ python scripts/labelme_vers_districts.py
 Le script simplifie les polygones et régénère `content/districts.yaml` — les
 champs édités à la main (gangs, description, runs jouées) sont préservés.
 
+## Personnages (PJ / PNJ)
+
+Bouton « PERSONNAGES » en haut : bascule vers une galerie séparée de la
+carte, avec deux sections. Permissions différentes des runs :
+
+- **PJ (personnages joueuses)** : créés/modifiés/supprimés par n'importe qui
+  de connecté — joueuse ou MJ (groupe de confiance, pas de notion de
+  « propriétaire »). Bouton « + PERSO ».
+- **PNJ** : réservés à la MJ (le bouton « + PERSO » propose un choix de type
+  PJ/PNJ uniquement en accès MJ ; les boutons modifier/supprimer d'un PNJ ne
+  s'affichent pas côté joueuse, et l'API refuse ces écritures avec 403).
+
+Champs (tous optionnels sauf nom) : `nom`, `archetype`, `concept`, `notes`,
+`image` (URL de portrait), et selon le type `joueuse` (PJ) ou `faction` /
+`district` (PNJ). Fichiers : `content/personnages/pj.yaml` et `pnj.yaml`,
+éditables à la main de la même façon que `districts.yaml`.
+
+## Notifications Discord
+
+Si `DISCORD_WEBHOOK_URL` est renseigné dans `.env`, le serveur poste
+directement sur Discord (aucun relais tiers) lors de la publication d'une
+run, d'une inscription, et du passage d'une run en « jouée ». Laisser la
+variable vide désactive silencieusement la fonctionnalité. Une panne Discord
+ne fait jamais échouer une requête de l'API (l'appel est fait en tâche de
+fond, après la réponse).
+
+## Export calendrier (.ics)
+
+Bouton « CALENDRIER » (visible une fois connectée) : copie dans le
+presse-papiers un lien à coller dans Google Calendar / Apple Calendar /
+Outlook comme abonnement à une URL — le calendrier se met à jour tout seul
+au fil des runs publiées. Nécessite `CALENDRIER_TOKEN` dans `.env` (généré
+par `scripts/genere_hash.py`) : ce lien est protégé par ce jeton dédié plutôt
+que par le mot de passe du site, puisque les applis calendrier ne savent pas
+se connecter avec un mot de passe. Seules les runs à date fixe (pas les
+sondages ni les dates « à définir ») apparaissent dans le flux.
+
 ## Déploiement (Raspberry Pi)
 
 Voir [CADRAGE.md](CADRAGE.md) section 5. En résumé :
@@ -99,8 +138,8 @@ Voir [CADRAGE.md](CADRAGE.md) section 5. En résumé :
 ```bash
 cd deploy
 cp .env.example .env
-python ../scripts/genere_hash.py   # génère hashs + clé, à coller dans .env
-# renseigner DOMAINE dans .env
+python ../scripts/genere_hash.py   # génère hashs + clé + jeton calendrier, à coller dans .env
+# renseigner DOMAINE (et DISCORD_WEBHOOK_URL si voulu) dans .env
 docker compose up -d --build
 ```
 

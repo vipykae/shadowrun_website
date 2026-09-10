@@ -105,6 +105,8 @@ async function chargerEtAfficher() {
   document.getElementById("btn-nouvelle-run").hidden = ROLE !== "mj";
   document.getElementById("btn-logout").hidden = false;
   document.getElementById("btn-filtre").hidden = false;
+  document.getElementById("btn-vue").hidden = false;
+  document.getElementById("btn-calendrier").hidden = false;
 
   if (!map) creerCarte();
   construireCouches();
@@ -139,6 +141,37 @@ document.getElementById("btn-filtre").addEventListener("click", () => {
   try { localStorage.setItem("afficherJouees", afficherJouees ? "1" : "0"); } catch {}
   appliquerFiltre();
 });
+
+document.getElementById("btn-calendrier").addEventListener("click", async () => {
+  try {
+    const { url } = await api("/api/calendrier/url");
+    try {
+      await navigator.clipboard.writeText(url);
+      toast("Lien du calendrier copié — colle-le dans Google Calendar, Apple Calendar ou Outlook.");
+    } catch {
+      window.prompt("Copie ce lien dans ton appli calendrier (abonnement à une URL) :", url);
+    }
+  } catch (e) {
+    toast(e.message);
+  }
+});
+
+// ---------- Toast (petite confirmation en bas d'écran) ----------
+
+let toastTimer = null;
+function toast(message) {
+  let el = document.getElementById("toast");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "toast";
+    el.className = "toast";
+    document.body.appendChild(el);
+  }
+  el.textContent = message;
+  el.classList.add("visible");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove("visible"), 3200);
+}
 
 // ---------- Filtre ----------
 

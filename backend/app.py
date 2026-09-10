@@ -7,25 +7,34 @@ Configuration par variables d'environnement (voir deploy/.env.example) :
     MDP_JOUEUSE_HASH / MDP_MJ_HASH : hashs argon2 (scripts/genere_hash.py)
     CLE_SECRETE                    : signe les cookies de session
     SECURE_COOKIES=1               : cookies Secure (derrière HTTPS)
+    DISCORD_WEBHOOK_URL            : notifications (nouvelle run, inscription…)
+    CALENDRIER_TOKEN               : jeton d'accès au flux .ics (indépendant du login)
 Sans ces variables, l'app démarre en mode dev avec les mots de passe
 « joueuse » et « mj » et une clé aléatoire (sessions perdues au redémarrage).
+Discord et le calendrier sont simplement absents si non configurés.
 """
 
 from __future__ import annotations
 
+import hmac
+import json
 import os
+import re
 import secrets
 import sqlite3
 import time
+import urllib.error
+import urllib.request
 from collections import defaultdict, deque
 from datetime import date as date_type
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Literal
 
 import yaml
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
-from fastapi import Depends, FastAPI, HTTPException, Request, Response
+from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Request, Response
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from itsdangerous import BadSignature, SignatureExpired, TimestampSigner
@@ -60,6 +69,9 @@ if not CLE_SECRETE:
 
 signer = TimestampSigner(CLE_SECRETE)
 
+DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
+CALENDRIER_TOKEN = os.environ.get("CALENDRIER_TOKEN")
+
 
 # ---------- Contenu (YAML, édité par la MJ) ----------
 
@@ -69,7 +81,15 @@ class Contenu:
         self.carte: dict = {}
         self.districts: list = []
         self.runs: list = []
+        self.pj: list = []
+        self.pnj: list = []
         self.fichiers: dict[str, Path] = {}  # id de run -> fichier YAML
+
+    def _charger_liste(self, chemin_relatif: str) -> list:
+        chemin = CONTENU / chemin_relatif
+        if not chemin.exists():
+            return []
+        return yaml.safe_load(chemin.read_text(encoding="utf-8")) or []
 
     def charger(self):
         self.carte = yaml.safe_load((CONTENU / "carte.yaml").read_text(encoding="utf-8"))
@@ -93,10 +113,37 @@ class Contenu:
             if r.get("district") not in districts_connus:
                 print(f"ATTENTION : la run {r['id']!r} référence un district inconnu : {r.get('district')!r}")
         self.runs = runs
+        self.pj = self._charger_liste("personnages/pj.yaml")
+        self.pnj = self._charger_liste("personnages/pnj.yaml")
+
+    def nom_district(self, district_id: str | None) -> str:
+        d = next((d for d in self.districts if d["id"] == district_id), None)
+        return d["nom"] if d else (district_id or "district inconnu")
 
 
 contenu = Contenu()
 contenu.charger()
+
+
+# ---------- Notification Discord ----------
+# Appelée directement depuis ce serveur (pas de relais tiers) : un simple
+# POST HTTPS vers l'URL de webhook fournie par Discord. No-op si absente ;
+# une panne Discord ne doit jamais faire échouer une requête de l'API,
+# donc toujours invoquée via BackgroundTasks après la réponse.
+
+
+def notifier_discord(message: str):
+    if not DISCORD_WEBHOOK_URL:
+        return
+    try:
+        corps = json.dumps({"content": message[:2000]}).encode("utf-8")
+        requete = urllib.request.Request(
+            DISCORD_WEBHOOK_URL, data=corps,
+            headers={"Content-Type": "application/json"}, method="POST",
+        )
+        urllib.request.urlopen(requete, timeout=5)
+    except (urllib.error.URLError, OSError, TimeoutError) as e:
+        print(f"ATTENTION : notification Discord échouée ({e})")
 
 
 # ---------- Écriture YAML lisible (interface MJ) ----------
@@ -111,6 +158,11 @@ ENTETE_DISTRICTS = (
     "# Généré par scripts/labelme_vers_districts.py — les champs autres que\n"
     "# 'polygone' sont éditables à la main et préservés à la régénération.\n"
 )
+
+ORDRE_PJ = ["id", "nom", "joueuse", "archetype", "concept", "notes", "image"]
+ORDRE_PNJ = ["id", "nom", "faction", "district", "archetype", "concept", "notes", "image"]
+ENTETE_PJ = "# Personnages joueuses — modifiable par n'importe qui de connecté (joueuse ou MJ).\n"
+ENTETE_PNJ = "# PNJ notables — modifiable uniquement par la MJ.\n"
 
 
 class DumperLisible(yaml.SafeDumper):
@@ -138,6 +190,14 @@ def dump_yaml(donnees) -> str:
 def ordonner(donnees: dict, ordre: list[str]) -> dict:
     return {**{k: donnees[k] for k in ordre if k in donnees},
             **{k: v for k, v in donnees.items() if k not in ordre}}
+
+
+def _sauver_personnages(type_: str, liste: list[dict], ordre: list[str], entete: str):
+    dossier = CONTENU / "personnages"
+    dossier.mkdir(exist_ok=True)
+    (dossier / f"{type_}.yaml").write_text(
+        entete + dump_yaml([ordonner(p, ordre) for p in liste]), encoding="utf-8"
+    )
 
 
 # ---------- Base (inscriptions) ----------
@@ -293,7 +353,7 @@ def _liste_inscrites(con: sqlite3.Connection, run_id: str) -> list[str]:
 
 
 @app.post("/api/runs/{run_id}/inscription")
-def inscription(run_id: str, joueuse: Joueuse, role: str = Depends(role_courant)):
+def inscription(run_id: str, joueuse: Joueuse, arriere_plan: BackgroundTasks, role: str = Depends(role_courant)):
     run = _run_ou_404(run_id)
     nom = joueuse.nom.strip()
     if not nom:
@@ -301,11 +361,16 @@ def inscription(run_id: str, joueuse: Joueuse, role: str = Depends(role_courant)
     if run.get("statut", "ouverte") != "ouverte":
         raise HTTPException(409, "Cette run n'est pas ouverte aux inscriptions.")
     with db() as con:
-        inscrites = _liste_inscrites(con, run_id)
-        if nom not in inscrites and len(inscrites) >= run.get("places", 4):
+        avant = _liste_inscrites(con, run_id)
+        if nom not in avant and len(avant) >= run.get("places", 4):
             raise HTTPException(409, "L'équipe est déjà complète.")
         con.execute("INSERT OR IGNORE INTO inscriptions (run_id, nom) VALUES (?, ?)", (run_id, nom))
-        return {"inscrites": _liste_inscrites(con, run_id)}
+        apres = _liste_inscrites(con, run_id)
+    if nom not in avant:
+        places = run.get("places", 4)
+        suffixe = " — équipe complète !" if len(apres) >= places else f" ({len(apres)}/{places})"
+        arriere_plan.add_task(notifier_discord, f"✅ **{nom}** s'inscrit à *{run['titre']}*{suffixe}")
+    return {"inscrites": apres}
 
 
 @app.post("/api/runs/{run_id}/desinscription")
@@ -320,7 +385,10 @@ def desinscription(run_id: str, joueuse: Joueuse, role: str = Depends(role_coura
 @app.post("/api/reload")
 def recharger(role: str = Depends(role_mj)):
     contenu.charger()
-    return {"districts": len(contenu.districts), "runs": len(contenu.runs)}
+    return {
+        "districts": len(contenu.districts), "runs": len(contenu.runs),
+        "pj": len(contenu.pj), "pnj": len(contenu.pnj),
+    }
 
 
 # ---------- Interface MJ : écriture des YAML ----------
@@ -404,7 +472,7 @@ def _run_avec_inscrites(run_id: str) -> dict:
 
 
 @app.post("/api/mj/runs", status_code=201)
-def creer_run(entree: RunEntree, role: str = Depends(role_mj)):
+def creer_run(entree: RunEntree, arriere_plan: BackgroundTasks, role: str = Depends(role_mj)):
     entree.verifier()
     if entree.id in contenu.fichiers:
         raise HTTPException(409, f"Une run avec l'id « {entree.id} » existe déjà.")
@@ -414,19 +482,29 @@ def creer_run(entree: RunEntree, role: str = Depends(role_mj)):
         chemin = CONTENU / "runs" / f"{entree.id}.yaml"
     chemin.write_text(dump_yaml(entree.vers_yaml()), encoding="utf-8")
     contenu.charger()
+    arriere_plan.add_task(
+        notifier_discord,
+        f"📢 **Nouvelle run publiée** : *{entree.titre}* — "
+        f"{contenu.nom_district(entree.district)} · {entree.date or 'date à définir'}",
+    )
     return _run_avec_inscrites(entree.id)
 
 
 @app.put("/api/mj/runs/{run_id}")
-def modifier_run(run_id: str, entree: RunEntree, role: str = Depends(role_mj)):
+def modifier_run(run_id: str, entree: RunEntree, arriere_plan: BackgroundTasks, role: str = Depends(role_mj)):
     chemin = contenu.fichiers.get(run_id)
     if chemin is None:
         raise HTTPException(404, "Run inconnue")
     if entree.id != run_id:
         raise HTTPException(422, "L'id d'une run ne se modifie pas.")
     entree.verifier()
+    ancien_statut = _run_ou_404(run_id).get("statut")
     chemin.write_text(dump_yaml(entree.vers_yaml()), encoding="utf-8")
     contenu.charger()
+    if ancien_statut != "jouee" and entree.statut == "jouee":
+        arriere_plan.add_task(
+            notifier_discord, f"📜 **Run jouée** : *{entree.titre}* — compte-rendu disponible sur le site"
+        )
     return _run_avec_inscrites(run_id)
 
 
@@ -455,6 +533,203 @@ def modifier_district(district_id: str, entree: DistrictEntree, role: str = Depe
     )
     contenu.charger()
     return next(d for d in contenu.districts if d["id"] == district_id)
+
+
+# ---------- Personnages : PJ (tout le monde) et PNJ (MJ uniquement) ----------
+
+
+class PersonnageEntree(BaseModel):
+    id: str = Field(pattern=r"^[a-z0-9][a-z0-9-]{0,60}$")
+    nom: str = Field(min_length=1, max_length=80)
+    archetype: str | None = Field(None, max_length=80)
+    concept: str | None = Field(None, max_length=2000)
+    notes: str | None = Field(None, max_length=5000)
+    image: str | None = Field(None, max_length=500)
+
+    @field_validator("nom", "archetype", "concept", "notes", "image", mode="before")
+    @classmethod
+    def _nettoyer(cls, v):
+        return _vide_vers_none(v)
+
+
+class PJEntree(PersonnageEntree):
+    joueuse: str | None = Field(None, max_length=60)
+
+    @field_validator("joueuse", mode="before")
+    @classmethod
+    def _nettoyer_joueuse(cls, v):
+        return _vide_vers_none(v)
+
+
+class PNJEntree(PersonnageEntree):
+    faction: str | None = Field(None, max_length=120)
+    district: str | None = None
+
+    @field_validator("faction", mode="before")
+    @classmethod
+    def _nettoyer_faction(cls, v):
+        return _vide_vers_none(v)
+
+    @field_validator("district", mode="before")
+    @classmethod
+    def _nettoyer_district(cls, v):
+        return _vide_vers_none(v)
+
+
+@app.get("/api/personnages")
+def personnages(role: str = Depends(role_courant)):
+    return {"pj": contenu.pj, "pnj": contenu.pnj}
+
+
+def _personnage_ou_404(liste: list[dict], perso_id: str) -> dict:
+    p = next((p for p in liste if p["id"] == perso_id), None)
+    if p is None:
+        raise HTTPException(404, "Personnage inconnu")
+    return p
+
+
+@app.post("/api/personnages/pj", status_code=201)
+def creer_pj(entree: PJEntree, role: str = Depends(role_courant)):
+    if any(p["id"] == entree.id for p in contenu.pj):
+        raise HTTPException(409, f"Un PJ avec l'id « {entree.id} » existe déjà.")
+    liste = [*[dict(p) for p in contenu.pj], entree.model_dump()]
+    _sauver_personnages("pj", liste, ORDRE_PJ, ENTETE_PJ)
+    contenu.charger()
+    return _personnage_ou_404(contenu.pj, entree.id)
+
+
+@app.put("/api/personnages/pj/{pj_id}")
+def modifier_pj(pj_id: str, entree: PJEntree, role: str = Depends(role_courant)):
+    if entree.id != pj_id:
+        raise HTTPException(422, "L'id d'un personnage ne se modifie pas.")
+    liste = [dict(p) for p in contenu.pj]
+    idx = next((i for i, p in enumerate(liste) if p["id"] == pj_id), None)
+    if idx is None:
+        raise HTTPException(404, "PJ inconnu")
+    liste[idx] = entree.model_dump()
+    _sauver_personnages("pj", liste, ORDRE_PJ, ENTETE_PJ)
+    contenu.charger()
+    return _personnage_ou_404(contenu.pj, pj_id)
+
+
+@app.delete("/api/personnages/pj/{pj_id}")
+def supprimer_pj(pj_id: str, role: str = Depends(role_courant)):
+    liste = [dict(p) for p in contenu.pj if p["id"] != pj_id]
+    if len(liste) == len(contenu.pj):
+        raise HTTPException(404, "PJ inconnu")
+    _sauver_personnages("pj", liste, ORDRE_PJ, ENTETE_PJ)
+    contenu.charger()
+    return {"ok": True}
+
+
+def _verifier_district_optionnel(district_id: str | None):
+    if district_id and district_id not in {d["id"] for d in contenu.districts}:
+        raise HTTPException(422, f"District inconnu : {district_id}")
+
+
+@app.post("/api/personnages/pnj", status_code=201)
+def creer_pnj(entree: PNJEntree, role: str = Depends(role_mj)):
+    _verifier_district_optionnel(entree.district)
+    if any(p["id"] == entree.id for p in contenu.pnj):
+        raise HTTPException(409, f"Un PNJ avec l'id « {entree.id} » existe déjà.")
+    liste = [*[dict(p) for p in contenu.pnj], entree.model_dump()]
+    _sauver_personnages("pnj", liste, ORDRE_PNJ, ENTETE_PNJ)
+    contenu.charger()
+    return _personnage_ou_404(contenu.pnj, entree.id)
+
+
+@app.put("/api/personnages/pnj/{pnj_id}")
+def modifier_pnj(pnj_id: str, entree: PNJEntree, role: str = Depends(role_mj)):
+    if entree.id != pnj_id:
+        raise HTTPException(422, "L'id d'un personnage ne se modifie pas.")
+    _verifier_district_optionnel(entree.district)
+    liste = [dict(p) for p in contenu.pnj]
+    idx = next((i for i, p in enumerate(liste) if p["id"] == pnj_id), None)
+    if idx is None:
+        raise HTTPException(404, "PNJ inconnu")
+    liste[idx] = entree.model_dump()
+    _sauver_personnages("pnj", liste, ORDRE_PNJ, ENTETE_PNJ)
+    contenu.charger()
+    return _personnage_ou_404(contenu.pnj, pnj_id)
+
+
+@app.delete("/api/personnages/pnj/{pnj_id}")
+def supprimer_pnj(pnj_id: str, role: str = Depends(role_mj)):
+    liste = [dict(p) for p in contenu.pnj if p["id"] != pnj_id]
+    if len(liste) == len(contenu.pnj):
+        raise HTTPException(404, "PNJ inconnu")
+    _sauver_personnages("pnj", liste, ORDRE_PNJ, ENTETE_PNJ)
+    contenu.charger()
+    return {"ok": True}
+
+
+# ---------- Export calendrier (.ics) ----------
+# Les applis calendrier (Google/Apple/Outlook) interrogent périodiquement
+# une URL sans jamais se connecter comme une joueuse : cet unique endpoint
+# est donc protégé par un jeton dédié (?cle=...), indépendant du login,
+# plutôt que par le cookie de session.
+
+
+def _date_run_ics(valeur) -> datetime | None:
+    """Ne renvoie une date que si `date` est une date fixe (pas un lien de
+    sondage ni un texte libre) — cohérent avec infoDate() côté frontend."""
+    if not valeur:
+        return None
+    s = str(valeur)
+    if not re.match(r"^\d{4}-\d{2}-\d{2}", s):
+        return None
+    try:
+        return datetime.fromisoformat(s if len(s) > 10 else f"{s}T20:00:00")
+    except ValueError:
+        return None
+
+
+def _duree_minutes(texte) -> int | None:
+    if not texte:
+        return None
+    m = re.match(r"^(\d+)\s*h\s*(\d+)?", str(texte).strip(), re.IGNORECASE)
+    if not m:
+        return None
+    return int(m.group(1)) * 60 + int(m.group(2) or 0)
+
+
+def _echapper_ics(texte: str) -> str:
+    return (texte or "").replace("\\", "\\\\").replace(";", "\\;").replace(",", "\\,").replace("\n", "\\n")
+
+
+@app.get("/api/calendrier/url")
+def calendrier_url(request: Request, role: str = Depends(role_courant)):
+    if not CALENDRIER_TOKEN:
+        raise HTTPException(503, "Calendrier non configuré (CALENDRIER_TOKEN absent côté serveur).")
+    base = str(request.base_url).rstrip("/")
+    return {"url": f"{base}/api/calendrier.ics?cle={CALENDRIER_TOKEN}"}
+
+
+@app.get("/api/calendrier.ics")
+def calendrier_ics(cle: str = ""):
+    if not CALENDRIER_TOKEN or not hmac.compare_digest(cle, CALENDRIER_TOKEN):
+        raise HTTPException(404)  # pas 401 : ne pas laisser deviner que l'endpoint existe
+    lignes = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Seattle2080//FR", "CALSCALE:GREGORIAN"]
+    for run in contenu.runs:
+        if run.get("statut") == "annulee":
+            continue
+        debut = _date_run_ics(run.get("date"))
+        if debut is None:
+            continue
+        fin = debut + timedelta(minutes=_duree_minutes(run.get("duree_estimee")) or 180)
+        lignes += [
+            "BEGIN:VEVENT",
+            f"UID:{run['id']}@seattle2080",
+            f"DTSTAMP:{datetime.utcnow().strftime('%Y%m%dT%H%M%SZ')}",
+            f"DTSTART:{debut.strftime('%Y%m%dT%H%M%S')}",
+            f"DTEND:{fin.strftime('%Y%m%dT%H%M%S')}",
+            f"SUMMARY:{_echapper_ics(run['titre'])}",
+            f"LOCATION:{_echapper_ics(run.get('lieu') or contenu.nom_district(run.get('district')))}",
+            f"DESCRIPTION:{_echapper_ics(run.get('brief') or '')}",
+            "END:VEVENT",
+        ]
+    lignes.append("END:VCALENDAR")
+    return Response(content="\r\n".join(lignes) + "\r\n", media_type="text/calendar; charset=utf-8")
 
 
 # Le frontend (la sidebar, la page de login…) est public ; toutes les

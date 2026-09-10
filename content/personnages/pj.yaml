@@ -1,0 +1,16 @@
+# Personnages joueuses — modifiable par n'importe qui de connecté (joueuse ou MJ).
+- id: nadja
+  nom: Nadja
+  joueuse: Nadja
+  archetype: Infiltratrice
+  concept: |
+    Ancienne militaire reconvertie dans la discrétion plutôt que dans le combat frontal. Préfère ne jamais avoir été là.
+  notes: |
+    Allergique aux plans qui tournent mal — ce qui arrive systématiquement.
+- id: vex
+  nom: Vex
+  joueuse: Vex
+  archetype: Decker
+  concept: |
+    Grandi dans la Matrice plus que dans la rue. Sait où chercher, sait surtout où ne pas se faire prendre à chercher.
+  notes: null
