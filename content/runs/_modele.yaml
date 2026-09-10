@@ -1,0 +1,42 @@
+# MODÈLE DE RUN — copier ce fichier sous un nouveau nom (ex. 2026-02-05_mon-titre.yaml).
+# Les fichiers dont le nom commence par « _ » sont ignorés par le site.
+# Seuls id, titre, district et position sont obligatoires ; tout le reste
+# peut être omis ou laissé vide, la fiche s'adapte.
+
+id: mon-titre                      # unique, sans espaces ni accents
+titre: "Mon titre de run"
+district: redmond                  # un id de content/districts.yaml
+position: [1600, 1000]             # pixels sur la carte (coordonnées affichées en bas de l'écran)
+
+mj: Violette                       # les MJ tournent
+type: One-shot                     # ex. One-shot · Run avec suite · Multi-sessions (2/3)
+places: 4
+statut: ouverte                    # ouverte | complete | jouee | annulee
+
+# Date — trois formes possibles :
+#   date: 2026-02-05T20:30                       date fixe
+#   date: https://framadate.org/xxxx             lien vers un sondage
+#   date: "à définir avec l'équipe"              texte libre (ou ligne absente)
+date: 2026-02-05T20:30
+duree_estimee: 3h30
+
+lieu: "Squat fortifié, ancien entrepôt Renraku, Glow City"
+paiement: "8 k¥ chacune · +2 k¥ si aucune victime"
+
+difficulte: 3                      # 1 à 5 losanges
+risques: >
+  Obstacles ou contretemps probables : gang hostile, zone irradiée,
+  extraction sous pression.
+
+themes: [infiltration, matrice, gangs]
+avertissements: []                 # trigger warnings, ex. [violence graphique, drogue]
+
+notes: >
+  Archétypes, spécialisations ou compétences recommandées :
+  une decker, une infiltratrice ; le rigging serait un plus.
+
+brief: >
+  Le pitch tel que les joueuses le découvrent : qui est le Johnson,
+  ce qu'il veut, ce qu'il ne dit pas.
+
+compte_rendu: null                 # à remplir quand statut passe à jouee

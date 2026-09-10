@@ -2,14 +2,34 @@ id: convoi-fantome
 titre: "Le convoi fantôme"
 district: tacoma
 position: [854, 2482]
-date: 2026-01-29T20:30
-duree_estimee: 3h
-difficulte: 3
-tags: [escorte, combat, docks]
+
+mj: Violette
+type: One-shot
 places: 4
 statut: complete
-synopsis: >
+
+date: "à définir avec l'équipe"
+duree_estimee: 3h
+
+lieu: "Docks de Tacoma, puis l'autoroute I-5 vers le sud"
+paiement: "5 k¥ chacune · +1 k¥ par camion arrivé intact"
+
+difficulte: 3
+risques: >
+  Deux équipes d'interception déjà signalées sur le trajet. Combat
+  motorisé probable, et la cargaison pourrait être plus dangereuse
+  que les assaillants.
+
+themes: [escorte, combat, docks]
+avertissements: [violence]
+
+notes: >
+  Rigger ou pilote recommandée, une combattante solide. La Matrice
+  sera secondaire.
+
+brief: >
   Trois camions quittent les docks de Tacoma à minuit. Cargaison
   inconnue, itinéraire secret, et déjà deux équipes d'interception
   signalées sur le trajet.
+
 compte_rendu: null

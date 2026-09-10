@@ -2,14 +2,33 @@ id: extraction-euphoria
 titre: "Extraction : Euphoria"
 district: redmond
 position: [1629, 993]
+
+mj: Violette
+type: One-shot
+places: 4
+statut: ouverte
+
 date: 2026-01-15T20:30
 duree_estimee: 3h30
-difficulte: 2   # 1 à 5
-tags: [infiltration, matrice]
-places: 4
-statut: ouverte   # ouverte | complete | jouee | annulee
-synopsis: >
+
+lieu: "Squat fortifié des Crimson Crush, ancien centre commercial de Touristville"
+paiement: "6 k¥ chacune · +3 k¥ si Euphoria arrive indemne"
+
+difficulte: 2
+risques: >
+  Gang nombreux mais mal équipé ; le squat est truffé de pièges
+  artisanaux. Sortir discrètement sera plus dur qu'entrer.
+
+themes: [infiltration, matrice, gangs]
+avertissements: []
+
+notes: >
+  Une infiltratrice et une decker sont quasi indispensables.
+  Une visage sociale pour négocier avec le gang peut éviter le combat.
+
+brief: >
   Un Johnson au costume trop propre veut récupérer Euphoria, chanteuse
   de synth-rock retenue dans un squat fortifié des Barrens. Discrétion
   exigée — les Crimson Crush n'aiment pas les visites.
+
 compte_rendu: null

@@ -247,6 +247,31 @@ html, body {
 
 .meta-item .meta-value { font-size: 16px; font-weight: 600; color: var(--text); }
 .meta-item .meta-value-small { font-size: 14px; line-height: 1.35; }
+.meta-item.meta-large { grid-column: 1 / -1; }
+.meta-value.paiement { color: var(--ok); }
+.date-libre { color: var(--text-dim); font-style: italic; }
+
+.lien-sondage {
+  color: var(--neon);
+  text-decoration: none;
+  border-bottom: 1px dashed var(--neon-dim);
+}
+.lien-sondage:hover { color: #fff; border-bottom-color: #fff; }
+
+.tag-tw {
+  color: #ffb547;
+  border-color: rgba(255, 181, 71, 0.5);
+  background: rgba(255, 181, 71, 0.08);
+}
+
+.run-texte {
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--text);
+  margin-bottom: 18px;
+}
+
+.difficulte-ligne { margin-bottom: 8px; font-size: 18px; }
 
 .kicker-lien { color: var(--neon); cursor: pointer; }
 .kicker-lien:hover { text-decoration: underline; }

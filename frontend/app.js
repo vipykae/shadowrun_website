@@ -216,12 +216,40 @@ function ouvrirSidebar() {
 
 const runsParDistrict = (id) => DONNEES.runs.filter((r) => r.district === id);
 
-function formaterDate(valeur) {
-  const date = new Date(valeur);
-  if (isNaN(date)) return String(valeur ?? "date à venir");
-  return date.toLocaleString("fr-FR", {
-    weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit",
-  });
+// Le champ date d'une run accepte : une date ISO (fixe), une URL (sondage)
+// ou un texte libre (« à définir »).
+function infoDate(run) {
+  const brut = run.date;
+  if (brut == null || brut === "") return { type: "libre", texte: "À définir" };
+  const s = String(brut);
+  if (/^https?:\/\//i.test(s)) return { type: "sondage", texte: "Sondage en cours", url: s };
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
+    const avecHeure = s.length > 10;
+    const date = new Date(avecHeure ? s : `${s}T00:00`);
+    if (!isNaN(date)) {
+      const options = { weekday: "long", day: "numeric", month: "long" };
+      if (avecHeure) Object.assign(options, { hour: "2-digit", minute: "2-digit" });
+      return {
+        type: "fixe",
+        texte: date.toLocaleString("fr-FR", options),
+        court: date.toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" }),
+      };
+    }
+  }
+  return { type: "libre", texte: s };
+}
+
+function blocDate(run) {
+  const info = infoDate(run);
+  if (info.type === "sondage") {
+    return `<a class="lien-sondage" href="${echapper(info.url)}" target="_blank" rel="noopener">Voter pour la date ↗</a>`;
+  }
+  return `<span class="${info.type === "libre" ? "date-libre" : ""}">${echapper(info.texte)}</span>`;
+}
+
+function section(titre, contenu, classe = "run-texte") {
+  if (!contenu) return "";
+  return `<div class="section-title">${titre}</div><p class="${classe}">${echapper(contenu)}</p>`;
 }
 
 function libelleStatut(run) {
@@ -261,23 +289,37 @@ function ouvrirSidebarRun(run) {
     pied = `<div class="statut-complete ${estJouee(run) ? "statut-jouee" : ""}">▮ ${libelleStatut(run)}</div>`;
   }
 
-  const compteRendu = estJouee(run) && run.compte_rendu
-    ? `<div class="section-title">Compte rendu</div>
-       <p class="run-synopsis compte-rendu">${echapper(run.compte_rendu)}</p>`
-    : "";
+  const themes = run.themes || run.tags || [];
+  const avertissements = run.avertissements || [];
+  const tags = [
+    ...themes.map((t) => `<span class="tag">${echapper(t)}</span>`),
+    ...avertissements.map((t) => `<span class="tag tag-tw" title="Avertissement de contenu">⚠ ${echapper(t)}</span>`),
+  ].join("");
+
+  const meta = [
+    run.mj ? `<div class="meta-item"><div class="meta-label">MJ</div><div class="meta-value">${echapper(run.mj)}</div></div>` : "",
+    `<div class="meta-item"><div class="meta-label">Date</div><div class="meta-value meta-value-small">${blocDate(run)}</div></div>`,
+    run.duree_estimee ? `<div class="meta-item"><div class="meta-label">Durée</div><div class="meta-value">${echapper(run.duree_estimee)}</div></div>` : "",
+    run.paiement ? `<div class="meta-item"><div class="meta-label">Paiement</div><div class="meta-value meta-value-small paiement">${echapper(run.paiement)}</div></div>` : "",
+    run.lieu ? `<div class="meta-item meta-large"><div class="meta-label">Lieu</div><div class="meta-value meta-value-small">◎ ${echapper(run.lieu)}</div></div>` : "",
+  ].join("");
+
+  const kicker = [
+    district ? `<span class="kicker-lien" id="lien-district">${echapper(district.nom)}</span>` : "",
+    run.type ? echapper(run.type) : "",
+  ].filter(Boolean).join(" · ");
 
   sidebarContent.innerHTML = `
-    <div class="run-kicker">${district ? `<span class="kicker-lien" id="lien-district">${echapper(district.nom)}</span> · ` : ""}${formaterDate(run.date)}</div>
+    <div class="run-kicker">${kicker}</div>
     <div class="run-titre ${estJouee(run) ? "run-titre-jouee" : ""}">${echapper(run.titre)}</div>
-    <div class="run-meta">
-      <div class="meta-item"><div class="meta-label">Difficulté</div>
-        <div class="meta-value difficulte">${"◆".repeat(difficulte)}${"◇".repeat(5 - difficulte)}</div></div>
-      <div class="meta-item"><div class="meta-label">Durée estimée</div>
-        <div class="meta-value">${echapper(run.duree_estimee || "?")}</div></div>
-    </div>
-    <div class="run-tags">${(run.tags || []).map((t) => `<span class="tag">${echapper(t)}</span>`).join("")}</div>
-    <p class="run-synopsis">${echapper(run.synopsis || "")}</p>
-    ${compteRendu}
+    <div class="run-meta">${meta}</div>
+    ${tags ? `<div class="run-tags">${tags}</div>` : ""}
+    ${section("Brief", run.brief || run.synopsis, "run-synopsis")}
+    <div class="section-title">Difficulté / risques</div>
+    <div class="difficulte-ligne"><span class="difficulte">${"◆".repeat(difficulte)}${"◇".repeat(5 - difficulte)}</span></div>
+    ${run.risques ? `<p class="run-texte">${echapper(run.risques)}</p>` : ""}
+    ${section("Recommandé", run.notes)}
+    ${estJouee(run) ? section("Compte rendu", run.compte_rendu, "run-synopsis compte-rendu") : ""}
     <div class="section-title">Équipe${aVenir ? ` (${run.inscrites.length}/${run.places})` : ""}</div>
     <ul class="inscrites">${lignes.join("")}</ul>
     ${pied}
@@ -325,7 +367,7 @@ function ligneRun(run) {
   const jouee = estJouee(run);
   const complete = !jouee && estComplete(run);
   const droite = jouee
-    ? formaterDate(run.date).split(" à ")[0]
+    ? (infoDate(run).court || "")
     : complete ? "COMPLÈTE" : `${run.inscrites.length}/${run.places}`;
   return `<li class="run-lien ${complete ? "run-lien-complete" : ""} ${jouee ? "run-lien-jouee" : ""}" data-run="${run.id}">
             <span class="run-lien-titre">${echapper(run.titre)}</span>

@@ -37,10 +37,18 @@ passe **`joueuse`** et **`mj`** (à ne jamais utiliser en production).
 
 ## Contenu (côté MJ)
 
-- **Créer une run** : ajouter un fichier dans `content/runs/` (voir les
-  exemples). L'`id` doit être unique ; `position: [x, y]` en pixels de la carte
-  (les coordonnées s'affichent en bas de l'écran au survol) ; `district` doit
-  correspondre à un `id` de `content/districts.yaml`.
+- **Créer une run** : copier `content/runs/_modele.yaml` (commenté champ par
+  champ ; les fichiers commençant par `_` sont ignorés par le site) sous un
+  nouveau nom. Obligatoires : `id` (unique), `titre`, `district` (un `id` de
+  `content/districts.yaml`) et `position: [x, y]` en pixels de la carte (les
+  coordonnées s'affichent en bas de l'écran au survol). Le reste est
+  optionnel : `mj`, `type`, `places`, `date`, `duree_estimee`, `lieu`,
+  `paiement`, `difficulte` (1-5), `risques`, `themes`, `avertissements`
+  (trigger warnings, affichés en orange), `notes` (archétypes recommandés),
+  `brief`, `compte_rendu`.
+- **Date** : `date: 2026-02-05T20:30` (fixe), `date: https://…` (lien vers un
+  sondage, affiché « Voter pour la date »), ou texte libre / ligne absente
+  (« À définir »).
 - **Cycle de vie d'une run** (`statut`) : `ouverte` (inscriptions possibles)
   → `complete` (tu fermes les inscriptions à la main) → `jouee` après la
   séance, en remplissant `compte_rendu`. Les runs `jouee` et `annulee`

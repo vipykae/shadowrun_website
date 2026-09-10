@@ -73,6 +73,8 @@ class Contenu:
         self.districts = yaml.safe_load((CONTENU / "districts.yaml").read_text(encoding="utf-8")) or []
         runs = []
         for fichier in sorted((CONTENU / "runs").glob("*.yaml")):
+            if fichier.name.startswith("_"):  # modèle, brouillons
+                continue
             run = yaml.safe_load(fichier.read_text(encoding="utf-8"))
             run.setdefault("id", fichier.stem)
             runs.append(run)

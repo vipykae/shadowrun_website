@@ -2,14 +2,34 @@ id: data-heist-mitsuhama
 titre: "Data heist : tour Mitsuhama"
 district: downtown-seattle
 position: [993, 1390]
-date: 2026-01-22T20:30
-duree_estimee: 4h
-difficulte: 4
-tags: [corpo, matrice, haute sécurité]
+
+mj: Kaï
+type: Run avec suite
 places: 5
 statut: ouverte
-synopsis: >
+
+date: https://framadate.org/exemple-mitsuhama
+duree_estimee: 4h
+
+lieu: "Tour Mitsuhama, 47e étage — laboratoire R&D, Downtown"
+paiement: "15 k¥ chacune · bonus négociable selon les données annexes"
+
+difficulte: 4
+risques: >
+  Sécurité corpo de haut niveau : IC noire dans la Matrice, drones de
+  patrouille, équipe d'intervention à 4 minutes. Toute alarme signifie
+  une fuite en catastrophe.
+
+themes: [corpo, matrice, haute sécurité]
+avertissements: [violence]
+
+notes: >
+  Decker expérimentée obligatoire. Une rigger pour les drones et
+  quelqu'un capable de se faire passer pour un cadre Mitsuhama.
+
+brief: >
   Une puce de recherche dort au 47e étage de la tour Mitsuhama.
   Le commanditaire paie triple tarif. Personne ne paie triple tarif
   sans une bonne raison.
+
 compte_rendu: null
