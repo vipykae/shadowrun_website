@@ -206,7 +206,7 @@ Objectif : les joueuses s'inscrivent réellement depuis chez elles.
 - ⏳ Reste à faire par la MJ : déploiement sur la Pi, DNS/domaine, HTTPS réel,
   sauvegardes nocturnes de `data/app.db`.
 - Cartographie des districts : tracé des polygones **à la main avec labelme**
-  (outil Python d'annotation d'images : `pip install labelme`, polygones à la
+  (outil Python d'annotation d'images : `uv sync --extra dev`, polygones à la
   souris, export JSON en coordonnées pixel) + petit script de conversion
   labelme → `districts.yaml` fourni dans le repo. Alternative sans
   installation : makesense.ai (dans le navigateur). Pour relever la position

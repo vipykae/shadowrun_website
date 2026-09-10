@@ -1,0 +1,25 @@
+[project]
+name = "seattle-2080"
+version = "0.1.0"
+description = "Tableau des runs — campagne West March Shadowrun Anarchy"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "pyyaml>=6.0",
+    "itsdangerous>=2.2",
+    "argon2-cffi>=23.1",
+    "pillow>=10.0",
+    "python-multipart>=0.0.9",
+]
+
+# Outil de tracé des districts (scripts/labelme_vers_districts.py) — lourd
+# (interface graphique), installé seulement au besoin :
+#   uv sync --extra dev
+[project.optional-dependencies]
+dev = ["labelme"]
+
+[tool.uv]
+# Une application, pas une bibliothèque à publier : uv gère l'environnement
+# et le lockfile sans tenter de construire un paquet installable.
+package = false

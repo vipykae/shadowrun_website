@@ -15,7 +15,8 @@ frontend/          Le site (HTML/CSS/JS + Leaflet), servi par le backend
   personnages.js   Onglet Personnages : galerie PJ/PNJ, formulaires
   fond.js          Fond réseau de particules réactif au curseur (canvas)
   effets.js        Effets : décodage des titres, glitch, secousse
-backend/           API FastAPI (app.py) + requirements.txt
+backend/           API FastAPI (app.py)
+pyproject.toml / uv.lock   Dépendances Python, gérées avec uv
 content/           Contenu éditable par la MJ (versionné dans git)
   carte.yaml       Image de la carte + dimensions
   carte/           carte_seattle_web.jpg — image affichée, RÉFÉRENCE des
@@ -31,12 +32,17 @@ data/              (non versionné) app.db — inscriptions SQLite
 
 ## Lancer en local (dev)
 
+Gestion des dépendances Python avec [uv](https://docs.astral.sh/uv/) :
+
 ```bash
-pip install -r backend/requirements.txt
-python -m uvicorn backend.app:app --port 8300 --reload
+uv sync
+uv run uvicorn backend.app:app --port 8300 --reload
 ```
 
-puis ouvrir http://localhost:8300/
+puis ouvrir http://localhost:8300/. `uv sync` crée un `.venv/` local à partir
+de `uv.lock` (dépendances figées) — rien à activer, `uv run` s'en charge.
+Après avoir ajouté/modifié une dépendance dans `pyproject.toml` :
+`uv lock` puis `uv sync`.
 
 Sans variables d'environnement, l'app démarre en mode dev avec les mots de
 passe **`joueuse`** et **`mj`** (à ne jamais utiliser en production).
@@ -88,7 +94,7 @@ Les districts sont tracés dans labelme sur `content/carte/carte_seattle_web.jpg
 (un polygone par district, le label devient le nom affiché). Après retouche :
 
 ```bash
-python scripts/labelme_vers_districts.py
+uv run scripts/labelme_vers_districts.py
 ```
 
 Le script simplifie les polygones et régénère `content/districts.yaml` — les
@@ -149,7 +155,7 @@ Voir [CADRAGE.md](CADRAGE.md) section 5. En résumé :
 ```bash
 cd deploy
 cp .env.example .env
-python ../scripts/genere_hash.py   # génère hashs + clé + jeton calendrier, à coller dans .env
+uv run ../scripts/genere_hash.py   # génère hashs + clé + jeton calendrier, à coller dans .env
 # renseigner DOMAINE (et DISCORD_WEBHOOK_URL si voulu) dans .env
 docker compose up -d --build
 ```
