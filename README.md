@@ -45,7 +45,10 @@ Après avoir ajouté/modifié une dépendance dans `pyproject.toml` :
 `uv lock` puis `uv sync`.
 
 Sans variables d'environnement, l'app démarre en mode dev avec les mots de
-passe **`joueuse`** et **`mj`** (à ne jamais utiliser en production).
+passe **`joueuse`** et **`mj`** (à ne jamais utiliser en production). Un
+fichier `.env` à la racine (voir `deploy/.env.example`) est chargé
+automatiquement, aussi bien en local (`uv run uvicorn ...`, sans rien
+exporter à la main ni passer `--env-file`) que via Docker Compose.
 
 ## Contenu (côté MJ)
 

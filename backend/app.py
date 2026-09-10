@@ -37,6 +37,7 @@ import yaml
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 from fastapi import BackgroundTasks, Depends, FastAPI, File, HTTPException, Request, Response, UploadFile
+from dotenv import load_dotenv
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from itsdangerous import BadSignature, SignatureExpired, TimestampSigner
@@ -44,6 +45,13 @@ from PIL import Image, UnidentifiedImageError
 from pydantic import BaseModel, Field, field_validator
 
 RACINE = Path(__file__).resolve().parent.parent
+
+# En local (uv run uvicorn ...), rien ne lit .env sans ça — seul Docker
+# Compose le fait automatiquement (env_file: .env). Ne modifie jamais une
+# variable déjà définie dans l'environnement (override=False, le défaut) :
+# ce que la vraie prod exporte prime toujours sur le fichier.
+load_dotenv(RACINE / ".env")
+
 CONTENU = Path(os.environ.get("DOSSIER_CONTENU", RACINE / "content"))
 DONNEES = Path(os.environ.get("DOSSIER_DONNEES", RACINE / "data"))
 DB = DONNEES / "app.db"
