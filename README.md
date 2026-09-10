@@ -107,9 +107,20 @@ carte, avec deux sections. Permissions différentes des runs :
   s'affichent pas côté joueuse, et l'API refuse ces écritures avec 403).
 
 Champs (tous optionnels sauf nom) : `nom`, `archetype`, `concept`, `notes`,
-`image` (URL de portrait), et selon le type `joueuse` (PJ) ou `faction` /
-`district` (PNJ). Fichiers : `content/personnages/pj.yaml` et `pnj.yaml`,
-éditables à la main de la même façon que `districts.yaml`.
+`image`, et selon le type `joueuse` (PJ) ou `faction` / `district` (PNJ).
+Fichiers : `content/personnages/pj.yaml` et `pnj.yaml`, éditables à la main
+de la même façon que `districts.yaml` (le champ `image` y est alors une URL
+externe ou un chemin `/api/uploads/...`).
+
+**Portrait** : le champ « Portrait » du formulaire est un vrai envoi de
+fichier, pas un champ URL — cliquer « Choisir un fichier… » téléverse une
+image, qui est automatiquement redimensionnée (800 px max) et recompressée
+en JPEG par le serveur (`backend/app.py`, via Pillow) avant d'être stockée
+dans `data/uploads/` (comme la base SQLite : ni versionné dans git, ni
+servi publiquement — l'image se récupère via `GET /api/uploads/<nom>`,
+qui exige une session comme le reste de l'API). Remplacer une image ou
+supprimer le personnage efface automatiquement l'ancien fichier ; annuler
+le formulaire après un envoi non sauvegardé l'efface aussi.
 
 ## Notifications Discord
 

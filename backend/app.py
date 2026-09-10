@@ -25,25 +25,29 @@ import sqlite3
 import time
 import urllib.error
 import urllib.request
+import uuid
 from collections import defaultdict, deque
 from datetime import date as date_type
 from datetime import datetime, timedelta
+from io import BytesIO
 from pathlib import Path
 from typing import Literal
 
 import yaml
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
-from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Request, Response
+from fastapi import BackgroundTasks, Depends, FastAPI, File, HTTPException, Request, Response, UploadFile
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from itsdangerous import BadSignature, SignatureExpired, TimestampSigner
+from PIL import Image, UnidentifiedImageError
 from pydantic import BaseModel, Field, field_validator
 
 RACINE = Path(__file__).resolve().parent.parent
 CONTENU = Path(os.environ.get("DOSSIER_CONTENU", RACINE / "content"))
 DONNEES = Path(os.environ.get("DOSSIER_DONNEES", RACINE / "data"))
 DB = DONNEES / "app.db"
+DOSSIER_UPLOADS = DONNEES / "uploads"  # images téléversées (portraits) — pas dans content/, pas versionné
 
 DUREE_SESSION = 60 * 60 * 24 * 30  # 30 jours
 SECURE_COOKIES = os.environ.get("SECURE_COOKIES") == "1"
@@ -535,6 +539,66 @@ def modifier_district(district_id: str, entree: DistrictEntree, role: str = Depe
     return next(d for d in contenu.districts if d["id"] == district_id)
 
 
+# ---------- Téléversement d'images (portraits) ----------
+# Compression systématique côté serveur : quelle que soit la photo envoyée,
+# on ne garde jamais qu'un JPEG raisonnable. Stocké dans data/ (comme la
+# base SQLite) et non dans content/ : ce n'est pas du contenu d'auteure à
+# versionner, mais un fichier binaire dépendant de la base de données
+# d'inscriptions au même titre que le reste de data/.
+
+NOM_UPLOAD_RE = re.compile(r"^[a-f0-9]{32}\.jpg$")
+TAILLE_MAX_UPLOAD = 8 * 1024 * 1024  # 8 Mo, avant compression
+DIMENSION_MAX_UPLOAD = 800  # px, plus long côté après redimensionnement
+
+
+def _chemin_upload(nom: str) -> Path:
+    return DOSSIER_UPLOADS / nom
+
+
+def _supprimer_upload_si_interne(url: str | None):
+    """Efface le fichier d'une ancienne image, seulement si c'est bien un de
+    nos uploads (jamais une URL externe qu'on ne possède pas)."""
+    if url and url.startswith("/api/uploads/") and NOM_UPLOAD_RE.match(url.rsplit("/", 1)[-1]):
+        _chemin_upload(url.rsplit("/", 1)[-1]).unlink(missing_ok=True)
+
+
+@app.post("/api/uploads/image")
+async def televerser_image(fichier: UploadFile = File(...), role: str = Depends(role_courant)):
+    brut = await fichier.read(TAILLE_MAX_UPLOAD + 1)
+    if len(brut) > TAILLE_MAX_UPLOAD:
+        raise HTTPException(413, "Image trop lourde (8 Mo maximum).")
+    try:
+        Image.open(BytesIO(brut)).verify()
+        image = Image.open(BytesIO(brut))  # verify() épuise le flux : on rouvre pour l'utiliser
+    except Image.DecompressionBombError:
+        raise HTTPException(422, "Image refusée (dimensions déraisonnables).")
+    except (UnidentifiedImageError, OSError):
+        raise HTTPException(422, "Fichier non reconnu comme une image.")
+
+    image = image.convert("RGB")
+    image.thumbnail((DIMENSION_MAX_UPLOAD, DIMENSION_MAX_UPLOAD), Image.LANCZOS)
+    DOSSIER_UPLOADS.mkdir(parents=True, exist_ok=True)
+    nom = f"{uuid.uuid4().hex}.jpg"
+    image.save(_chemin_upload(nom), "JPEG", quality=82, optimize=True)
+    return {"url": f"/api/uploads/{nom}"}
+
+
+@app.delete("/api/uploads/{nom}")
+def supprimer_upload(nom: str, role: str = Depends(role_courant)):
+    # Utilisé par le frontend pour nettoyer un envoi qui vient d'être
+    # remplacé ou abandonné avant même d'avoir été rattaché à un personnage.
+    if NOM_UPLOAD_RE.match(nom):
+        _chemin_upload(nom).unlink(missing_ok=True)
+    return {"ok": True}
+
+
+@app.get("/api/uploads/{nom}")
+def upload_image(nom: str, role: str = Depends(role_courant)):
+    if not NOM_UPLOAD_RE.match(nom) or not _chemin_upload(nom).exists():
+        raise HTTPException(404)
+    return FileResponse(_chemin_upload(nom))
+
+
 # ---------- Personnages : PJ (tout le monde) et PNJ (MJ uniquement) ----------
 
 
@@ -606,19 +670,23 @@ def modifier_pj(pj_id: str, entree: PJEntree, role: str = Depends(role_courant))
     idx = next((i for i, p in enumerate(liste) if p["id"] == pj_id), None)
     if idx is None:
         raise HTTPException(404, "PJ inconnu")
+    ancienne_image = liste[idx].get("image")
     liste[idx] = entree.model_dump()
     _sauver_personnages("pj", liste, ORDRE_PJ, ENTETE_PJ)
     contenu.charger()
+    if ancienne_image != entree.image:
+        _supprimer_upload_si_interne(ancienne_image)
     return _personnage_ou_404(contenu.pj, pj_id)
 
 
 @app.delete("/api/personnages/pj/{pj_id}")
 def supprimer_pj(pj_id: str, role: str = Depends(role_courant)):
-    liste = [dict(p) for p in contenu.pj if p["id"] != pj_id]
-    if len(liste) == len(contenu.pj):
+    cible = next((p for p in contenu.pj if p["id"] == pj_id), None)
+    if cible is None:
         raise HTTPException(404, "PJ inconnu")
-    _sauver_personnages("pj", liste, ORDRE_PJ, ENTETE_PJ)
+    _sauver_personnages("pj", [dict(p) for p in contenu.pj if p["id"] != pj_id], ORDRE_PJ, ENTETE_PJ)
     contenu.charger()
+    _supprimer_upload_si_interne(cible.get("image"))
     return {"ok": True}
 
 
@@ -647,19 +715,23 @@ def modifier_pnj(pnj_id: str, entree: PNJEntree, role: str = Depends(role_mj)):
     idx = next((i for i, p in enumerate(liste) if p["id"] == pnj_id), None)
     if idx is None:
         raise HTTPException(404, "PNJ inconnu")
+    ancienne_image = liste[idx].get("image")
     liste[idx] = entree.model_dump()
     _sauver_personnages("pnj", liste, ORDRE_PNJ, ENTETE_PNJ)
     contenu.charger()
+    if ancienne_image != entree.image:
+        _supprimer_upload_si_interne(ancienne_image)
     return _personnage_ou_404(contenu.pnj, pnj_id)
 
 
 @app.delete("/api/personnages/pnj/{pnj_id}")
 def supprimer_pnj(pnj_id: str, role: str = Depends(role_mj)):
-    liste = [dict(p) for p in contenu.pnj if p["id"] != pnj_id]
-    if len(liste) == len(contenu.pnj):
+    cible = next((p for p in contenu.pnj if p["id"] == pnj_id), None)
+    if cible is None:
         raise HTTPException(404, "PNJ inconnu")
-    _sauver_personnages("pnj", liste, ORDRE_PNJ, ENTETE_PNJ)
+    _sauver_personnages("pnj", [dict(p) for p in contenu.pnj if p["id"] != pnj_id], ORDRE_PNJ, ENTETE_PNJ)
     contenu.charger()
+    _supprimer_upload_si_interne(cible.get("image"))
     return {"ok": True}
 
 

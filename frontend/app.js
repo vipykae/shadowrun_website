@@ -282,6 +282,7 @@ document.getElementById("sidebar-close").addEventListener("click", fermerSidebar
 
 function fermerSidebar() {
   mj.nettoyer();
+  personnages.nettoyerUpload();
   sidebar.classList.remove("open");
   sidebar.setAttribute("aria-hidden", "true");
 }

@@ -49,7 +49,10 @@ réactif au survol de la souris (réseau de particules en canvas).
 - **Onglet Personnages** ✅ FAIT : galerie des PJ et PNJ avec leurs infos.
   Permissions volontairement différentes du reste du site : un PJ se
   modifie par n'importe qui de connecté (joueuse ou MJ), un PNJ ne se
-  modifie que par la MJ.
+  modifie que par la MJ. Portraits envoyés en fichier (pas une URL) :
+  compressés côté serveur (Pillow, 800 px max, JPEG) et stockés dans
+  `data/uploads/` ; le fichier remplacé ou abandonné est effacé
+  automatiquement, jamais accumulé.
 - **Polish visuel** : animations futuristes (fade/slide/glitch à l'apparition
   des panneaux), fond mesh réactif à la souris.
 

@@ -10,10 +10,27 @@ const personnages = (() => {
   let vueActive = false;
   let idModifieALaMain = false;
 
+  // Nom (pas l'URL complète) d'une image envoyée pendant la session
+  // d'édition en cours et pas encore confirmée par un enregistrement —
+  // permet de l'effacer du serveur si elle est remplacée ou abandonnée.
+  let uploadEnAttente = null;
+
   const grillePJ = () => document.getElementById("grille-pj");
   const grillePNJ = () => document.getElementById("grille-pnj");
   const zone = () => document.getElementById("sidebar-content");
   const val = (v) => echapper(v ?? "");
+
+  function nomUpload(url) {
+    return url && url.startsWith("/api/uploads/") ? url.slice("/api/uploads/".length) : null;
+  }
+
+  // Best-effort : n'empêche jamais la suite du travail si ça échoue.
+  function nettoyerUploadEnAttente() {
+    if (!uploadEnAttente) return;
+    const nom = uploadEnAttente;
+    uploadEnAttente = null;
+    fetch(`/api/uploads/${nom}`, { method: "DELETE" }).catch(() => {});
+  }
 
   function slug(texte) {
     return String(texte).normalize("NFD").replace(/[̀-ͯ]/g, "")
@@ -88,6 +105,7 @@ const personnages = (() => {
   // ---------- Fiche (sidebar, lecture) ----------
 
   function ouvrirFiche(perso, type) {
+    nettoyerUploadEnAttente(); // on quitte un éventuel formulaire : abandon de son envoi non sauvegardé
     const nomDistrict = perso.district && typeof DONNEES !== "undefined"
       ? (DONNEES.districts.find((d) => d.id === perso.district)?.nom || perso.district)
       : null;
@@ -124,6 +142,7 @@ const personnages = (() => {
   }
 
   function formulaire(perso, typeImpose) {
+    nettoyerUploadEnAttente(); // un formulaire déjà ouvert (autre personnage) est abandonné
     const creation = !perso;
     const p = perso || { id: "", nom: "", archetype: "", concept: "", notes: "", image: "" };
     const type = typeImpose || (perso && donnees.pnj.includes(perso) ? "pnj" : "pj");
@@ -158,7 +177,17 @@ const personnages = (() => {
           </div>
         </div>
         ${champ("Archétype", `<input name="archetype" maxlength="80" value="${val(p.archetype)}" placeholder="Decker, infiltratrice, chef de gang…">`)}
-        ${champ("Portrait (URL, optionnel)", `<input name="image" maxlength="500" value="${val(p.image)}" placeholder="https://…">`)}
+        ${champ("Portrait", `<div class="champ-image">
+              <div class="champ-image-apercu" id="apercu-image">${p.image ? `<img src="${val(p.image)}" alt="">` : `<span class="champ-image-vide">Aucune image</span>`}</div>
+              <div class="champ-image-boutons">
+                <label class="btn btn-secondaire champ-image-parcourir">
+                  Choisir un fichier…
+                  <input type="file" id="champ-image-fichier" accept="image/*" class="cache">
+                </label>
+                <button type="button" class="btn btn-secondaire" id="btn-retirer-image" data-perso-action="retirer-image" ${p.image ? "" : "hidden"}>✕ Retirer</button>
+              </div>
+              <input type="hidden" name="image" value="${val(p.image)}">
+            </div>`, "compressée automatiquement à l'envoi")}
         ${champ("Concept", `<textarea name="concept" rows="4">${val(p.concept)}</textarea>`)}
         ${champ("Notes", `<textarea name="notes" rows="3">${val(p.notes)}</textarea>`, "fluff, quirks, infos de jeu")}
         <div class="formulaire-actions">
@@ -191,12 +220,57 @@ const personnages = (() => {
       const p = creation
         ? await api(`/api/personnages/${type}`, corps)
         : await api(`/api/personnages/${type}/${corps.id}`, corps, "PUT");
+      uploadEnAttente = null; // enregistré avec succès : ce n'est plus « en attente », on ne l'efface pas
       await charger();
       ouvrirFiche(p, type);
     } catch (e) {
       const erreur = document.getElementById("sidebar-erreur");
       if (erreur) erreur.textContent = e.message;
     }
+  }
+
+  // ---------- Envoi d'image (compressée côté serveur) ----------
+
+  async function televerserFichier(fichier) {
+    const donnees = new FormData();
+    donnees.append("fichier", fichier);
+    const reponse = await fetch("/api/uploads/image", { method: "POST", body: donnees });
+    if (!reponse.ok) {
+      let message = `Erreur ${reponse.status}`;
+      try { message = (await reponse.json()).detail || message; } catch {}
+      throw new Error(message);
+    }
+    return reponse.json(); // { url }
+  }
+
+  async function surChoixFichier(input) {
+    const fichier = input.files[0];
+    if (!fichier) return;
+    const form = input.closest("form");
+    const apercu = form.querySelector("#apercu-image");
+    apercu.innerHTML = `<span class="champ-image-vide">Envoi…</span>`;
+    try {
+      const { url } = await televerserFichier(fichier);
+      nettoyerUploadEnAttente(); // un essai précédent de CETTE session, jamais sauvegardé, est remplacé
+      uploadEnAttente = nomUpload(url);
+      form.elements.image.value = url;
+      apercu.innerHTML = `<img src="${val(url)}" alt="">`;
+      form.querySelector("#btn-retirer-image").hidden = false;
+    } catch (e) {
+      apercu.innerHTML = `<span class="champ-image-vide">Échec : ${val(e.message)}</span>`;
+    } finally {
+      input.value = ""; // permet de resélectionner le même fichier au besoin
+    }
+  }
+
+  function retirerImage(bouton) {
+    const form = bouton.closest("form");
+    if (nomUpload(form.elements.image.value) === uploadEnAttente) {
+      nettoyerUploadEnAttente(); // envoyée cette session, jamais sauvegardée : autant l'effacer tout de suite
+    }
+    form.elements.image.value = "";
+    form.querySelector("#apercu-image").innerHTML = `<span class="champ-image-vide">Aucune image</span>`;
+    bouton.hidden = true;
   }
 
   async function supprimer(perso, type) {
@@ -239,6 +313,7 @@ const personnages = (() => {
     sidebar.addEventListener("click", (evt) => {
       const cible = evt.target.closest("[data-perso-action]");
       if (!cible) return;
+      if (cible.dataset.persoAction === "retirer-image") { retirerImage(cible); return; }
       const { persoAction, id, type } = cible.dataset;
       const p = trouver(id, type);
       switch (persoAction) {
@@ -268,8 +343,11 @@ const personnages = (() => {
         form.querySelector(".champ-perso-pj").hidden = !pj;
         form.querySelector(".champ-perso-pnj").hidden = pj;
       }
+      if (evt.target.id === "champ-image-fichier") {
+        surChoixFichier(evt.target);
+      }
     });
   });
 
-  return { estActive, afficherVue, masquerVue };
+  return { estActive, afficherVue, masquerVue, nettoyerUpload: nettoyerUploadEnAttente };
 })();
