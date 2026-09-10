@@ -571,6 +571,7 @@ body::after {
 
 /* Glitch : deux copies du texte décalées et découpées */
 .glitch { position: relative; display: inline-block; }
+.run-titre.glitch { display: block; }
 .glitch::before, .glitch::after {
   content: attr(data-text);
   position: absolute;

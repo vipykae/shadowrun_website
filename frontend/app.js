@@ -219,8 +219,7 @@ function ouvrirSidebar() {
   sidebar.classList.add("open");
   sidebar.setAttribute("aria-hidden", "false");
   sidebar.scrollTop = 0;
-  const titre = sidebarContent.querySelector(".run-titre");
-  if (titre) effets.decoder(titre);
+  effets.cascade(sidebarContent);
 }
 
 const runsParDistrict = (id) => DONNEES.runs.filter((r) => r.district === id);
