@@ -203,10 +203,12 @@ Objectif : les joueuses s'inscrivent réellement depuis chez elles.
   d'un pin isolé : clic dans labelme (mode point) ou n'importe quel éditeur
   d'image affichant les coordonnées du curseur (GIMP, barre d'état).
 
-### V2 — Confort MJ
-- Interface web MJ : créer/modifier une run via formulaire, placer le pin en
-  cliquant sur la carte, marquer une run « jouée » + compte rendu.
-- Historique par district (runs jouées listées dans l'infobulle).
+### V2 — Confort MJ ✅ FAIT
+- ✅ Interface web MJ : créer/modifier/supprimer une run via formulaire, placer
+  le pin en cliquant sur la carte, marquer une run « jouée » + compte rendu,
+  éditer un district. L'API écrit les YAML (`/api/mj/...`, rôle MJ requis,
+  validation Pydantic) — les fichiers restent la source de vérité.
+- ✅ Historique par district (runs jouées cliquables dans la fiche district).
 - Responsive mobile soigné.
 
 ### V2.5 — Polish visuel ✅ FAIT (avant la V2, à la demande de la MJ)

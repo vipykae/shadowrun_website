@@ -24,6 +24,18 @@ YAML_OUT = RACINE / "content" / "districts.yaml"
 TOLERANCE_PX = 2.5  # simplification : écart max entre tracé original et simplifié
 
 
+class DumperLisible(yaml.SafeDumper):
+    """Même mise en forme que l'interface MJ (backend/app.py) : points [x, y] sur une ligne."""
+
+
+def _representer_liste(dumper, valeur):
+    courte = all(isinstance(v, (int, float, str)) for v in valeur) and len(str(valeur)) < 60
+    return dumper.represent_sequence("tag:yaml.org,2002:seq", valeur, flow_style=courte)
+
+
+DumperLisible.add_representer(list, _representer_liste)
+
+
 def slug(texte: str) -> str:
     s = unicodedata.normalize("NFKD", texte).encode("ascii", "ignore").decode()
     return s.lower().strip().replace(" ", "-")
@@ -97,7 +109,7 @@ def main():
     YAML_OUT.write_text(
         "# Généré par scripts/labelme_vers_districts.py — les champs autres que\n"
         "# 'polygone' sont éditables à la main et préservés à la régénération.\n"
-        + yaml.dump(districts, allow_unicode=True, sort_keys=False, width=100),
+        + yaml.dump(districts, Dumper=DumperLisible, allow_unicode=True, sort_keys=False, width=100),
         encoding="utf-8",
     )
 

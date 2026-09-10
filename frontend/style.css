@@ -550,6 +550,86 @@ body::after {
 
 .login-erreur { color: var(--danger); font-size: 14px; min-height: 18px; }
 
+/* ---------- Interface MJ ---------- */
+
+.badge-mj { color: var(--magenta); border-color: rgba(255, 46, 136, 0.45); }
+.badge-mj:hover { color: #fff; border-color: var(--magenta); }
+
+.mj-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-top: 22px;
+  padding-top: 14px;
+  border-top: 1px dashed rgba(255, 46, 136, 0.35);
+}
+
+.mj-label {
+  font-family: var(--font-title);
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--magenta);
+  margin-right: 4px;
+}
+
+.btn-secondaire {
+  background: transparent;
+  color: var(--neon);
+  border: 1px solid var(--neon-dim);
+  box-shadow: none;
+}
+.btn-secondaire:hover { background: rgba(41, 182, 255, 0.1); border-color: var(--neon); box-shadow: none; }
+
+.btn-danger {
+  background: transparent;
+  color: var(--danger);
+  border: 1px solid rgba(255, 77, 77, 0.5);
+  box-shadow: none;
+}
+.btn-danger:hover { background: rgba(255, 77, 77, 0.12); border-color: var(--danger); box-shadow: none; }
+
+.formulaire {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  color-scheme: dark;
+}
+
+.champ { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
+.champ-label { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-dim); }
+.champ-aide { font-size: 12px; color: var(--text-dim); font-style: italic; }
+.champ-ligne { display: flex; gap: 10px; }
+
+.formulaire input, .formulaire select, .formulaire textarea {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 15px;
+  padding: 7px 9px;
+  outline: none;
+}
+.formulaire input:focus, .formulaire select:focus, .formulaire textarea:focus {
+  border-color: var(--neon);
+  box-shadow: 0 0 8px rgba(41, 182, 255, 0.25);
+}
+.formulaire input[readonly] { color: var(--text-dim); }
+.formulaire textarea { resize: vertical; line-height: 1.45; }
+
+.champ-date, .champ-position { display: flex; gap: 6px; align-items: center; }
+.champ-position input { width: 84px; }
+.champ-date .btn, .champ-position .btn { white-space: nowrap; padding: 8px 10px; }
+.cache { position: absolute; width: 0; height: 0; opacity: 0; pointer-events: none; }
+
+.formulaire-actions { display: flex; gap: 8px; margin-top: 6px; }
+
+#map.placement { cursor: cell; }
+.pin.pin-temp .pin-core { background: #fff; box-shadow: 0 0 12px #fff; }
+.pin.pin-temp .pin-ring { border-color: #fff; }
+
 /* ---------- Animations ---------- */
 
 /* Apparition en cascade du contenu de la sidebar */

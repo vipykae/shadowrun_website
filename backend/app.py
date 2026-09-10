@@ -18,7 +18,9 @@ import secrets
 import sqlite3
 import time
 from collections import defaultdict, deque
+from datetime import date as date_type
 from pathlib import Path
+from typing import Literal
 
 import yaml
 from argon2 import PasswordHasher
@@ -27,7 +29,7 @@ from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from itsdangerous import BadSignature, SignatureExpired, TimestampSigner
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 RACINE = Path(__file__).resolve().parent.parent
 CONTENU = Path(os.environ.get("DOSSIER_CONTENU", RACINE / "content"))
@@ -67,17 +69,21 @@ class Contenu:
         self.carte: dict = {}
         self.districts: list = []
         self.runs: list = []
+        self.fichiers: dict[str, Path] = {}  # id de run -> fichier YAML
 
     def charger(self):
         self.carte = yaml.safe_load((CONTENU / "carte.yaml").read_text(encoding="utf-8"))
         self.districts = yaml.safe_load((CONTENU / "districts.yaml").read_text(encoding="utf-8")) or []
         runs = []
+        fichiers = {}
         for fichier in sorted((CONTENU / "runs").glob("*.yaml")):
             if fichier.name.startswith("_"):  # modèle, brouillons
                 continue
             run = yaml.safe_load(fichier.read_text(encoding="utf-8"))
             run.setdefault("id", fichier.stem)
             runs.append(run)
+            fichiers[run["id"]] = fichier
+        self.fichiers = fichiers
         ids = [r["id"] for r in runs]
         doublons = {i for i in ids if ids.count(i) > 1}
         if doublons:
@@ -91,6 +97,47 @@ class Contenu:
 
 contenu = Contenu()
 contenu.charger()
+
+
+# ---------- Écriture YAML lisible (interface MJ) ----------
+
+ORDRE_RUN = [
+    "id", "titre", "district", "position", "mj", "type", "places", "statut",
+    "date", "duree_estimee", "lieu", "paiement", "difficulte", "risques",
+    "themes", "avertissements", "notes", "brief", "compte_rendu",
+]
+ORDRE_DISTRICT = ["id", "nom", "gang_dominant", "gangs_presents", "description", "runs_jouees", "polygone"]
+ENTETE_DISTRICTS = (
+    "# Généré par scripts/labelme_vers_districts.py — les champs autres que\n"
+    "# 'polygone' sont éditables à la main et préservés à la régénération.\n"
+)
+
+
+class DumperLisible(yaml.SafeDumper):
+    """Textes longs en bloc littéral, petites listes sur une ligne."""
+
+
+def _representer_str(dumper, valeur):
+    style = "|" if ("\n" in valeur or len(valeur) > 70) else None
+    return dumper.represent_scalar("tag:yaml.org,2002:str", valeur, style=style)
+
+
+def _representer_liste(dumper, valeur):
+    courte = all(isinstance(v, (int, float, str)) for v in valeur) and len(str(valeur)) < 60
+    return dumper.represent_sequence("tag:yaml.org,2002:seq", valeur, flow_style=courte)
+
+
+DumperLisible.add_representer(str, _representer_str)
+DumperLisible.add_representer(list, _representer_liste)
+
+
+def dump_yaml(donnees) -> str:
+    return yaml.dump(donnees, Dumper=DumperLisible, allow_unicode=True, sort_keys=False, width=100)
+
+
+def ordonner(donnees: dict, ordre: list[str]) -> dict:
+    return {**{k: donnees[k] for k in ordre if k in donnees},
+            **{k: v for k, v in donnees.items() if k not in ordre}}
 
 
 # ---------- Base (inscriptions) ----------
@@ -274,6 +321,140 @@ def desinscription(run_id: str, joueuse: Joueuse, role: str = Depends(role_coura
 def recharger(role: str = Depends(role_mj)):
     contenu.charger()
     return {"districts": len(contenu.districts), "runs": len(contenu.runs)}
+
+
+# ---------- Interface MJ : écriture des YAML ----------
+
+
+def _vide_vers_none(valeur):
+    if isinstance(valeur, str):
+        valeur = valeur.strip()
+        return valeur or None
+    return valeur
+
+
+class RunEntree(BaseModel):
+    id: str = Field(pattern=r"^[a-z0-9][a-z0-9-]{0,60}$")
+    titre: str = Field(min_length=1, max_length=120)
+    district: str
+    position: tuple[int, int]
+    mj: str | None = Field(None, max_length=60)
+    type: str | None = Field(None, max_length=60)
+    places: int = Field(4, ge=1, le=12)
+    statut: Literal["ouverte", "complete", "jouee", "annulee"] = "ouverte"
+    date: str | None = Field(None, max_length=300)
+    duree_estimee: str | None = Field(None, max_length=40)
+    lieu: str | None = Field(None, max_length=300)
+    paiement: str | None = Field(None, max_length=300)
+    difficulte: int = Field(3, ge=1, le=5)
+    risques: str | None = Field(None, max_length=5000)
+    themes: list[str] = []
+    avertissements: list[str] = []
+    notes: str | None = Field(None, max_length=5000)
+    brief: str | None = Field(None, max_length=10000)
+    compte_rendu: str | None = Field(None, max_length=20000)
+
+    @field_validator("mj", "type", "date", "duree_estimee", "lieu", "paiement", "risques",
+                     "notes", "brief", "compte_rendu", "titre", mode="before")
+    @classmethod
+    def _nettoyer(cls, v):
+        return _vide_vers_none(v)
+
+    @field_validator("themes", "avertissements", mode="before")
+    @classmethod
+    def _nettoyer_liste(cls, v):
+        return [s.strip()[:60] for s in (v or []) if isinstance(s, str) and s.strip()]
+
+    def verifier(self):
+        if self.district not in {d["id"] for d in contenu.districts}:
+            raise HTTPException(422, f"District inconnu : {self.district}")
+        x, y = self.position
+        if not (0 <= x <= contenu.carte["largeur"] and 0 <= y <= contenu.carte["hauteur"]):
+            raise HTTPException(422, "Position hors de la carte")
+
+    def vers_yaml(self) -> dict:
+        donnees = self.model_dump()
+        donnees["position"] = list(self.position)
+        return ordonner(donnees, ORDRE_RUN)
+
+
+class DistrictEntree(BaseModel):
+    nom: str = Field(min_length=1, max_length=80)
+    gang_dominant: str | None = Field(None, max_length=120)
+    gangs_presents: list[str] = []
+    description: str | None = Field(None, max_length=5000)
+    runs_jouees: list[str] = []
+
+    @field_validator("gang_dominant", "description", "nom", mode="before")
+    @classmethod
+    def _nettoyer(cls, v):
+        return _vide_vers_none(v)
+
+    @field_validator("gangs_presents", "runs_jouees", mode="before")
+    @classmethod
+    def _nettoyer_liste(cls, v):
+        return [s.strip()[:120] for s in (v or []) if isinstance(s, str) and s.strip()]
+
+
+def _run_avec_inscrites(run_id: str) -> dict:
+    run = dict(_run_ou_404(run_id))
+    with db() as con:
+        run["inscrites"] = _liste_inscrites(con, run_id)
+    return run
+
+
+@app.post("/api/mj/runs", status_code=201)
+def creer_run(entree: RunEntree, role: str = Depends(role_mj)):
+    entree.verifier()
+    if entree.id in contenu.fichiers:
+        raise HTTPException(409, f"Une run avec l'id « {entree.id} » existe déjà.")
+    prefixe = (entree.date or "")[:10] if (entree.date or "")[:4].isdigit() else date_type.today().isoformat()
+    chemin = CONTENU / "runs" / f"{prefixe}_{entree.id}.yaml"
+    if chemin.exists():
+        chemin = CONTENU / "runs" / f"{entree.id}.yaml"
+    chemin.write_text(dump_yaml(entree.vers_yaml()), encoding="utf-8")
+    contenu.charger()
+    return _run_avec_inscrites(entree.id)
+
+
+@app.put("/api/mj/runs/{run_id}")
+def modifier_run(run_id: str, entree: RunEntree, role: str = Depends(role_mj)):
+    chemin = contenu.fichiers.get(run_id)
+    if chemin is None:
+        raise HTTPException(404, "Run inconnue")
+    if entree.id != run_id:
+        raise HTTPException(422, "L'id d'une run ne se modifie pas.")
+    entree.verifier()
+    chemin.write_text(dump_yaml(entree.vers_yaml()), encoding="utf-8")
+    contenu.charger()
+    return _run_avec_inscrites(run_id)
+
+
+@app.delete("/api/mj/runs/{run_id}")
+def supprimer_run(run_id: str, role: str = Depends(role_mj)):
+    chemin = contenu.fichiers.get(run_id)
+    if chemin is None:
+        raise HTTPException(404, "Run inconnue")
+    chemin.unlink()
+    with db() as con:
+        con.execute("DELETE FROM inscriptions WHERE run_id = ?", (run_id,))
+    contenu.charger()
+    return {"ok": True}
+
+
+@app.put("/api/mj/districts/{district_id}")
+def modifier_district(district_id: str, entree: DistrictEntree, role: str = Depends(role_mj)):
+    districts = [dict(d) for d in contenu.districts]
+    cible = next((d for d in districts if d["id"] == district_id), None)
+    if cible is None:
+        raise HTTPException(404, "District inconnu")
+    cible.update(entree.model_dump())
+    (CONTENU / "districts.yaml").write_text(
+        ENTETE_DISTRICTS + dump_yaml([ordonner(d, ORDRE_DISTRICT) for d in districts]),
+        encoding="utf-8",
+    )
+    contenu.charger()
+    return next(d for d in contenu.districts if d["id"] == district_id)
 
 
 # Le frontend (la sidebar, la page de login…) est public ; toutes les

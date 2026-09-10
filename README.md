@@ -11,6 +11,7 @@ Voir [CADRAGE.md](CADRAGE.md) pour le périmètre, l'architecture et la roadmap.
 ```
 frontend/          Le site (HTML/CSS/JS + Leaflet), servi par le backend
   app.js           Logique : login, carte, sidebar, inscriptions
+  mj.js            Interface MJ : formulaires run/district, placement du pin
   fond.js          Fond réseau de particules réactif au curseur (canvas)
   effets.js        Effets : décodage des titres, glitch, secousse
 backend/           API FastAPI (app.py) + requirements.txt
@@ -39,6 +40,20 @@ Sans variables d'environnement, l'app démarre en mode dev avec les mots de
 passe **`joueuse`** et **`mj`** (à ne jamais utiliser en production).
 
 ## Contenu (côté MJ)
+
+Deux façons équivalentes de gérer le contenu — les deux écrivent les mêmes
+fichiers YAML dans `content/`, qui restent la source de vérité (à versionner
+dans git) :
+
+**Depuis le site, en accès MJ** : bouton « + RUN » en haut pour créer une run ;
+dans la fiche d'une run, boutons « ✎ Modifier », « ✓ Marquer jouée » (ouvre le
+formulaire avec le statut prérempli et le curseur sur le compte rendu) et
+« ✕ Supprimer » ; dans la fiche d'un district, « ✎ Modifier le district »
+(gangs, description, historique). Le pin se place en cliquant « ◎ Placer sur
+la carte » puis sur la carte (Échap pour annuler). Le fichier est écrit sous
+`content/runs/<date>_<id>.yaml`.
+
+**À la main, dans les fichiers** :
 
 - **Créer une run** : copier `content/runs/_modele.yaml` (commenté champ par
   champ ; les fichiers commençant par `_` sont ignorés par le site) sous un

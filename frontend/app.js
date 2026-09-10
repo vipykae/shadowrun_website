@@ -26,14 +26,22 @@ const estVisible = (run) => estAVenir(run) || afficherJouees;
 
 // ---------- Appels API ----------
 
-async function api(chemin, corps) {
-  const options = corps
-    ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(corps) }
-    : {};
+async function api(chemin, corps, methode) {
+  const options = { method: methode || (corps ? "POST" : "GET"), headers: {} };
+  if (corps) {
+    options.headers["Content-Type"] = "application/json";
+    options.body = JSON.stringify(corps);
+  }
   const reponse = await fetch(chemin, options);
   if (!reponse.ok) {
     let message = `Erreur ${reponse.status}`;
-    try { message = (await reponse.json()).detail || message; } catch {}
+    try {
+      const detail = (await reponse.json()).detail;
+      // Erreurs de validation Pydantic : liste de { loc, msg }
+      message = Array.isArray(detail)
+        ? detail.map((e) => `${(e.loc || []).slice(1).join(".")} : ${e.msg}`).join(" · ")
+        : (detail || message);
+    } catch {}
     const erreur = new Error(message);
     erreur.status = reponse.status;
     throw erreur;
@@ -81,12 +89,23 @@ async function chargerEtAfficher() {
 
   document.getElementById("badge-role").textContent = `ACCÈS : ${ROLE === "mj" ? "MJ" : "JOUEUSE"}`;
   document.getElementById("btn-reload").hidden = ROLE !== "mj";
+  document.getElementById("btn-nouvelle-run").hidden = ROLE !== "mj";
   document.getElementById("btn-logout").hidden = false;
   document.getElementById("btn-filtre").hidden = false;
 
-  initCarte();
+  if (!map) creerCarte();
+  construireCouches();
   appliquerFiltre();
 }
+
+// Recharge les données sans toucher au zoom / cadrage de la carte.
+async function rafraichir() {
+  DONNEES = await api("/api/carte");
+  construireCouches();
+  appliquerFiltre();
+}
+
+document.getElementById("btn-nouvelle-run").addEventListener("click", () => mj.formulaireRun(null));
 
 document.getElementById("btn-logout").addEventListener("click", async () => {
   try { await api("/api/logout", {}); } catch {}
@@ -147,12 +166,11 @@ function iconePour(run) {
   });
 }
 
-function initCarte() {
+let couches = []; // polygones des districts, pour les reconstruire au rafraîchissement
+
+function creerCarte() {
   const H = DONNEES.carte.hauteur;
   const W = DONNEES.carte.largeur;
-
-  if (map) { map.remove(); map = null; }
-  for (const id in marqueurs) delete marqueurs[id];
 
   map = L.map("map", {
     crs: L.CRS.Simple,
@@ -172,6 +190,24 @@ function initCarte() {
   map.fitBounds(bornes);
   map.setMaxBounds([[-H * 0.1, -W * 0.1], [H * 1.1, W * 1.1]]);
 
+  map.on("click", (evt) => {
+    if (mj.clicCarte(evt)) return;
+    fermerSidebar();
+  });
+
+  map.on("mousemove", (evt) => {
+    const x = Math.round(evt.latlng.lng);
+    const y = Math.round(H - evt.latlng.lat);
+    document.getElementById("status-coords").textContent = `x:${x} y:${y}`;
+  });
+}
+
+function construireCouches() {
+  couches.forEach((c) => c.remove());
+  couches = [];
+  Object.values(marqueurs).forEach((m) => m.remove());
+  for (const id in marqueurs) delete marqueurs[id];
+
   DONNEES.districts.forEach((d) => {
     const poly = L.polygon(d.polygone.map(([x, y]) => px(x, y)), {
       color: "#29b6ff",
@@ -188,19 +224,12 @@ function initCarte() {
     poly.on("mouseover", () => poly.setStyle({ opacity: 0.9, fillOpacity: 0.12, weight: 2 }));
     poly.on("mouseout", () => poly.setStyle({ opacity: 0.35, fillOpacity: 0.03, weight: 1.5 }));
     poly.on("click", () => ouvrirSidebarDistrict(d));
+    couches.push(poly);
   });
 
   DONNEES.runs.forEach((run) => {
     marqueurs[run.id] = L.marker(px(run.position[0], run.position[1]), { icon: iconePour(run) })
       .on("click", () => ouvrirSidebarRun(run));
-  });
-
-  map.on("click", fermerSidebar);
-
-  map.on("mousemove", (evt) => {
-    const x = Math.round(evt.latlng.lng);
-    const y = Math.round(H - evt.latlng.lat);
-    document.getElementById("status-coords").textContent = `x:${x} y:${y}`;
   });
 }
 
@@ -211,11 +240,13 @@ const sidebarContent = document.getElementById("sidebar-content");
 document.getElementById("sidebar-close").addEventListener("click", fermerSidebar);
 
 function fermerSidebar() {
+  mj.nettoyer();
   sidebar.classList.remove("open");
   sidebar.setAttribute("aria-hidden", "true");
 }
 
 function ouvrirSidebar() {
+  if (!sidebarContent.querySelector("form")) mj.nettoyer();
   sidebar.classList.add("open");
   sidebar.setAttribute("aria-hidden", "false");
   sidebar.scrollTop = 0;
@@ -332,6 +363,7 @@ function ouvrirSidebarRun(run) {
     <ul class="inscrites">${lignes.join("")}</ul>
     ${pied}
     <div class="sidebar-erreur" id="sidebar-erreur"></div>
+    ${ROLE === "mj" ? mj.actionsRun(run) : ""}
   `;
 
   const lienDistrict = document.getElementById("lien-district");
@@ -414,6 +446,7 @@ function ouvrirSidebarDistrict(d) {
     <ul class="runs-district">${listeDisponibles}</ul>
     <div class="section-title">Runs jouées</div>
     <ul class="runs-district">${listeJouees}</ul>
+    ${ROLE === "mj" ? mj.actionsDistrict(d) : ""}
   `;
 
   sidebarContent.querySelectorAll(".run-lien[data-run]").forEach((li) => {
