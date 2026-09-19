@@ -9,7 +9,10 @@ services:
     restart: unless-stopped
     env_file: .env
     volumes:
-      - ../content:/app/content:ro
+      # En lecture-écriture : le backend écrit lui-même les YAML de content/
+      # (création/édition de run ou de district depuis l'accès MJ, voir
+      # backend/app.py). Un montage :ro casserait ces écritures en silence.
+      - ../content:/app/content
       - donnees:/app/data
 
   caddy:
