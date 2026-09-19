@@ -28,6 +28,7 @@ content/           Contenu éditable par la MJ (versionné dans git)
 scripts/           genere_hash.py, labelme_vers_districts.py
 deploy/            Docker Compose, Caddy, .env.example
 data/              (non versionné) app.db — inscriptions SQLite
+bot/               Bot Discord (modération, /roll) — voir bot/README.md
 ```
 
 ## Lancer en local (dev)

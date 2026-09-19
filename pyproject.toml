@@ -12,6 +12,8 @@ dependencies = [
     "pillow>=10.0",
     "python-multipart>=0.0.9",
     "python-dotenv>=1.0",
+    # Bot Discord (bot/) : modération (purge entre deux messages) et /roll
+    "discord.py>=2.4",
 ]
 
 # Outil de tracé des districts (scripts/labelme_vers_districts.py) — lourd

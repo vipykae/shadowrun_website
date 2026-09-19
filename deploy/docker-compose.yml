@@ -15,6 +15,13 @@ services:
       - ../content:/app/content
       - donnees:/app/data
 
+  bot:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.bot
+    restart: unless-stopped
+    env_file: .env
+
   caddy:
     image: caddy:2-alpine
     restart: unless-stopped
