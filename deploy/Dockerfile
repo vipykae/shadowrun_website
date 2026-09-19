@@ -13,6 +13,8 @@ RUN uv sync --frozen --no-dev
 
 COPY backend backend
 COPY frontend frontend
+COPY bot bot
+COPY run.py run.py
 
 # content/ et data/ sont montés en volumes par docker-compose
 RUN useradd --create-home runner \
@@ -21,4 +23,6 @@ RUN useradd --create-home runner \
 USER runner
 
 EXPOSE 8000
-CMD ["uv", "run", "--frozen", "--no-dev", "uvicorn", "backend.app:app", "--host", "0.0.0.0", "--port", "8000"]
+# run.py lance le site et le bot Discord ensemble (voir ce fichier) — pas juste
+# uvicorn seul, contrairement à avant que le bot n'existe.
+CMD ["uv", "run", "--frozen", "--no-dev", "python", "run.py"]

@@ -16,6 +16,8 @@ frontend/          Le site (HTML/CSS/JS + Leaflet), servi par le backend
   fond.js          Fond réseau de particules réactif au curseur (canvas)
   effets.js        Effets : décodage des titres, glitch, secousse
 backend/           API FastAPI (app.py)
+bot/               Bot Discord (modération, /roll, notifications) — voir bot/README.md
+run.py             Point d'entrée de prod : lance site + bot ensemble (deploy/Dockerfile)
 pyproject.toml / uv.lock   Dépendances Python, gérées avec uv
 content/           Contenu éditable par la MJ (versionné dans git)
   carte.yaml       Image de la carte + dimensions
@@ -28,7 +30,6 @@ content/           Contenu éditable par la MJ (versionné dans git)
 scripts/           genere_hash.py, labelme_vers_districts.py
 deploy/            Docker Compose, Caddy, .env.example
 data/              (non versionné) app.db — inscriptions SQLite
-bot/               Bot Discord (modération, /roll) — voir bot/README.md
 ```
 
 ## Lancer en local (dev)
@@ -44,6 +45,11 @@ puis ouvrir http://localhost:8300/. `uv sync` crée un `.venv/` local à partir
 de `uv.lock` (dépendances figées) — rien à activer, `uv run` s'en charge.
 Après avoir ajouté/modifié une dépendance dans `pyproject.toml` :
 `uv lock` puis `uv sync`.
+
+Le bot Discord (voir [bot/README.md](bot/README.md)) se lance à part en dev, dans un
+second terminal (`uv run python -m bot.main`) — utile pour tester `/roll` et
+`/purge_between` sans redémarrer le site à chaque changement. En prod, les deux
+tournent ensemble via `run.py` (voir plus bas).
 
 Sans variables d'environnement, l'app démarre en mode dev avec les mots de
 passe **`joueuse`** et **`mj`** (à ne jamais utiliser en production). Un
@@ -141,15 +147,17 @@ l'efface aussi.
 
 ## Notifications Discord
 
-Si `DISCORD_WEBHOOK_URL` est renseigné dans `.env`, le serveur poste
-directement sur Discord (aucun relais tiers) lors de la publication d'une
-run, d'une inscription, et du passage d'une run en « jouée ». Si la run
-publiée a une image, elle est jointe au message (embed Discord) — l'URL
-envoyée à Discord est complète (`https://ton-domaine/api/uploads/...`),
+Si `DISCORD_BOT_TOKEN` et `DISCORD_NOTIFY_CHANNEL_ID` sont renseignés dans `.env`, le
+bot (voir [bot/README.md](bot/README.md)) poste directement sur Discord — lui-même,
+pas de webhook — lors de la publication d'une run, d'une inscription, et du passage
+d'une run en « jouée ». Si la run publiée a une image, elle est jointe au message
+(embed Discord) — l'URL envoyée est complète (`https://ton-domaine/api/uploads/...`),
 construite à partir de l'adresse à laquelle la requête est arrivée. Laisser
-la variable vide désactive silencieusement la fonctionnalité. Une panne
-Discord ne fait jamais échouer une requête de l'API (l'appel est fait en
-tâche de fond, après la réponse).
+`DISCORD_NOTIFY_CHANNEL_ID` vide désactive silencieusement les notifications (le bot
+reste actif pour `/roll` et `/purge_between`) ; laisser `DISCORD_BOT_TOKEN` vide
+désactive le bot entièrement, le site continue de fonctionner seul. Une panne Discord
+ne fait jamais échouer une requête de l'API (l'appel est fait en tâche de fond, après
+la réponse).
 
 ## Export calendrier (.ics)
 
@@ -170,7 +178,7 @@ Voir [CADRAGE.md](CADRAGE.md) section 5. En résumé :
 cd deploy
 cp .env.example .env
 uv run ../scripts/genere_hash.py   # génère hashs + clé + jeton calendrier, à coller dans .env
-# renseigner DOMAINE (et DISCORD_WEBHOOK_URL si voulu) dans .env
+# renseigner DOMAINE dans .env (et DISCORD_BOT_TOKEN / DISCORD_NOTIFY_CHANNEL_ID si voulu — voir bot/README.md)
 docker compose up -d --build
 ```
 

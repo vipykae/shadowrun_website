@@ -14,13 +14,9 @@ services:
       # backend/app.py). Un montage :ro casserait ces écritures en silence.
       - ../content:/app/content
       - donnees:/app/data
-
-  bot:
-    build:
-      context: ..
-      dockerfile: deploy/Dockerfile.bot
-    restart: unless-stopped
-    env_file: .env
+    # Le bot Discord tourne dans ce même conteneur (voir run.py) : pas de
+    # service séparé, un plantage du bot ne doit pas laisser un service
+    # fantôme derrière lui, et inversement une màj du site redémarre les deux.
 
   caddy:
     image: caddy:2-alpine

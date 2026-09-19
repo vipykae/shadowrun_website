@@ -1,0 +1,27 @@
+# Secrets — ne doivent JAMAIS entrer dans une image (COPY est récursif : sans ce
+# fichier, .env sous n'importe quel dossier copié atterrit dans l'image).
+.env
+*/.env
+deploy/.env
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Données dynamiques, générées, ou lourdes non nécessaires au build
+data/
+*.db
+content/carte/source/
+
+# VCS / outils
+.git/
+.github/
+.claude/
+
+# OS / IDE
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store

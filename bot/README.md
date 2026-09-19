@@ -1,7 +1,11 @@
 # Bot Discord — West March
 
-Bot de modération et d'utilité pour la campagne, séparé du site web (`backend/`) mais
-dans le même dépôt et le même environnement Python (`uv`).
+Bot de modération, d'utilité et de notifications pour la campagne. Dans le même dépôt
+et le même environnement Python (`uv`) que le site web (`backend/`) — et, **en
+production, dans le même process** (voir `../run.py`) : c'est lui qui envoie les
+notifications de nouvelle run/inscription/run jouée, à la place de l'ancien webhook.
+En dev, on peut toujours le lancer seul (ci-dessous) pour tester `/roll` et
+`/purge_between` sans site.
 
 ## Commandes
 
@@ -21,7 +25,7 @@ dans le même dépôt et le même environnement Python (`uv`).
   Les messages de plus de 14 jours sont supprimés un par un (limite de l'API Discord
   pour la suppression groupée) — plus lent, mais géré automatiquement.
 
-## Setup
+## Setup (test en local, bot seul)
 
 **1. Créer l'application Discord** (si ce n'est pas déjà fait) sur le
 [Developer Portal](https://discord.com/developers/applications) :
@@ -55,22 +59,24 @@ uv run python -m bot.main
 Les commandes doivent apparaître immédiatement dans ton serveur de test (grâce à
 `DISCORD_TEST_GUILD_ID`). Tape `/` dans un salon pour les voir.
 
-## Docker
+## Docker (site + bot ensemble)
 
-Le bot est packagé comme un service à part dans `deploy/docker-compose.yml` (même
-`.env` que le site, aucun port ni volume nécessaire — le bot n'a aucun état à
-persister) :
+En prod, pas de service `bot` séparé : `deploy/Dockerfile` construit une seule image
+qui contient le site **et** le bot, lancée via `../run.py`. `deploy/docker-compose.yml`
+n'a qu'un service `app`.
 
 ```bash
 cd deploy
-docker compose up -d --build bot
-docker compose logs -f bot
+docker compose up -d --build app
+docker compose logs -f app
 ```
 
-Renseigner `DISCORD_BOT_TOKEN` dans `deploy/.env` (voir `deploy/.env.example`).
-**Laisser `DISCORD_TEST_GUILD_ID` vide en vrai déploiement** : ça synchronise les
-commandes globalement sur tous les serveurs où le bot est invité, plutôt que sur un
-seul serveur de test.
+Renseigner dans `deploy/.env` (voir `deploy/.env.example`) : `DISCORD_BOT_TOKEN`,
+`DISCORD_NOTIFY_CHANNEL_ID` (salon des notifications). **Laisser
+`DISCORD_TEST_GUILD_ID` vide en vrai déploiement** : ça synchronise les commandes
+globalement sur tous les serveurs où le bot est invité, plutôt que sur un seul serveur
+de test. Sans `DISCORD_BOT_TOKEN`, le site démarre quand même, seul (bot et
+notifications désactivés, aucune erreur).
 
 ## Notes
 
@@ -83,6 +89,8 @@ seul serveur de test.
   sans conséquence : discord.py l'affiche par défaut, mais aucune de nos commandes n'a
   besoin de lire le contenu des messages (tout passe par l'API REST et les paramètres
   de commande slash).
-- Pas encore déployé sur `quarantaine-server` — usage local / serveur de test pour
-  l'instant. Le portrait de l'infra commune (`../../2026_mutual_server/etat_des_lieux.md`)
-  documente comment déployer une app conteneurisée le moment venu.
+- **Bot et site partagent le même process en prod** (`run.py`) : un plantage de l'un
+  arrête l'autre. Assumé délibérément pour un outil de campagne à 1-3 joueuses — voir
+  `run.py` pour le raisonnement complet.
+- Déployé sur `quarantaine-server` (portrait de l'infra commune :
+  `../../2026_mutual_server/etat_des_lieux.md`) via la PR `feat/shadowrun-westmarch`.

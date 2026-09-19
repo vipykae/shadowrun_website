@@ -3,28 +3,29 @@
 Lancement (dev, depuis la racine du projet) :
     python -m uvicorn backend.app:app --port 8300 --reload
 
+En prod, ce module est servi conjointement avec le bot Discord par `run.py`
+(les deux tournent dans le même process) — voir ce fichier pour le détail.
+
 Configuration par variables d'environnement (voir deploy/.env.example) :
     MDP_JOUEUSE_HASH / MDP_MJ_HASH : hashs argon2 (scripts/genere_hash.py)
     CLE_SECRETE                    : signe les cookies de session
     SECURE_COOKIES=1               : cookies Secure (derrière HTTPS)
-    DISCORD_WEBHOOK_URL            : notifications (nouvelle run, inscription…)
     CALENDRIER_TOKEN               : jeton d'accès au flux .ics (indépendant du login)
 Sans ces variables, l'app démarre en mode dev avec les mots de passe
 « joueuse » et « mj » et une clé aléatoire (sessions perdues au redémarrage).
-Discord et le calendrier sont simplement absents si non configurés.
+Les notifications Discord passent par le bot (bot/notifications.py) : absentes
+si celui-ci n'est pas configuré/lancé (ex. en dev avec uvicorn seul), sans erreur.
+Le calendrier est simplement absent si non configuré.
 """
 
 from __future__ import annotations
 
 import hmac
-import json
 import os
 import re
 import secrets
 import sqlite3
 import time
-import urllib.error
-import urllib.request
 import uuid
 from collections import defaultdict, deque
 from datetime import date as date_type
@@ -40,6 +41,8 @@ from fastapi import BackgroundTasks, Depends, FastAPI, File, HTTPException, Requ
 from dotenv import load_dotenv
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
+
+from bot.notifications import envoyer as notifier_discord
 from itsdangerous import BadSignature, SignatureExpired, TimestampSigner
 from PIL import Image, UnidentifiedImageError
 from pydantic import BaseModel, Field, field_validator
@@ -81,7 +84,6 @@ if not CLE_SECRETE:
 
 signer = TimestampSigner(CLE_SECRETE)
 
-DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
 CALENDRIER_TOKEN = os.environ.get("CALENDRIER_TOKEN")
 
 
@@ -138,34 +140,11 @@ contenu.charger()
 
 
 # ---------- Notification Discord ----------
-# Appelée directement depuis ce serveur (pas de relais tiers) : un simple
-# POST HTTPS vers l'URL de webhook fournie par Discord. No-op si absente ;
-# une panne Discord ne doit jamais faire échouer une requête de l'API,
-# donc toujours invoquée via BackgroundTasks après la réponse.
-
-
-def notifier_discord(message: str, image_url: str | None = None):
-    if not DISCORD_WEBHOOK_URL:
-        return
-    charge = {"content": message[:2000]}
-    if image_url:
-        charge["embeds"] = [{"image": {"url": image_url}}]
-    try:
-        corps = json.dumps(charge).encode("utf-8")
-        requete = urllib.request.Request(
-            DISCORD_WEBHOOK_URL, data=corps,
-            headers={
-                "Content-Type": "application/json",
-                # Sans ça, Cloudflare (devant l'API Discord) renvoie 403
-                # « error code: 1010 » : le user-agent par défaut d'urllib
-                # (Python-urllib/x.y) est reconnu comme un script et bloqué.
-                "User-Agent": "Mozilla/5.0 (compatible; Seattle2080RunsBot/1.0)",
-            },
-            method="POST",
-        )
-        urllib.request.urlopen(requete, timeout=5)
-    except (urllib.error.URLError, OSError, TimeoutError) as e:
-        print(f"ATTENTION : notification Discord échouée ({e})")
+# `notifier_discord` est importée depuis bot/notifications.py (voir les imports en
+# tête de fichier) : elle envoie directement via le bot connecté, plutôt que par un
+# webhook HTTP. No-op silencieux si le bot n'est pas configuré (ex. dev avec uvicorn
+# seul) ; une panne Discord ne doit jamais faire échouer une requête de l'API, donc
+# toujours invoquée via BackgroundTasks après la réponse.
 
 
 # ---------- Écriture YAML lisible (interface MJ) ----------
