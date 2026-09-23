@@ -595,6 +595,55 @@ body::after {
   min-height: 18px;
 }
 
+/* ---------- Recadrage d'image (carré déplaçable/redimensionnable) ---------- */
+
+.crop-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(6, 8, 15, 0.85);
+  backdrop-filter: blur(3px);
+  padding: 16px;
+}
+
+.crop-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: min(520px, 100%);
+  padding: 22px;
+  background: linear-gradient(200deg, var(--bg-panel-2), var(--bg-panel));
+  border: 1px solid var(--neon-dim);
+  border-radius: 6px;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.6);
+}
+
+.crop-titre {
+  font-family: var(--font-title);
+  font-size: 14px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--neon);
+  text-shadow: 0 0 10px var(--neon-glow);
+}
+
+.crop-zone {
+  display: flex;
+  justify-content: center;
+  background: var(--bg);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.crop-zone canvas { display: block; touch-action: none; }
+
+.crop-aide { font-size: 12.5px; color: var(--text-dim); }
+
+.crop-actions { display: flex; justify-content: flex-end; gap: 8px; }
+
 /* ---------- Écran de connexion ---------- */
 
 .login-overlay {

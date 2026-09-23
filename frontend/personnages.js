@@ -255,7 +255,7 @@ const personnages = (() => {
 
   async function televerserFichier(fichier) {
     const donnees = new FormData();
-    donnees.append("fichier", fichier);
+    donnees.append("fichier", fichier, "portrait.jpg");
     const reponse = await fetch("/api/uploads/image", { method: "POST", body: donnees });
     if (!reponse.ok) {
       let message = `Erreur ${reponse.status}`;
@@ -270,9 +270,16 @@ const personnages = (() => {
     if (!fichier) return;
     const form = input.closest("form");
     const apercu = form.querySelector("#apercu-image");
+
+    // Cadrage manuel (carré déplaçable/redimensionnable) avant l'envoi —
+    // le centrage automatique du CSS (cover/center) coupe parfois n'importe où.
+    const recadre = await crop.ouvrir(fichier);
+    input.value = ""; // permet de resélectionner le même fichier au besoin
+    if (!recadre) return; // annulé depuis le recadrage
+
     apercu.innerHTML = `<span class="champ-image-vide">Envoi…</span>`;
     try {
-      const { url } = await televerserFichier(fichier);
+      const { url } = await televerserFichier(recadre);
       nettoyerUploadEnAttente(); // un essai précédent de CETTE session, jamais sauvegardé, est remplacé
       uploadEnAttente = nomUpload(url);
       form.elements.image.value = url;
@@ -280,8 +287,6 @@ const personnages = (() => {
       form.querySelector("#btn-retirer-image").hidden = false;
     } catch (e) {
       apercu.innerHTML = `<span class="champ-image-vide">Échec : ${val(e.message)}</span>`;
-    } finally {
-      input.value = ""; // permet de resélectionner le même fichier au besoin
     }
   }
 
