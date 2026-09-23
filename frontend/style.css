@@ -375,6 +375,7 @@ body::after {
   line-height: 1.5;
   color: var(--text);
   margin-bottom: 18px;
+  white-space: pre-wrap;
 }
 
 .difficulte-ligne { margin-bottom: 8px; font-size: 18px; }
@@ -450,6 +451,7 @@ body::after {
   border-left: 2px solid var(--neon-dim);
   padding-left: 12px;
   margin-bottom: 20px;
+  white-space: pre-wrap;
 }
 
 .section-title {
@@ -506,7 +508,7 @@ body::after {
   color: var(--text-dim);
   margin-bottom: 4px;
 }
-.fiche-champ-texte { font-size: 14px; line-height: 1.5; color: var(--text); }
+.fiche-champ-texte { font-size: 14px; line-height: 1.5; color: var(--text); white-space: pre-wrap; }
 
 .inscrites { list-style: none; margin-bottom: 14px; }
 
