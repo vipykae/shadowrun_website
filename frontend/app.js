@@ -537,6 +537,7 @@ function ouvrirSidebarDistrict(d) {
         <div class="meta-value meta-value-small">${(d.gangs_presents || []).map(echapper).join(", ") || "—"}</div></div>
     </div>
     ${d.description ? `<p class="run-synopsis">${echapper(d.description)}</p>` : ""}
+    ${blocFicheComplete(d.fiche)}
     <div class="section-title">Runs disponibles</div>
     <ul class="runs-district">${listeDisponibles}</ul>
     <div class="section-title">Runs jouées</div>
@@ -551,7 +552,46 @@ function ouvrirSidebarDistrict(d) {
     });
   });
 
+  const toggle = sidebarContent.querySelector(".fiche-toggle");
+  if (toggle) {
+    toggle.addEventListener("click", () => {
+      const ouvert = toggle.getAttribute("aria-expanded") === "true";
+      toggle.setAttribute("aria-expanded", String(!ouvert));
+      toggle.nextElementSibling.classList.toggle("ouvert", !ouvert);
+    });
+  }
+
   ouvrirSidebar();
+}
+
+// Fiche complète d'un district (population, indice, ambiance...), dépliable.
+// Absente pour les districts qui n'ont pas encore été renseignés.
+function blocFicheComplete(fiche) {
+  if (!fiche) return "";
+  const champs = [
+    ["Population", fiche.population],
+    ["Indice de sûreté", fiche.indice_surete],
+    ["Ambiance", fiche.ambiance],
+    ["À voir", fiche.a_voir],
+    ["Lieux sensibles", fiche.lieux_sensibles],
+    ["Faire attention à", fiche.faire_attention_a],
+  ].filter(([, texte]) => texte);
+  if (!champs.length) return "";
+  return `
+    <button type="button" class="fiche-toggle" aria-expanded="false">
+      Fiche complète <span class="fiche-toggle-icone">▾</span>
+    </button>
+    <div class="fiche-complete-wrap">
+      <div class="fiche-complete-inner">
+        ${champs.map(([label, texte]) => `
+          <div class="fiche-champ">
+            <div class="fiche-champ-label">${echapper(label)}</div>
+            <div class="fiche-champ-texte">${echapper(texte)}</div>
+          </div>
+        `).join("")}
+      </div>
+    </div>
+  `;
 }
 
 // ---------- Utilitaires ----------

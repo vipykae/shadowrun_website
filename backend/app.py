@@ -154,7 +154,7 @@ ORDRE_RUN = [
     "date", "duree_estimee", "lieu", "paiement", "difficulte", "risques",
     "themes", "avertissements", "notes", "brief", "image", "compte_rendu",
 ]
-ORDRE_DISTRICT = ["id", "nom", "gang_dominant", "gangs_presents", "description", "runs_jouees", "polygone"]
+ORDRE_DISTRICT = ["id", "nom", "gang_dominant", "gangs_presents", "description", "fiche", "runs_jouees", "polygone"]
 ENTETE_DISTRICTS = (
     "# Généré par scripts/labelme_vers_districts.py — les champs autres que\n"
     "# 'polygone' sont éditables à la main et préservés à la régénération.\n"

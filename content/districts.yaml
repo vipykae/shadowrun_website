@@ -5,6 +5,29 @@
   gang_dominant: À COMPLÉTER
   gangs_presents: []
   description: 'Un port tentaculaire à l''esprit ouvert, propre aux dockers (indice B). Boeingville (le quartier de Federated-Boeing), la base navale du métroplexe (BNME) et des docks abandonnés squattés en attente de réaménagement. Mercenaires, marins, syndicats de dockers et crime organisé attiré par « l''import-export » s''y côtoient.'
+  fiche:
+    population: >-
+      237 000 habitants — 67 % humains, 11 % elfes, 7 % nains, 11 % orks,
+      2 % trolls, 2 % autres.
+    indice_surete: B
+    ambiance: >-
+      Un port gigantesque qui a forgé un esprit d'ouverture propre aux
+      gens des docks.
+    a_voir: >-
+      Les quartiers de débauche proches des quais, où la prostitution est
+      légale ; Boeingville, le fief de Federated-Boeing ; des hôpitaux et
+      cliniques spécialisés dans les améliorations corporelles ; le
+      Gravity Bar North, référence pour qui cherche du travail.
+    lieux_sensibles: >-
+      La base navale du métroplexe (BNME) et les innombrables docks à
+      l'abandon, envahis de squatteurs, en attente d'un hypothétique
+      réaménagement.
+    faire_attention_a: >-
+      Les mercenaires et marins qui traînent près de leurs navires,
+      l'autorité portuaire qui garde l'œil sur eux, les syndicats de
+      dockers et d'ouvriers du bâtiment engagés dans les rénovations en
+      cours, et le crime organisé, très attiré par les possibilités
+      d'import-export du coin.
   runs_jouees: []
   polygone:
   - [1023, 684]
@@ -86,6 +109,28 @@
   gang_dominant: À COMPLÉTER
   gangs_presents: []
   description: 'Le grenier agricole du métroplexe — et son coin le plus raciste. Ambiance de campagne cossue (antiquaires, Fête de la Récolte), sûreté élevée (indice A), mais des locaux très méfiants envers les étrangers et un fort ancrage de l''Humanis Policlub. La Lone Star y patrouille à moto comme un gang de plus.'
+  fiche:
+    population: >-
+      121 000 habitants — 91 % humains, 4 % elfes, 1 % nains, 3 % orks,
+      moins de 1 % de trolls et d'autres.
+    indice_surete: A
+    ambiance: >-
+      Le grenier du métroplexe — au sens agricole comme au sens le plus
+      corporatiste et raciste du terme.
+    a_voir: >-
+      Un charme de campagne assumé, des boutiques d'antiquités, et la
+      Fête de la Récolte qui court de l'équinoxe d'automne jusqu'à la
+      Toussaint.
+    lieux_sensibles: >-
+      Des locaux qui n'aiment pas les têtes inconnues même quand vous
+      affichez patte blanche, beaucoup affiliés à l'Humanis, et une
+      obsession pour l'autonomie alimentaire : les cultivateurs
+      n'hésitent pas à rapporter tout mouvement suspect près de leurs
+      exploitations aux autorités comme aux corpos.
+    faire_attention_a: >-
+      Les patrouilles de la Lone Star à moto, qui s'y comportent comme un
+      gang de plus, et le policlub Humanis local dans ce qu'il a de plus
+      dur.
   runs_jouees: []
   polygone:
   - [1268, 916]
@@ -181,6 +226,30 @@
   gang_dominant: Crimson Crush
   gangs_presents: [Halloweeners, Rusted Stilettos]
   description: 'Le pire district du métroplexe (indice Z) : survie urbaine pure. Touristville maquille la misère au néon pour les riches en goguette, pendant que Glow City — les ruines irradiées de la centrale de Trojan-Satsop — n''abrite plus que les Rusted Stilettos et des chamans toxiques. Halloweeners, Cutters, Crimson Crush et 162s s''y disputent chaque trottoir ; quant au dragon Urubia, malgré ses airs de bienfaitrice, mieux vaut ne pas traiter avec elle.'
+  fiche:
+    population: >-
+      540 000 habitants — 74 % humains, 6 % elfes, 3 % nains, 12 % orks,
+      2 % trolls, 3 % autres.
+    indice_surete: Z
+    ambiance: >-
+      La survie en milieu urbain, à l'état pur.
+    a_voir: >-
+      Touristville, où les nantis viennent s'encanailler dans une
+      parodie de pauvreté maquillée au néon ; le Funhouse, un bloc
+      rénové tenu par le dragon Urubia, qui y offre travail, éducation,
+      soins et loisirs dans un ersatz d'arcologie.
+    lieux_sensibles: >-
+      Ici, tout est suspect : le Stuffer Shack le plus anodin peut
+      cacher un laboratoire clandestin d'Aztechnology en sous-sol.
+      Physiquement comme astralement, mieux vaut éviter Glow City,
+      l'enfer radioactif qui entoure l'ancienne centrale de
+      Trojan-Satsop près du lac Beaver — seuls y survivent les Rusted
+      Stilettos et des chamans toxiques.
+    faire_attention_a: >-
+      Halloweeners, Cutters, Crimson Crush et 162s (des goules !) : les
+      gangs s'y comptent par dizaines et se disputent chaque coin de
+      rue. Et malgré ses grands airs de bienfaitrice, un principe
+      s'impose ici plus qu'ailleurs : on ne traite pas avec Urubia.
   runs_jouees: []
   polygone:
   - [1914, 1688]
@@ -290,6 +359,24 @@
   gang_dominant: À COMPLÉTER
   gangs_presents: []
   description: 'Le havre des (très) riches (indice AA) : micro-arcologies, clubs select et loisirs de luxe, tenue correcte exigée. La Briqueterie y sert de prison pour cols blancs. Forte présence mafieuse et des Nova Rich, plus une communauté First Nations ; les gangs 405 Hellhounds et Leather Devils se disputent les abords.'
+  fiche:
+    population: >-
+      221 000 habitants — 57 % humains, 16 % elfes, 3 % nains, 20 % orks,
+      2 % trolls, 2 % autres.
+    indice_surete: AA
+    ambiance: >-
+      Le havre des (très) riches : micro-arcologies et loisirs de luxe.
+    a_voir: >-
+      Cougar Mountain, avec son hôpital et son centre de divertissement ;
+      Powerline, un club libertin huppé ; les boîtes de nuit du coin,
+      où une tenue correcte est de rigueur.
+    lieux_sensibles: >-
+      La « Briqueterie », qui sert de prison aux criminels en col blanc.
+    faire_attention_a: >-
+      Une intense activité mafieuse et une forte présence de Nova Rich,
+      ainsi qu'une communauté First Nations bien implantée. Les gangs
+      405 Hellhounds et Leather Devils, rivaux, rôdent en bordure du
+      district.
   runs_jouees: []
   polygone:
   - [1512, 1774]
@@ -444,6 +531,26 @@
   gang_dominant: À COMPLÉTER
   gangs_presents: []
   description: 'Le fief des Native American Nations en plein cœur du métroplexe (indice A) : nature restaurée, ambassades, diplomatie — et une île entière sous surveillance stricte (SIN vérifiés à chaque entrée/sortie, port d''armes très limité). Les rangers salish et Eagle Security n''ont rien à envier à la Lone Star ; les Koshari y tiennent les trafics.'
+  fiche:
+    population: >-
+      4 000 habitants — 32 % humains, 21 % elfes, 8 % nains, 32 % orks,
+      4 % trolls, 3 % autres.
+    indice_surete: A
+    ambiance: >-
+      Le fief des Native American Nations en plein cœur du métroplexe :
+      nature restaurée et diplomatie.
+    a_voir: >-
+      Un coucher de soleil depuis l'une des plages paradisiaques de
+      l'île, les ambassades, les loges tribales.
+    lieux_sensibles: >-
+      L'île entière est sous surveillance : chaque arrivée et chaque
+      départ, par route, par bateau ou par véhicule aérien, est
+      étroitement scruté, les SIN des visiteurs vérifiés dans le détail,
+      et le port d'armes très limité.
+    faire_attention_a: >-
+      Les rangers salish et Eagle Security n'ont rien à envier à la Lone
+      Star côté sévérité ; à l'autre bout du spectre, les Koshari
+      tiennent les différents trafics de l'île.
   runs_jouees: []
   polygone:
   - [1213, 1696]
@@ -476,6 +583,24 @@
   gang_dominant: First Nations
   gangs_presents: [Troll Killers, Disassemblers]
   description: 'L''âme du métroplexe (indice AA) : gratte-ciel, costards, et les sièges de Shiawase et Aztechnology. Tout le district est sous surveillance — caméras et senseurs à chaque devanture. La Lone Star le quadrille, saluée par les syndicats du crime qui y opèrent sans se cacher.'
+  fiche:
+    population: >-
+      545 000 habitants — 63 % humains, 13 % elfes, 2 % nains, 19 % orks,
+      2 % trolls, 1 % autres.
+    indice_surete: AA
+    ambiance: >-
+      L'âme du métroplexe : gratte-ciel et costards.
+    a_voir: >-
+      Le Club Penumbra et le Dante's Inferno, où l'on trouve un nouveau
+      boulot et où l'on dépense les nuyens du précédent ; la Space
+      Needle ; l'arcologie Shiawase ou la pyramide d'Aztechnology, pour
+      faire les boutiques.
+    lieux_sensibles: >-
+      Tout le district est sous surveillance : chaque devanture, chaque
+      bureau a ses capteurs et ses caméras.
+    faire_attention_a: >-
+      Les autres runners, la Lone Star qui quadrille le secteur, et les
+      syndicats du crime qui y opèrent au grand jour, salués par tous.
   runs_jouees: []
   polygone:
   - [1158, 2178]
@@ -615,6 +740,27 @@
   gang_dominant: Ancients
   gangs_presents: [Spikes]
   description: 'Le dortoir idéalisé de Seattle (indice A) : pavillons bourgeois, parcs, base de ski artificielle sur Cougar Mountain. Sous le vernis, Yakuza et Mafia tiennent les vices « respectables », les gangs (Blood Mountain Boys, Night Hunters...) sortent la nuit, et les Voisins Vigilants jouent aux justiciers en s''imaginant Star.'
+  fiche:
+    population: >-
+      240 000 habitants — 61 % humains, 10 % elfes, 2 % nains, 22 % orks,
+      2 % trolls, 2 % autres.
+    indice_surete: A
+    ambiance: >-
+      Le dortoir idéalisé de Seattle.
+    a_voir: >-
+      De petits quartiers bourgeois et familiaux, des parcs, des cours
+      d'eau, parfaits pour la balade. Sur ce point, Cougar Mountain
+      rafle la mise : c'est une gigantesque station de ski artificielle.
+    lieux_sensibles: >-
+      Olympic City — l'ancien village olympique des JO de 2076, envahi
+      par des squatteurs après que le gouvernement du métroplexe a tenté
+      de le récupérer, déclenchant une véritable guérilla.
+    faire_attention_a: >-
+      Yakuza et Mafia, qui y organisent des vices « respectables », et
+      les gangs (Blood Mountain Boys, Night Hunters, entre autres) qui
+      revendiquent leur pré carré une fois la nuit tombée. Les Voisins
+      Vigilants, une milice qui s'acoquine volontiers avec l'Humanis,
+      se prennent pour la Lone Star.
   runs_jouees: []
   polygone:
   - [1333, 2434]
@@ -694,6 +840,29 @@
   gang_dominant: À COMPLÉTER
   gangs_presents: []
   description: 'Quartier ouvrier au ronronnement d''usines permanent (indice B) : travail, famille, chasse et messe, avec une percée croissante de l''Humanis. Le Supermall (2e centre commercial de Seattle) attire les foules ; Pleasant Hills, le ghetto local, et le centre pénitentiaire Wynaco sont à éviter. Mafia et Yakuza s''y partagent le territoire, la seconde prenant l''avantage — laissant une brèche aux gangs Skraacha et Ancients.'
+  fiche:
+    population: >-
+      224 000 habitants — 61 % humains, 6 % elfes, 2 % nains, 28 % orks,
+      2 % trolls, moins de 1 % d'autres.
+    indice_surete: B
+    ambiance: >-
+      Une classe ouvrière assumée : travail, famille, chasse et messe,
+      sur fond de ronronnement permanent des usines.
+    a_voir: >-
+      L'Aurora, un bar à runners, et le Supermall, deuxième plus grand
+      centre commercial de Seattle — vous y trouverez forcément votre
+      bonheur.
+    lieux_sensibles: >-
+      Le siège du policlub Humanis, Pleasant Hills (surnommé le
+      « Puyallup du nord », le ghetto local), Stuck's Carnival (un
+      casino de quartier privé) et le centre pénitentiaire Wynaco, tenu
+      par la Lone Star.
+    faire_attention_a: >-
+      Mafia et Yakuza se partagent le territoire, mais le déclin des
+      syndicats ouvriers fait pencher la balance en faveur de la
+      seconde. Ce recul mafieux laisse aussi une ouverture aux gangs
+      Skraacha et à quelques Ancients, que l'Humanis n'a pas encore
+      réussi à chasser.
   runs_jouees: []
   polygone:
   - [1655, 2906]
@@ -790,6 +959,33 @@
   gang_dominant: À COMPLÉTER
   gangs_presents: []
   description: 'Le dépotoir du métroplexe, à l''ombre du Mont Rainier — même Redmond regarde Puyallup de haut. Nature toxique (geysers, champs de cendres), Yakuza et Mafia y font la loi économique, sûreté au plus bas (indice Z). Tarislaw offre un avant-goût low-cost du Tir Tairngire pour qui cherche du travail ou des emplettes.'
+  fiche:
+    population: >-
+      515 070 habitants — 47 % humains, 21 % elfes, 4 % nains, 22 % orks,
+      5 % trolls, 1 % autres.
+    indice_surete: Z
+    ambiance: >-
+      Un havre désolé pour les rebuts et les gangers, à l'ombre d'un
+      Mont Rainier qui crache sa lave — comme on dit ici, « au moins ce
+      n'est pas Redmond ».
+    a_voir: >-
+      Loveland, pour trouver du travail ou faire ses emplettes (Yakuza
+      et Mafia y tiennent une bonne partie du commerce, c'est un
+      quartier plutôt tenu), et Tarislaw, qui offre un avant-goût
+      très low-cost du Tir Tairngire.
+    lieux_sensibles: >-
+      En dehors de Puyallup-ville elle-même, appartenant aux gangs, la
+      nature y est franchement hostile — voire toxique : geysers,
+      champs de cendres, coulées de lave solidifiée. Carbonado (des
+      mines toxiques) et Hope (un bidonville tentaculaire de caravanes,
+      cabanes et tentes, une vraie Cour des Miracles) complètent le
+      tableau.
+    faire_attention_a: >-
+      L'absence de véritables forces de l'ordre — la milice levée par
+      la mairie de Puyallup a du répondant mais aussi ses défauts, le
+      poste de police se partageant en pratique entre Mafia, Yakuza et
+      une multitude de petits gangs. Les derniers Ancients encore en
+      vie sont nés ici.
   runs_jouees: []
   polygone:
   - [964, 3960]
@@ -966,6 +1162,31 @@
   gang_dominant: Kabuki Ronin
   gangs_presents: [Eye-Fivers]
   description: 'L''autre port de Seattle, la « Ville du Destin » : ambiance industrielle et culture ouvrière assumée (indice de sûreté B). Fusion des cultures au menu et sur les murs (le Crying Wall), sous la coupe du gang dominant Kabuki Ronin et des Eye-Fivers.'
+  fiche:
+    population: >-
+      375 000 habitants — 68 % humains, 11 % elfes, 2 % nains, 16 % orks,
+      2 % trolls, 1 % autres.
+    indice_surete: B
+    ambiance: >-
+      La « Ville du Destin », l'autre port de Seattle : une odeur
+      industrielle imprégnée jusque dans le béton, et un sens aigu de
+      la débrouille.
+    a_voir: >-
+      La fusion des cultures, à goûter (la cuisine tanzano-indienne, ça
+      vous tente ?) comme à contempler : le Crying Wall, monument dédié
+      aux victimes de la Nuit de la Rage, sert aussi d'entrée vers
+      l'Underground.
+    lieux_sensibles: >-
+      Les tours jumelles qui abritent le siège de Shiawase, et Little
+      Asia, dont l'influence bascule tantôt du côté triple-A, tantôt du
+      côté Yakuza.
+    faire_attention_a: >-
+      C'est le district le plus cosmopolite, un vrai melting-pot
+      d'organisations criminelles communautaires (Yakuza, Mafia, Vory,
+      Triades, Seoulpa et bien d'autres) qui veulent toutes leur part du
+      gâteau. Paradoxalement, la criminalité de rue y reste basse — sans
+      doute grâce à ce réseau criminel organisé, qui préfère ne pas
+      brutaliser ses propres clients ni faire fuir les gangs.
   runs_jouees: []
   polygone:
   - [254, 3151]
@@ -1125,6 +1346,25 @@
   gang_dominant: À COMPLÉTER
   gangs_presents: []
   description: 'Base militaire indépendante du métroplexe (indice A) : jardins zoologiques (avec des animaux Éveillés), Urban Combat Simulator, quartier commerçant de Parkland. Zones militaires et House of O (façade du trafic métahumain des Triades) à éviter. Attention aux bidasses de la SMAF, aux mercenaires désœuvrés, à la police militaire et au marché noir tripartite Mafia-Triades-Vory.'
+  fiche:
+    population: >-
+      75 000 habitants — 60 % humains, 15 % elfes, 4 % nains, 16 % orks,
+      3 % trolls, 2 % autres.
+    indice_surete: A
+    ambiance: >-
+      La base militaire indépendante du métroplexe.
+    a_voir: >-
+      Des jardins zoologiques accueillant de nombreux animaux Éveillés,
+      l'Urban Combat Simulator pour qui veut jouer à la guerre, et
+      Parkland pour faire ses emplettes.
+    lieux_sensibles: >-
+      L'ensemble des zones réservées à l'armée, et le House of O, un
+      club de strip-tease qui sert en réalité de façade au trafic
+      métahumain des Triades.
+    faire_attention_a: >-
+      Les bidasses de la SMAF (Seattle Metroplex Armed Forces), les
+      mercenaires en attente d'un contrat, la police militaire, et la
+      triplette Mafia-Triades-Vory qui organise ici le marché noir.
   runs_jouees: []
   polygone:
   - [443, 3652]
@@ -1221,6 +1461,34 @@
   gang_dominant: À COMPLÉTER
   gangs_presents: []
   description: 'Les îles chics du Puget Sound (Bainbridge, Vashon, Fox, McNeil, Anderson) — sûreté très élevée (indice AA), la plus haute du métroplexe. Domaine du clan Tanjo (Dragon marin, MCT), avec Thesis, le presque-dernier bastion d''Ares dans la baie. Tensions latentes entre MCT et Yakuza, plus une poche de vampires sur Anderson.'
+  fiche:
+    population: >-
+      123 000 habitants — 40 % humains, 30 % elfes, 5 % nains, 20 % orks,
+      2 % trolls, 3 % autres.
+    indice_surete: AA
+    ambiance: >-
+      Les cinq îles principales du Puget Sound, de plus en plus
+      intégrées au métroplexe.
+    a_voir: >-
+      Bainbridge et ses résidences de luxe accaparées par MCT, Vashon et
+      ses villas branchées, Fox — havre du Dragon marin et des esprits,
+      jadis un site de salines gardé par tritons et drakes —, McNeil,
+      une ancienne prison géante, et Anderson, une vaste maison de
+      retraite pour fortunés. À l'écart de ces cinq-là, une île
+      artificielle au milieu de la baie d'Elliot, quasi le dernier
+      bastion d'Ares dans le coin, prodige d'ingénierie désormais
+      repris par Hard Corps.
+      ⚠️ Extrait imparfaitement lisible dans le livre : à vérifier de ton
+      côté si tu veux les noms exacts.
+    lieux_sensibles: >-
+      Le territoire du Dragon marin (moins par peur de ses méthodes que
+      par crainte de la guerre qui l'oppose à la triple-A) et le camp
+      de squatters de Vashon, où la jeunesse humaine se retrouve entre
+      elle.
+    faire_attention_a: >-
+      Le Dragon marin, MCT — dont la présence s'accompagne d'une forte
+      influence Yakuza — et ce qu'il reste des TilDawns, un gang de
+      vampires retranché sur Anderson.
   runs_jouees: []
   polygone:
   - [629, 2332]
@@ -1295,5 +1563,20 @@
   gang_dominant: À COMPLÉTER
   gangs_presents: []
   description: 'La ville sous la ville, en pleine reconstruction / embourgeoisement. Tourist Highway et le Cœur (sous Downtown) refaits à neuf et sous vidéosurveillance de la Lone Star. Plus loin : les zones « ouvertes » délogées, le Ghoulsburg sauvage, et les profondeurs, domaine du Dragon marin (une immense alchera souterraine selon les spécialistes) — laissés-pour-compte affamés, goules, et corpos qui y font discrètement le ménage.'
+  fiche:
+    population: 'Inconnue — personne ne recense sérieusement l''Underground.'
+    indice_surete: 'Variable selon la zone — pas d''indice officiel'
+    ambiance: >-
+      La ville sous la ville, entre reconstruction et embourgeoisement.
+    a_voir: >-
+      Tourist Highway et le Cœur, sous Downtown, refaits à neuf et sous
+      vidéosurveillance serrée de la Lone Star.
+    lieux_sensibles: >-
+      Plus loin, les anciennes zones « ouvertes » et leurs habitants
+      délogés, le Ghoulsburg sauvage, et les profondeurs — domaine du
+      Dragon marin, qu'on dit être une immense alchera souterraine.
+    faire_attention_a: >-
+      Des laissés-pour-compte affamés, des goules, et des corpos qui y
+      font discrètement le ménage loin des regards.
   runs_jouees: []
   polygone: []
