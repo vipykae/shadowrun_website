@@ -48,6 +48,7 @@ const personnages = (() => {
   }
 
   async function afficherVue() {
+    if (typeof historique !== "undefined" && historique.estActive()) historique.masquerVue();
     vueActive = true;
     document.getElementById("map").hidden = true;
     document.getElementById("personnages").hidden = false;
@@ -55,6 +56,7 @@ const personnages = (() => {
     document.getElementById("btn-vue").querySelector(".ico").textContent = "🗺";
     document.getElementById("btn-nouvelle-run").hidden = true;
     document.getElementById("btn-filtre").hidden = true;
+    document.getElementById("btn-historique").hidden = true;
     document.getElementById("btn-nouveau-perso").hidden = false;
     fermerSidebar();
     await charger();
@@ -68,6 +70,7 @@ const personnages = (() => {
     document.getElementById("btn-vue").querySelector(".ico").textContent = "▣";
     document.getElementById("btn-nouvelle-run").hidden = ROLE !== "mj";
     document.getElementById("btn-filtre").hidden = false;
+    document.getElementById("btn-historique").hidden = false;
     document.getElementById("btn-nouveau-perso").hidden = true;
     fermerSidebar();
   }

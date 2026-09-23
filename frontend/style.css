@@ -803,6 +803,79 @@ body::after {
 .btn, .badge-bouton, .tag, .runs-district .run-lien { transition: all 0.18s ease; }
 .btn:hover { box-shadow: 0 0 18px rgba(41, 182, 255, 0.6); }
 
+/* ---------- Onglet Historique ---------- */
+
+#historique {
+  position: fixed;
+  inset: 56px 0 30px 0;
+  z-index: 1;
+  overflow-y: auto;
+  padding: 30px clamp(16px, 4vw, 56px) 50px;
+}
+
+.historique-filtres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+.champ-filtre {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.champ-filtre-recherche { flex: 1; min-width: 160px; }
+.champ-filtre input, .champ-filtre select {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  padding: 7px 9px;
+  outline: none;
+}
+.champ-filtre input:focus, .champ-filtre select:focus {
+  border-color: var(--neon);
+  box-shadow: 0 0 8px rgba(41, 182, 255, 0.25);
+}
+
+.tableau-runs {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.tableau-runs th {
+  text-align: left;
+  font-family: var(--font-title);
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--neon);
+  border-bottom: 1px solid var(--neon-dim);
+  padding: 10px 12px;
+  white-space: nowrap;
+}
+.tableau-runs td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+.ligne-run { cursor: pointer; }
+.ligne-run:hover td { background: var(--bg-panel-2); }
+.ligne-run-jouee td { color: var(--text-dim); }
+.ligne-run-annulee td { color: var(--text-dim); text-decoration: line-through; }
+
+.historique-vide {
+  color: var(--text-dim);
+  font-style: italic;
+  margin-top: 24px;
+}
+
 /* ---------- Onglet Personnages ---------- */
 
 #personnages {
@@ -989,6 +1062,9 @@ body::after {
   #personnages { padding: 20px 14px 40px; }
   .perso-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; }
   .toast { bottom: 40px; font-size: 13px; }
+
+  #historique { padding: 20px 14px 40px; }
+  .tableau-runs { display: block; overflow-x: auto; white-space: nowrap; }
 }
 
 /* ---------- Barre de statut ---------- */
