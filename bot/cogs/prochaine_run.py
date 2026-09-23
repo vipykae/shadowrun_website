@@ -65,6 +65,10 @@ class ProchaineRun(commands.Cog):
         name="prochaine_run",
         description="La prochaine run à venir — réponse visible de toi seule",
     )
+    # Utilisable aussi en MP avec le bot (pas seulement dans un salon du
+    # serveur) : remplace l'ancien dm_permission=True, désormais exprimé via
+    # les contextes d'interaction.
+    @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=False)
     async def prochaine_run(self, interaction: discord.Interaction) -> None:
         run = prochaine_run_a_venir()
         if run is None:
