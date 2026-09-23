@@ -4,7 +4,7 @@
   nom: Everett
   gang_dominant: À COMPLÉTER
   gangs_presents: []
-  description: ''
+  description: 'Un port tentaculaire à l''esprit ouvert, propre aux dockers (indice B). Boeingville (le quartier de Federated-Boeing), la base navale du métroplexe (BNME) et des docks abandonnés squattés en attente de réaménagement. Mercenaires, marins, syndicats de dockers et crime organisé attiré par « l''import-export » s''y côtoient.'
   runs_jouees: []
   polygone:
   - [1023, 684]
@@ -289,7 +289,7 @@
   nom: Bellevue
   gang_dominant: À COMPLÉTER
   gangs_presents: []
-  description: ''
+  description: 'Le havre des (très) riches (indice AA) : micro-arcologies, clubs select et loisirs de luxe, tenue correcte exigée. La Briqueterie y sert de prison pour cols blancs. Forte présence mafieuse et des Nova Rich, plus une communauté First Nations ; les gangs 405 Hellhounds et Leather Devils se disputent les abords.'
   runs_jouees: []
   polygone:
   - [1512, 1774]
@@ -443,7 +443,7 @@
   nom: Council Island
   gang_dominant: À COMPLÉTER
   gangs_presents: []
-  description: ''
+  description: 'Le fief des Native American Nations en plein cœur du métroplexe (indice A) : nature restaurée, ambassades, diplomatie — et une île entière sous surveillance stricte (SIN vérifiés à chaque entrée/sortie, port d''armes très limité). Les rangers salish et Eagle Security n''ont rien à envier à la Lone Star ; les Koshari y tiennent les trafics.'
   runs_jouees: []
   polygone:
   - [1213, 1696]
@@ -475,7 +475,7 @@
   nom: Downtown Seattle
   gang_dominant: First Nations
   gangs_presents: [Troll Killers, Disassemblers]
-  description: ''
+  description: 'L''âme du métroplexe (indice AA) : gratte-ciel, costards, et les sièges de Shiawase et Aztechnology. Tout le district est sous surveillance — caméras et senseurs à chaque devanture. La Lone Star le quadrille, saluée par les syndicats du crime qui y opèrent sans se cacher.'
   runs_jouees: []
   polygone:
   - [1158, 2178]
@@ -693,7 +693,7 @@
   nom: Auburn
   gang_dominant: À COMPLÉTER
   gangs_presents: []
-  description: ''
+  description: 'Quartier ouvrier au ronronnement d''usines permanent (indice B) : travail, famille, chasse et messe, avec une percée croissante de l''Humanis. Le Supermall (2e centre commercial de Seattle) attire les foules ; Pleasant Hills, le ghetto local, et le centre pénitentiaire Wynaco sont à éviter. Mafia et Yakuza s''y partagent le territoire, la seconde prenant l''avantage — laissant une brèche aux gangs Skraacha et Ancients.'
   runs_jouees: []
   polygone:
   - [1655, 2906]
@@ -1124,10 +1124,7 @@
   nom: Fort Lewis
   gang_dominant: À COMPLÉTER
   gangs_presents: []
-  # Description reconstituée à partir d'un extrait incomplet du bouquin (le
-  # début de la fiche — population, indice de sûreté, ambiance — manquait
-  # dans le PDF fourni, seule la fin de l'entrée était présente).
-  description: 'Base historique de la SMAF (Seattle Metroplex Armed Forces) : jardins zoologiques (dont des animaux Éveillés), Urban Combat Simulator, quartier commerçant de Parkland. Zones militaires et House of O (façade du trafic métahumain des Triades) à éviter. Attention aux bidasses de la SMAF, aux mercenaires désœuvrés et au marché noir tripartite Mafia-Triades-Vory.'
+  description: 'Base militaire indépendante du métroplexe (indice A) : jardins zoologiques (avec des animaux Éveillés), Urban Combat Simulator, quartier commerçant de Parkland. Zones militaires et House of O (façade du trafic métahumain des Triades) à éviter. Attention aux bidasses de la SMAF, aux mercenaires désœuvrés, à la police militaire et au marché noir tripartite Mafia-Triades-Vory.'
   runs_jouees: []
   polygone:
   - [443, 3652]
