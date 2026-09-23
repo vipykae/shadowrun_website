@@ -12,6 +12,12 @@ En dev, on peut toujours le lancer seul (ci-dessous) pour tester `/roll` et
 - **`/roll <expression>`** — lance des dés au format `XdY` avec modificateur optionnel :
   `2d6`, `1d20+5`, `4d8-2`, `10d10 - 5` (espaces autour du signe tolérés). Limité à
   100 dés et 1000 faces. Utilisable par tout le monde.
+- **`/prochaine_run`** — affiche la prochaine run à venir (date, district, places
+  restantes), en réponse éphémère (visible que de la personne qui a tapé la commande).
+  Utilisable aussi bien dans un salon qu'en MP direct avec le bot (`allowed_contexts`).
+- **`/help`** — mode d'emploi du bot et du site, en réponse éphémère. Le texte vit dans
+  `content/aide_bot.md` (pas dans le code) : à compléter directement sur le serveur
+  quand on ajoute une commande, sans redéployer.
 - **`/purge_between <message_id_1> <message_id_2>`** — supprime tous les messages entre
   les deux ID donnés (bornes incluses), dans le salon ou fil où la commande est lancée.
   Peu importe l'ordre des deux ID. Demande confirmation (bouton, avec le nombre de

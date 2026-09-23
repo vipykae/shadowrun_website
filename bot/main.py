@@ -24,7 +24,7 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("bot")
 
-EXTENSIONS = ["bot.cogs.purge", "bot.cogs.roll", "bot.cogs.prochaine_run"]
+EXTENSIONS = ["bot.cogs.purge", "bot.cogs.roll", "bot.cogs.prochaine_run", "bot.cogs.aide"]
 
 
 class BotCampagne(commands.Bot):
