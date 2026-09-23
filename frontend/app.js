@@ -118,6 +118,11 @@ async function chargerEtAfficher() {
   if (!map) creerCarte();
   construireCouches();
   appliquerFiltre();
+
+  // Chargé maintenant (pas seulement à l'ouverture de l'onglet Personnages)
+  // pour que les noms de fixer/persos probables/inscrites soient déjà
+  // reconnaissables dès l'ouverture d'une run — voir lienPersoOuTexte.
+  personnages.charger();
 }
 
 // Recharge les données sans toucher au zoom / cadrage de la carte.
@@ -457,6 +462,18 @@ function section(titre, contenu, classe = "run-texte") {
   return `<div class="section-title">${titre}</div><p class="${classe}">${echapper(contenu)}</p>`;
 }
 
+// Fixer / autres persos probables / inscrites : texte libre, mais rendu
+// cliquable (ouvre la fiche) quand ça correspond au nom d'un PJ/PNJ
+// existant. Pas de référence stockée : juste une comparaison de nom au
+// moment de l'affichage (voir personnages.trouverParNom).
+function lienPersoOuTexte(nom) {
+  if (!nom) return "";
+  const trouve = typeof personnages !== "undefined" ? personnages.trouverParNom(nom) : null;
+  return trouve
+    ? `<span class="lien-perso" data-id="${echapper(trouve.perso.id)}" data-type="${trouve.type}">${echapper(nom)}</span>`
+    : echapper(nom);
+}
+
 function libelleStatut(run) {
   switch (statutDe(run)) {
     case "jouee": return "RUN JOUÉE";
@@ -473,7 +490,7 @@ function ouvrirSidebarRun(run) {
   const difficulte = Math.max(1, Math.min(5, run.difficulte || 1));
 
   const lignes = run.inscrites.map((nom) =>
-    `<li><span class="ins-nom">${echapper(nom)}</span>
+    `<li><span class="ins-nom">${lienPersoOuTexte(nom)}</span>
      ${aVenir ? `<button class="ins-suppr" data-nom="${echapper(nom)}" title="Désinscrire">✕</button>` : ""}</li>`
   );
   if (aVenir) {
@@ -503,10 +520,15 @@ function ouvrirSidebarRun(run) {
 
   const meta = [
     run.mj ? `<div class="meta-item"><div class="meta-label">MJ</div><div class="meta-value">${echapper(run.mj)}</div></div>` : "",
+    run.fixer ? `<div class="meta-item"><div class="meta-label">Fixer</div><div class="meta-value">${lienPersoOuTexte(run.fixer)}</div></div>` : "",
     `<div class="meta-item"><div class="meta-label">Date</div><div class="meta-value meta-value-small">${blocDate(run)}</div></div>`,
     run.duree_estimee ? `<div class="meta-item"><div class="meta-label">Durée</div><div class="meta-value">${echapper(run.duree_estimee)}</div></div>` : "",
     run.paiement ? `<div class="meta-item"><div class="meta-label">Paiement</div><div class="meta-value meta-value-small paiement">${echapper(run.paiement)}</div></div>` : "",
     run.lieu ? `<div class="meta-item meta-large"><div class="meta-label">Lieu</div><div class="meta-value meta-value-small">◎ ${echapper(run.lieu)}</div></div>` : "",
+    (run.autres_personnages_probables || []).length
+      ? `<div class="meta-item meta-large"><div class="meta-label">Autres persos probables</div>
+          <div class="meta-value meta-value-small">${run.autres_personnages_probables.map(lienPersoOuTexte).join(", ")}</div></div>`
+      : "",
   ].join("");
 
   const kicker = [
@@ -537,6 +559,13 @@ function ouvrirSidebarRun(run) {
   if (lienDistrict && district) {
     lienDistrict.addEventListener("click", () => ouvrirSidebarDistrict(district));
   }
+
+  sidebarContent.querySelectorAll(".lien-perso").forEach((el) => {
+    el.addEventListener("click", () => {
+      const perso = personnages.trouver(el.dataset.id, el.dataset.type);
+      if (perso) personnages.ouvrirFiche(perso, el.dataset.type);
+    });
+  });
 
   const bouton = document.getElementById("btn-inscription");
   if (bouton) {

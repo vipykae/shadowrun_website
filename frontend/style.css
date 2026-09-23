@@ -383,6 +383,10 @@ body::after {
 .kicker-lien { color: var(--neon); cursor: pointer; }
 .kicker-lien:hover { text-decoration: underline; }
 
+/* Fixer / autres persos probables / inscrites, quand ça correspond à un PJ/PNJ existant */
+.lien-perso { color: var(--neon); cursor: pointer; }
+.lien-perso:hover { text-decoration: underline; }
+
 /* Liste des runs dans la fiche district */
 
 .runs-district { list-style: none; margin-bottom: 18px; }

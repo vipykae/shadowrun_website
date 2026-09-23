@@ -152,6 +152,7 @@ contenu.charger()
 ORDRE_RUN = [
     "id", "titre", "district", "position", "mj", "type", "places", "statut",
     "date", "duree_estimee", "lieu", "paiement", "difficulte", "risques",
+    "fixer", "autres_personnages_probables",
     "themes", "avertissements", "notes", "brief", "image", "compte_rendu",
 ]
 ORDRE_DISTRICT = [
@@ -444,14 +445,19 @@ class RunEntree(BaseModel):
     brief: str | None = Field(None, max_length=10000)
     image: str | None = Field(None, max_length=500)
     compte_rendu: str | None = Field(None, max_length=20000)
+    # Nom du fixer et des autres persos probables : texte libre, mais rendu
+    # cliquable côté frontend quand ça correspond au nom d'un PJ/PNJ existant
+    # (comme les inscrites) — pas de référence d'id stockée, juste le nom.
+    fixer: str | None = Field(None, max_length=200)
+    autres_personnages_probables: list[str] = []
 
     @field_validator("mj", "type", "date", "duree_estimee", "lieu", "paiement", "risques",
-                     "notes", "brief", "image", "compte_rendu", "titre", mode="before")
+                     "notes", "brief", "image", "compte_rendu", "titre", "fixer", mode="before")
     @classmethod
     def _nettoyer(cls, v):
         return _vide_vers_none(v)
 
-    @field_validator("themes", "avertissements", mode="before")
+    @field_validator("themes", "avertissements", "autres_personnages_probables", mode="before")
     @classmethod
     def _nettoyer_liste(cls, v):
         return [s.strip()[:60] for s in (v or []) if isinstance(s, str) and s.strip()]

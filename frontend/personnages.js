@@ -105,6 +105,27 @@ const personnages = (() => {
     return (type === "pj" ? donnees.pj : donnees.pnj).find((p) => p.id === id);
   }
 
+  // Recherche par nom (insensible à la casse/espaces) plutôt que par id : les
+  // champs "fixer", "autres persos probables" et "inscrites" d'une run sont
+  // du texte libre, pas des références — un nom qui correspond à un PJ/PNJ
+  // existant devient cliquable (voir lienPersoOuTexte dans app.js).
+  function trouverParNom(nom) {
+    if (!nom) return null;
+    const cible = String(nom).trim().toLowerCase();
+    if (!cible) return null;
+    const pj = donnees.pj.find((p) => p.nom.trim().toLowerCase() === cible);
+    if (pj) return { perso: pj, type: "pj" };
+    const pnj = donnees.pnj.find((p) => p.nom.trim().toLowerCase() === cible);
+    if (pnj) return { perso: pnj, type: "pnj" };
+    return null;
+  }
+
+  // Tous les noms existants (PJ + PNJ), pour peupler un <datalist> de
+  // suggestion dans les formulaires (sélection ou texte libre).
+  function tousLesNoms() {
+    return [...donnees.pj, ...donnees.pnj].map((p) => p.nom);
+  }
+
   // ---------- Fiche (sidebar, lecture) ----------
 
   function ouvrirFiche(perso, type) {
@@ -352,5 +373,8 @@ const personnages = (() => {
     });
   });
 
-  return { estActive, afficherVue, masquerVue, nettoyerUpload: nettoyerUploadEnAttente };
+  return {
+    estActive, afficherVue, masquerVue, nettoyerUpload: nettoyerUploadEnAttente,
+    charger, trouver, trouverParNom, tousLesNoms, ouvrirFiche,
+  };
 })();
