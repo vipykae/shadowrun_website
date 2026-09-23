@@ -293,7 +293,7 @@ function construireControleHorsCarte() {
   const Controle = L.Control.extend({
     options: { position: "bottomleft" },
     onAdd() {
-      const conteneur = L.DomUtil.create("div", "districts-hors-carte");
+      const conteneur = L.DomUtil.create("div", "leaflet-control districts-hors-carte");
       L.DomEvent.disableClickPropagation(conteneur);
       horsCarte.forEach((d) => {
         const bouton = L.DomUtil.create("a", "", conteneur);
