@@ -210,8 +210,8 @@ const personnages = (() => {
               </div>
               <input type="hidden" name="image" value="${val(p.image)}">
             </div>`, "compressée automatiquement à l'envoi")}
-        ${champ("Concept", `<textarea name="concept" rows="4">${val(p.concept)}</textarea>`)}
-        ${champ("Notes", `<textarea name="notes" rows="3">${val(p.notes)}</textarea>`, "fluff, quirks, infos de jeu")}
+        ${champ("Concept", `<textarea name="concept" rows="8">${val(p.concept)}</textarea>`)}
+        ${champ("Notes", `<textarea name="notes" rows="10">${val(p.notes)}</textarea>`, "fluff, quirks, infos de jeu, lore complet — pas de limite pratique")}
         <div class="formulaire-actions">
           <button type="submit" class="btn">${creation ? "Créer" : "Enregistrer"}</button>
           <button type="button" class="btn btn-secondaire" data-perso-action="annuler" data-id="${val(p.id)}" data-type="${type}">Annuler</button>

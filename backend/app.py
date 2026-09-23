@@ -675,8 +675,8 @@ class PersonnageEntree(BaseModel):
     id: str = Field(pattern=r"^[a-z0-9][a-z0-9-]{0,60}$")
     nom: str = Field(min_length=1, max_length=80)
     archetype: str | None = Field(None, max_length=80)
-    concept: str | None = Field(None, max_length=2000)
-    notes: str | None = Field(None, max_length=5000)
+    concept: str | None = Field(None, max_length=20000)
+    notes: str | None = Field(None, max_length=20000)
     image: str | None = Field(None, max_length=500)
 
     @field_validator("nom", "archetype", "concept", "notes", "image", mode="before")
