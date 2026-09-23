@@ -661,7 +661,7 @@ body::after {
 
 .formulaire-actions { display: flex; gap: 8px; margin-top: 6px; }
 
-#map.placement { cursor: cell; }
+#map.placement { cursor: crosshair; }
 .pin.pin-temp .pin-core { background: #fff; box-shadow: 0 0 12px #fff; }
 .pin.pin-temp .pin-ring { border-color: #fff; }
 

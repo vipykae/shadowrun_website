@@ -268,13 +268,23 @@ function construireCouches() {
     poly.bindTooltip(d.nom, { className: "district-label", sticky: true, direction: "top" });
     poly.on("mouseover", () => poly.setStyle({ opacity: 0.9, fillOpacity: 0.12, weight: 2 }));
     poly.on("mouseout", () => poly.setStyle({ opacity: 0.35, fillOpacity: 0.03, weight: 1.5 }));
-    poly.on("click", () => ouvrirSidebarDistrict(d));
+    // bubblingMouseEvents: false empêche ce clic de remonter jusqu'à
+    // map.on("click", ...) : sans ce garde-fou, cliquer sur la carte en
+    // mode placement (pin d'une run) rouvre systématiquement la fiche du
+    // district au lieu d'enregistrer les coordonnées.
+    poly.on("click", (evt) => {
+      if (mj.clicCarte(evt)) return;
+      ouvrirSidebarDistrict(d);
+    });
     couches.push(poly);
   });
 
   DONNEES.runs.forEach((run) => {
     marqueurs[run.id] = L.marker(px(run.position[0], run.position[1]), { icon: iconePour(run) })
-      .on("click", () => ouvrirSidebarRun(run));
+      .on("click", (evt) => {
+        if (mj.clicCarte(evt)) return;
+        ouvrirSidebarRun(run);
+      });
   });
 
   construireControleHorsCarte();
