@@ -25,14 +25,14 @@ fermer() {
 }
 trap fermer EXIT
 
+# Fichier proposé par défaut si tu appuies juste sur Entrée (double-clic).
+DEFAUT="districts.yaml"
+
 fichier="${1:-}"
 if [ -z "$fichier" ]; then
-  echo "Exemples : carte.yaml, districts.yaml, runs/2026-10-05_ma-run.yaml"
-  read -rp "Chemin relatif dans /var/shadowrun à éditer : " fichier
-fi
-if [ -z "$fichier" ]; then
-  echo "Aucun chemin donné, annulé." >&2
-  exit 1
+  echo "Autres exemples : carte.yaml, runs/2026-10-05_ma-run.yaml, personnages/pj.yaml"
+  read -rp "Chemin relatif dans /var/shadowrun à éditer [$DEFAUT] : " fichier
+  fichier="${fichier:-$DEFAUT}"
 fi
 
 dossier=$(dirname "$fichier")
