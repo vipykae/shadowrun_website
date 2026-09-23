@@ -208,6 +208,7 @@ function iconePour(run) {
 }
 
 let couches = []; // polygones des districts, pour les reconstruire au rafraîchissement
+let controleHorsCarte = null; // districts sans tracé (ex. Underground), bouton dédié
 
 function creerCarte() {
   const H = DONNEES.carte.hauteur;
@@ -250,6 +251,9 @@ function construireCouches() {
   for (const id in marqueurs) delete marqueurs[id];
 
   DONNEES.districts.forEach((d) => {
+    // Districts sans tracé sur la carte (ex. Underground) : pas de polygone
+    // Leaflet à construire, ils passent par construireControleHorsCarte().
+    if (!d.polygone || d.polygone.length < 3) return;
     const poly = L.polygon(d.polygone.map(([x, y]) => px(x, y)), {
       color: "#29b6ff",
       weight: 1.5,
@@ -272,6 +276,41 @@ function construireCouches() {
     marqueurs[run.id] = L.marker(px(run.position[0], run.position[1]), { icon: iconePour(run) })
       .on("click", () => ouvrirSidebarRun(run));
   });
+
+  construireControleHorsCarte();
+}
+
+// Districts sans tracé sur la carte (ex. Underground) : un petit contrôle
+// Leaflet flottant, un bouton par district, plutôt qu'un polygone invisible.
+function construireControleHorsCarte() {
+  if (controleHorsCarte) {
+    controleHorsCarte.remove();
+    controleHorsCarte = null;
+  }
+  const horsCarte = DONNEES.districts.filter((d) => !d.polygone || d.polygone.length < 3);
+  if (horsCarte.length === 0) return;
+
+  const Controle = L.Control.extend({
+    options: { position: "bottomleft" },
+    onAdd() {
+      const conteneur = L.DomUtil.create("div", "districts-hors-carte");
+      L.DomEvent.disableClickPropagation(conteneur);
+      horsCarte.forEach((d) => {
+        const bouton = L.DomUtil.create("a", "", conteneur);
+        bouton.href = "#";
+        bouton.textContent = d.nom;
+        bouton.title = `${d.nom} (hors carte)`;
+        L.DomEvent.on(bouton, "click", (evt) => {
+          L.DomEvent.preventDefault(evt);
+          ouvrirSidebarDistrict(d);
+        });
+      });
+      return conteneur;
+    },
+  });
+
+  controleHorsCarte = new Controle();
+  controleHorsCarte.addTo(map);
 }
 
 // ---------- Sidebar ----------

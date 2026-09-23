@@ -85,7 +85,7 @@
   nom: Snohomish
   gang_dominant: À COMPLÉTER
   gangs_presents: []
-  description: ''
+  description: 'Le grenier agricole du métroplexe — et son coin le plus raciste. Ambiance de campagne cossue (antiquaires, Fête de la Récolte), sûreté élevée (indice A), mais des locaux très méfiants envers les étrangers et un fort ancrage de l''Humanis Policlub. La Lone Star y patrouille à moto comme un gang de plus.'
   runs_jouees: []
   polygone:
   - [1268, 916]
@@ -180,7 +180,7 @@
   nom: Redmond
   gang_dominant: Crimson Crush
   gangs_presents: [Halloweeners, Rusted Stilettos]
-  description: ''
+  description: 'Le pire district du métroplexe (indice Z) : survie urbaine pure. Touristville maquille la misère au néon pour les riches en goguette, pendant que Glow City — les ruines irradiées de la centrale de Trojan-Satsop — n''abrite plus que les Rusted Stilettos et des chamans toxiques. Halloweeners, Cutters, Crimson Crush et 162s s''y disputent chaque trottoir ; quant au dragon Urubia, malgré ses airs de bienfaitrice, mieux vaut ne pas traiter avec elle.'
   runs_jouees: []
   polygone:
   - [1914, 1688]
@@ -614,7 +614,7 @@
   nom: Renton
   gang_dominant: Ancients
   gangs_presents: [Spikes]
-  description: Banlieue corpo.
+  description: 'Le dortoir idéalisé de Seattle (indice A) : pavillons bourgeois, parcs, base de ski artificielle sur Cougar Mountain. Sous le vernis, Yakuza et Mafia tiennent les vices « respectables », les gangs (Blood Mountain Boys, Night Hunters...) sortent la nuit, et les Voisins Vigilants jouent aux justiciers en s''imaginant Star.'
   runs_jouees: []
   polygone:
   - [1333, 2434]
@@ -789,7 +789,7 @@
   nom: Puyallup
   gang_dominant: À COMPLÉTER
   gangs_presents: []
-  description: ''
+  description: 'Le dépotoir du métroplexe, à l''ombre du Mont Rainier — même Redmond regarde Puyallup de haut. Nature toxique (geysers, champs de cendres), Yakuza et Mafia y font la loi économique, sûreté au plus bas (indice Z). Tarislaw offre un avant-goût low-cost du Tir Tairngire pour qui cherche du travail ou des emplettes.'
   runs_jouees: []
   polygone:
   - [964, 3960]
@@ -965,7 +965,7 @@
   nom: Tacoma
   gang_dominant: Kabuki Ronin
   gangs_presents: [Eye-Fivers]
-  description: ''
+  description: 'L''autre port de Seattle, la « Ville du Destin » : ambiance industrielle et culture ouvrière assumée (indice de sûreté B). Fusion des cultures au menu et sur les murs (le Crying Wall), sous la coupe du gang dominant Kabuki Ronin et des Eye-Fivers.'
   runs_jouees: []
   polygone:
   - [254, 3151]
@@ -1124,7 +1124,10 @@
   nom: Fort Lewis
   gang_dominant: À COMPLÉTER
   gangs_presents: []
-  description: ''
+  # Description reconstituée à partir d'un extrait incomplet du bouquin (le
+  # début de la fiche — population, indice de sûreté, ambiance — manquait
+  # dans le PDF fourni, seule la fin de l'entrée était présente).
+  description: 'Base historique de la SMAF (Seattle Metroplex Armed Forces) : jardins zoologiques (dont des animaux Éveillés), Urban Combat Simulator, quartier commerçant de Parkland. Zones militaires et House of O (façade du trafic métahumain des Triades) à éviter. Attention aux bidasses de la SMAF, aux mercenaires désœuvrés et au marché noir tripartite Mafia-Triades-Vory.'
   runs_jouees: []
   polygone:
   - [443, 3652]
@@ -1220,7 +1223,7 @@
   nom: Outremer
   gang_dominant: À COMPLÉTER
   gangs_presents: []
-  description: ''
+  description: 'Les îles chics du Puget Sound (Bainbridge, Vashon, Fox, McNeil, Anderson) — sûreté très élevée (indice AA), la plus haute du métroplexe. Domaine du clan Tanjo (Dragon marin, MCT), avec Thesis, le presque-dernier bastion d''Ares dans la baie. Tensions latentes entre MCT et Yakuza, plus une poche de vampires sur Anderson.'
   runs_jouees: []
   polygone:
   - [629, 2332]
@@ -1287,3 +1290,13 @@
   - [648, 2213]
   - [640, 2323]
   - [630, 2332]
+# Underground n'a pas de tracé sur la carte 2D (c'est littéralement sous la
+# ville) : polygone volontairement vide, accessible via un bouton dédié au
+# lieu d'un clic sur la carte (voir construireControleHorsCarte dans app.js).
+- id: underground
+  nom: Underground
+  gang_dominant: À COMPLÉTER
+  gangs_presents: []
+  description: 'La ville sous la ville, en pleine reconstruction / embourgeoisement. Tourist Highway et le Cœur (sous Downtown) refaits à neuf et sous vidéosurveillance de la Lone Star. Plus loin : les zones « ouvertes » délogées, le Ghoulsburg sauvage, et les profondeurs, domaine du Dragon marin (une immense alchera souterraine selon les spécialistes) — laissés-pour-compte affamés, goules, et corpos qui y font discrètement le ménage.'
+  runs_jouees: []
+  polygone: []

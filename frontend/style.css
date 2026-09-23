@@ -175,6 +175,33 @@ body::after {
 }
 .leaflet-tooltip.district-label::before { display: none; }
 
+/* ---------- Districts hors carte (ex. Underground) ---------- */
+
+.districts-hors-carte {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.districts-hors-carte a {
+  display: block;
+  background: rgba(10, 15, 28, 0.92);
+  border: 1px solid var(--neon-dim);
+  border-radius: 3px;
+  box-shadow: 0 0 12px rgba(41, 182, 255, 0.15);
+  color: var(--neon);
+  font-family: var(--font-title);
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  text-decoration: none;
+  white-space: nowrap;
+  padding: 6px 12px;
+}
+.districts-hors-carte a:hover {
+  background: var(--bg-panel-2);
+  box-shadow: 0 0 12px rgba(41, 182, 255, 0.35);
+}
+
 /* ---------- Pins ---------- */
 
 .pin {
