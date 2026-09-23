@@ -30,7 +30,6 @@ const historique = (() => {
     document.getElementById("btn-historique").querySelector(".ico").textContent = "🗺";
     document.getElementById("btn-nouvelle-run").hidden = true;
     document.getElementById("btn-filtre").hidden = true;
-    document.getElementById("btn-vue").hidden = true;
     fermerSidebar();
     remplirDistricts();
     rafraichirTableau();
@@ -44,7 +43,6 @@ const historique = (() => {
     document.getElementById("btn-historique").querySelector(".ico").textContent = "🗒";
     document.getElementById("btn-nouvelle-run").hidden = ROLE !== "mj";
     document.getElementById("btn-filtre").hidden = false;
-    document.getElementById("btn-vue").hidden = false;
     fermerSidebar();
   }
 
