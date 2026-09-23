@@ -530,6 +530,7 @@ function ouvrirSidebarDistrict(d) {
   sidebarContent.innerHTML = `
     <div class="run-kicker">District</div>
     <div class="run-titre">${echapper(d.nom)}</div>
+    ${d.fiche?.indice_surete ? `<div class="run-tags"><span class="tag">Indice de sûreté ${echapper(d.fiche.indice_surete)}</span></div>` : ""}
     ${blocFaction("Gang dominant", "Autres gangs présents", d.gang_dominant, d.gangs_presents)}
     ${blocFaction("Mégacorp dominante", "Autres mégacorps présentes", d.megacorp_dominante, d.megacorps_presentes)}
     ${blocFaction("Autre faction dominante", "Autres factions présentes", d.autre_faction_dominante, d.autres_factions_presentes)}
@@ -581,7 +582,6 @@ function blocFicheComplete(fiche) {
   if (!fiche) return "";
   const champs = [
     ["Population", fiche.population],
-    ["Indice de sûreté", fiche.indice_surete],
     ["Ambiance", fiche.ambiance],
     ["À voir", fiche.a_voir],
     ["Lieux sensibles", fiche.lieux_sensibles],

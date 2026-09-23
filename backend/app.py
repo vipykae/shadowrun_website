@@ -454,6 +454,23 @@ class RunEntree(BaseModel):
         return ordonner(donnees, ORDRE_RUN)
 
 
+class FicheDistrict(BaseModel):
+    population: str | None = Field(None, max_length=300)
+    indice_surete: str | None = Field(None, max_length=20)
+    ambiance: str | None = Field(None, max_length=2000)
+    a_voir: str | None = Field(None, max_length=2000)
+    lieux_sensibles: str | None = Field(None, max_length=2000)
+    faire_attention_a: str | None = Field(None, max_length=2000)
+
+    @field_validator(
+        "population", "indice_surete", "ambiance", "a_voir", "lieux_sensibles", "faire_attention_a",
+        mode="before",
+    )
+    @classmethod
+    def _nettoyer(cls, v):
+        return _vide_vers_none(v)
+
+
 class DistrictEntree(BaseModel):
     nom: str = Field(min_length=1, max_length=80)
     gang_dominant: str | None = Field(None, max_length=120)
@@ -463,6 +480,7 @@ class DistrictEntree(BaseModel):
     autre_faction_dominante: str | None = Field(None, max_length=120)
     autres_factions_presentes: list[str] = []
     description: str | None = Field(None, max_length=5000)
+    fiche: FicheDistrict | None = None
     runs_jouees: list[str] = []
 
     @field_validator("gang_dominant", "megacorp_dominante", "autre_faction_dominante", "description", "nom", mode="before")

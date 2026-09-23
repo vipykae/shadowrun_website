@@ -234,6 +234,7 @@ const mj = (() => {
   // ---------- Formulaire district ----------
 
   function formulaireDistrict(d) {
+    const fiche = d.fiche || {};
     contenu().innerHTML = `
       <div class="run-kicker">Modification du district</div>
       <div class="run-titre">${val(d.nom)}</div>
@@ -246,6 +247,13 @@ const mj = (() => {
         ${champ("Autre faction dominante", `<input name="autre_faction_dominante" maxlength="120" value="${val(d.autre_faction_dominante)}">`, "syndicat, politigroupe, organisation gouvernementale...")}
         ${champ("Autres factions présentes", `<input name="autres_factions_presentes" value="${val((d.autres_factions_presentes || []).join(", "))}">`, "séparées par des virgules")}
         ${champ("Description", `<textarea name="description" rows="4">${val(d.description)}</textarea>`)}
+        <div class="section-title">Fiche complète</div>
+        ${champ("Population", `<input name="fiche_population" maxlength="300" value="${val(fiche.population)}">`)}
+        ${champ("Indice de sûreté", `<input name="fiche_indice_surete" maxlength="20" value="${val(fiche.indice_surete)}">`, "ex. A, AA, B, Z")}
+        ${champ("Ambiance", `<textarea name="fiche_ambiance" rows="2">${val(fiche.ambiance)}</textarea>`)}
+        ${champ("À voir", `<textarea name="fiche_a_voir" rows="3">${val(fiche.a_voir)}</textarea>`)}
+        ${champ("Lieux sensibles", `<textarea name="fiche_lieux_sensibles" rows="3">${val(fiche.lieux_sensibles)}</textarea>`)}
+        ${champ("Faire attention à", `<textarea name="fiche_faire_attention_a" rows="3">${val(fiche.faire_attention_a)}</textarea>`)}
         ${champ("Historique", `<textarea name="runs_jouees" rows="3">${val((d.runs_jouees || []).join("\n"))}</textarea>`,
                 "runs jouées avant le site, une par ligne")}
         <div class="formulaire-actions">
@@ -270,6 +278,14 @@ const mj = (() => {
       autre_faction_dominante: f.get("autre_faction_dominante"),
       autres_factions_presentes: listeVirgules("autres_factions_presentes"),
       description: f.get("description"),
+      fiche: {
+        population: f.get("fiche_population"),
+        indice_surete: f.get("fiche_indice_surete"),
+        ambiance: f.get("fiche_ambiance"),
+        a_voir: f.get("fiche_a_voir"),
+        lieux_sensibles: f.get("fiche_lieux_sensibles"),
+        faire_attention_a: f.get("fiche_faire_attention_a"),
+      },
       runs_jouees: String(f.get("runs_jouees") ?? "").split("\n").map((s) => s.trim()).filter(Boolean),
     };
     try {
