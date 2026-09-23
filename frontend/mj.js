@@ -95,6 +95,11 @@ const mj = (() => {
           ${champ("MJ", `<input name="mj" maxlength="60" value="${val(r.mj)}">`)}
           ${champ("Type", `<input name="type" maxlength="60" value="${val(r.type)}" placeholder="One-shot, Run avec suite…">`)}
         </div>
+        ${champ("Fixer", `<input name="fixer" list="datalist-noms-persos" maxlength="200" value="${val(r.fixer)}">`,
+                "un PJ/PNJ existant (suggestions) ou texte libre — devient cliquable si le nom correspond")}
+        ${champ("Autres persos probables", `<input name="autres_personnages_probables" value="${val((r.autres_personnages_probables || []).join(", "))}">`,
+                "séparés par des virgules — mêmes règles que Fixer")}
+        <datalist id="datalist-noms-persos">${personnages.tousLesNoms().map((n) => `<option value="${val(n)}">`).join("")}</datalist>
         <div class="champ-ligne">
           ${champ("Places", `<input name="places" type="number" min="1" max="12" value="${r.places ?? 4}">`)}
           ${champ("Difficulté", `<input name="difficulte" type="number" min="1" max="5" value="${r.difficulte ?? 3}">`)}
@@ -153,6 +158,7 @@ const mj = (() => {
       mj: texte("mj"), type: texte("type"), places: Number(f.get("places")), statut: texte("statut"),
       date: texte("date"), duree_estimee: texte("duree_estimee"), lieu: texte("lieu"), paiement: texte("paiement"),
       difficulte: Number(f.get("difficulte")), risques: texte("risques"),
+      fixer: texte("fixer"), autres_personnages_probables: liste("autres_personnages_probables"),
       themes: liste("themes"), avertissements: liste("avertissements"),
       notes: texte("notes"), brief: texte("brief"), image: texte("image"),
       compte_rendu: texte("compte_rendu"),
