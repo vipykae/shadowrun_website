@@ -202,14 +202,20 @@ body::after {
   box-shadow: 0 0 12px rgba(41, 182, 255, 0.35);
 }
 
-/* Bouton Underground actif = on est en mode "sous-sol" */
-.districts-hors-carte a.actif {
+/* Bouton Underground : toujours en rose (que le mode sous-sol soit actif
+   ou non), pour le distinguer des autres boutons hors-carte. */
+.districts-hors-carte a.bouton-sous-sol {
   color: var(--magenta);
   border-color: var(--magenta);
-  box-shadow: 0 0 12px rgba(255, 46, 136, 0.35);
+  box-shadow: 0 0 12px rgba(255, 46, 136, 0.2);
 }
-.districts-hors-carte a.actif:hover {
-  box-shadow: 0 0 12px rgba(255, 46, 136, 0.55);
+.districts-hors-carte a.bouton-sous-sol:hover {
+  box-shadow: 0 0 12px rgba(255, 46, 136, 0.4);
+}
+/* En plus, quand le mode sous-sol est réellement actif : fond rempli. */
+.districts-hors-carte a.bouton-sous-sol.actif {
+  background: rgba(255, 46, 136, 0.15);
+  box-shadow: 0 0 14px rgba(255, 46, 136, 0.55);
 }
 
 /* ---------- Mode carte "sous-sol" (Underground) ---------- */

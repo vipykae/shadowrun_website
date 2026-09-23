@@ -342,6 +342,8 @@ function construireControleHorsCarte() {
         bouton.href = "#";
         if (d.id === "underground") {
           boutonSousSol = bouton;
+          bouton.classList.add("bouton-sous-sol");
+          effets.glitchPeriodique(bouton); // clignote de temps en temps, comme le titre du site
           L.DomEvent.on(bouton, "click", (evt) => {
             L.DomEvent.preventDefault(evt);
             basculerModeCarte();
