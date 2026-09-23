@@ -26,8 +26,10 @@ const historique = (() => {
     vueActive = true;
     document.getElementById("map").hidden = true;
     document.getElementById("historique").hidden = false;
-    document.getElementById("btn-historique").querySelector(".txt").textContent = "CARTE";
-    document.getElementById("btn-historique").querySelector(".ico").textContent = "🗺";
+    const btnHistorique = document.getElementById("btn-historique");
+    btnHistorique.querySelector(".txt").textContent = "CARTE";
+    btnHistorique.querySelector(".ico").textContent = "🗺";
+    btnHistorique.dataset.tooltip = "Retour à la carte";
     document.getElementById("btn-nouvelle-run").hidden = true;
     document.getElementById("btn-filtre").hidden = true;
     fermerSidebar();
@@ -39,8 +41,10 @@ const historique = (() => {
     vueActive = false;
     document.getElementById("map").hidden = false;
     document.getElementById("historique").hidden = true;
-    document.getElementById("btn-historique").querySelector(".txt").textContent = "HISTORIQUE";
-    document.getElementById("btn-historique").querySelector(".ico").textContent = "🗒";
+    const btnHistorique = document.getElementById("btn-historique");
+    btnHistorique.querySelector(".txt").textContent = "HISTORIQUE";
+    btnHistorique.querySelector(".ico").textContent = "▤";
+    btnHistorique.dataset.tooltip = "Tableau de toutes les runs, avec filtres";
     document.getElementById("btn-nouvelle-run").hidden = ROLE !== "mj";
     document.getElementById("btn-filtre").hidden = false;
     fermerSidebar();

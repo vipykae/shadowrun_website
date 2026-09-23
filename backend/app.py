@@ -167,8 +167,8 @@ ENTETE_DISTRICTS = (
     "# 'polygone' sont éditables à la main et préservés à la régénération.\n"
 )
 
-ORDRE_PJ = ["id", "nom", "joueuse", "archetype", "concept", "notes", "image"]
-ORDRE_PNJ = ["id", "nom", "faction", "district", "archetype", "concept", "notes", "image"]
+ORDRE_PJ = ["id", "nom", "joueuse", "archetype", "tags", "concept", "notes", "image"]
+ORDRE_PNJ = ["id", "nom", "faction", "district", "archetype", "tags", "concept", "notes", "image"]
 ENTETE_PJ = "# Personnages joueuses — modifiable par n'importe qui de connecté (joueuse ou MJ).\n"
 ENTETE_PNJ = "# PNJ notables — modifiable uniquement par la MJ.\n"
 
@@ -675,6 +675,7 @@ class PersonnageEntree(BaseModel):
     id: str = Field(pattern=r"^[a-z0-9][a-z0-9-]{0,60}$")
     nom: str = Field(min_length=1, max_length=80)
     archetype: str | None = Field(None, max_length=80)
+    tags: list[str] = []
     concept: str | None = Field(None, max_length=20000)
     notes: str | None = Field(None, max_length=20000)
     image: str | None = Field(None, max_length=500)
@@ -683,6 +684,11 @@ class PersonnageEntree(BaseModel):
     @classmethod
     def _nettoyer(cls, v):
         return _vide_vers_none(v)
+
+    @field_validator("tags", mode="before")
+    @classmethod
+    def _nettoyer_tags(cls, v):
+        return [s.strip()[:60] for s in (v or []) if isinstance(s, str) and s.strip()]
 
 
 class PJEntree(PersonnageEntree):

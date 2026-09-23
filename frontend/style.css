@@ -136,6 +136,50 @@ body::after {
 .badge-bouton:hover { color: #fff; border-color: var(--neon); }
 .badge-actif { color: var(--neon); border-color: var(--neon); background: rgba(41, 182, 255, 0.12); }
 
+/* Tooltip stylisé (remplace le title natif, trop lent et invisible au
+   tactile) — déclenché en survol ou au focus clavier. */
+[data-tooltip] { position: relative; }
+[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(10, 15, 28, 0.95);
+  border: 1px solid var(--neon-dim);
+  color: var(--neon);
+  font-family: var(--font-body);
+  font-size: 11.5px;
+  letter-spacing: 0.2px;
+  text-transform: none;
+  padding: 6px 10px;
+  border-radius: 3px;
+  white-space: normal;
+  width: max-content;
+  max-width: 220px;
+  text-align: center;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease;
+  z-index: 2200;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+}
+[data-tooltip]:hover::after, [data-tooltip]:focus-visible::after {
+  opacity: 1;
+  visibility: visible;
+}
+/* Les deux derniers boutons de la barre sont trop près du bord droit pour
+   un tooltip centré (déborderait de l'écran) : ancré à droite à la place. */
+#btn-reload[data-tooltip]::after, #btn-logout[data-tooltip]::after {
+  left: auto;
+  right: 0;
+  transform: none;
+}
+@media (max-width: 640px) {
+  [data-tooltip]::after { display: none; } /* pas de survol tactile — title/aria-label restent pour l'accessibilité */
+}
+
 /* ---------- Carte ---------- */
 
 #map {
@@ -995,6 +1039,8 @@ body::after {
 
 .perso-card-nom { font-family: var(--font-title); font-weight: 700; font-size: 15px; color: #fff; }
 .perso-card-sub { font-size: 13px; color: var(--text-dim); margin-top: 3px; }
+.perso-card-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.perso-card-tags .tag { font-size: 10px; padding: 1px 7px; }
 
 .champ-image { display: flex; flex-direction: column; gap: 10px; }
 
