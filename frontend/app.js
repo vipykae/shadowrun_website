@@ -271,9 +271,12 @@ function construireCouches() {
     // bubblingMouseEvents: false empêche ce clic de remonter jusqu'à
     // map.on("click", ...) : sans ce garde-fou, cliquer sur la carte en
     // mode placement (pin d'une run) rouvre systématiquement la fiche du
-    // district au lieu d'enregistrer les coordonnées.
+    // district au lieu d'enregistrer les coordonnées. mj.enPlacement() (et
+    // pas mj.clicCarte() ici) : ce dernier renvoie aussi true dès qu'un
+    // formulaire est ouvert, hors placement, ce qui bloquerait à tort le
+    // changement de district pendant l'édition d'une run.
     poly.on("click", (evt) => {
-      if (mj.clicCarte(evt)) return;
+      if (mj.enPlacement()) { mj.clicCarte(evt); return; }
       ouvrirSidebarDistrict(d);
     });
     couches.push(poly);
@@ -282,7 +285,7 @@ function construireCouches() {
   DONNEES.runs.forEach((run) => {
     marqueurs[run.id] = L.marker(px(run.position[0], run.position[1]), { icon: iconePour(run) })
       .on("click", (evt) => {
-        if (mj.clicCarte(evt)) return;
+        if (mj.enPlacement()) { mj.clicCarte(evt); return; }
         ouvrirSidebarRun(run);
       });
   });

@@ -296,8 +296,12 @@ const mj = (() => {
   // Appelé par app.js sur chaque clic carte. Renvoie true si le clic est consommé.
   function clicCarte(evt) {
     if (placement) {
-      const x = Math.round(evt.latlng.lng);
-      const y = Math.round(DONNEES.carte.hauteur - evt.latlng.lat);
+      const H = DONNEES.carte.hauteur;
+      const W = DONNEES.carte.largeur;
+      // Bornage : impossible de placer un pin hors de l'image de la carte,
+      // même en cliquant dans la marge morte autour (map.setMaxBounds).
+      const x = Math.round(Math.min(Math.max(evt.latlng.lng, 0), W));
+      const y = Math.round(Math.min(Math.max(H - evt.latlng.lat, 0), H));
       placement.elements.x.value = x;
       placement.elements.y.value = y;
       afficherMarqueurTemp(x, y);
@@ -306,6 +310,15 @@ const mj = (() => {
     }
     // Un formulaire ouvert ne se ferme pas sur un clic carte accidentel.
     return !!document.getElementById("form-run") || !!document.getElementById("form-district");
+  }
+
+  // Distinct de clicCarte() : sert à app.js pour savoir, sur un clic
+  // district/pin, s'il faut capturer la position (placement actif) ou
+  // ouvrir la fiche normalement. clicCarte() seul ne suffit pas ici — son
+  // "un formulaire est ouvert" (hors placement) doit bloquer un clic carte
+  // accidentel, pas un clic district volontaire.
+  function enPlacement() {
+    return !!placement;
   }
 
   // Retire le pin temporaire, sort du mode placement et efface un envoi
@@ -377,5 +390,5 @@ const mj = (() => {
     });
   });
 
-  return { actionsRun, actionsDistrict, formulaireRun, clicCarte, nettoyer };
+  return { actionsRun, actionsDistrict, formulaireRun, clicCarte, enPlacement, nettoyer };
 })();

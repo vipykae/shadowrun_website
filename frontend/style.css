@@ -662,6 +662,10 @@ body::after {
 .formulaire-actions { display: flex; gap: 8px; margin-top: 6px; }
 
 #map.placement { cursor: crosshair; }
+/* Leaflet force `cursor: pointer` sur ses propres formes interactives
+   (.leaflet-interactive), qui l'emporte sinon sur le curseur de #map en
+   survol direct d'un district. */
+#map.placement .leaflet-interactive { cursor: crosshair; }
 .pin.pin-temp .pin-core { background: #fff; box-shadow: 0 0 12px #fff; }
 .pin.pin-temp .pin-ring { border-color: #fff; }
 
