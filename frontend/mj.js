@@ -185,7 +185,7 @@ const mj = (() => {
 
   async function televerserFichier(fichier) {
     const donnees = new FormData();
-    donnees.append("fichier", fichier);
+    donnees.append("fichier", fichier, "image.jpg");
     const reponse = await fetch("/api/uploads/image", { method: "POST", body: donnees });
     if (!reponse.ok) {
       let message = `Erreur ${reponse.status}`;
@@ -200,9 +200,15 @@ const mj = (() => {
     if (!fichier) return;
     const form = input.closest("form");
     const apercu = form.querySelector("#run-apercu-image");
+
+    // Même cadrage manuel que pour les portraits de personnages (voir crop.js).
+    const recadre = await crop.ouvrir(fichier);
+    input.value = "";
+    if (!recadre) return; // annulé depuis le recadrage
+
     apercu.innerHTML = `<span class="champ-image-vide">Envoi…</span>`;
     try {
-      const { url } = await televerserFichier(fichier);
+      const { url } = await televerserFichier(recadre);
       nettoyerUploadEnAttente();
       uploadEnAttente = nomUpload(url);
       form.elements.image.value = url;
@@ -210,8 +216,6 @@ const mj = (() => {
       form.querySelector("#run-btn-retirer-image").hidden = false;
     } catch (e) {
       apercu.innerHTML = `<span class="champ-image-vide">Échec : ${val(e.message)}</span>`;
-    } finally {
-      input.value = "";
     }
   }
 
