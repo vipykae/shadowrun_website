@@ -241,6 +241,10 @@ const mj = (() => {
         ${champ("Nom", `<input name="nom" required maxlength="80" value="${val(d.nom)}">`)}
         ${champ("Gang dominant", `<input name="gang_dominant" maxlength="120" value="${val(d.gang_dominant)}">`)}
         ${champ("Autres gangs présents", `<input name="gangs_presents" value="${val((d.gangs_presents || []).join(", "))}">`, "séparés par des virgules")}
+        ${champ("Mégacorp dominante", `<input name="megacorp_dominante" maxlength="120" value="${val(d.megacorp_dominante)}">`)}
+        ${champ("Autres mégacorps présentes", `<input name="megacorps_presentes" value="${val((d.megacorps_presentes || []).join(", "))}">`, "séparées par des virgules")}
+        ${champ("Autre faction dominante", `<input name="autre_faction_dominante" maxlength="120" value="${val(d.autre_faction_dominante)}">`, "syndicat, politigroupe, organisation gouvernementale...")}
+        ${champ("Autres factions présentes", `<input name="autres_factions_presentes" value="${val((d.autres_factions_presentes || []).join(", "))}">`, "séparées par des virgules")}
         ${champ("Description", `<textarea name="description" rows="4">${val(d.description)}</textarea>`)}
         ${champ("Historique", `<textarea name="runs_jouees" rows="3">${val((d.runs_jouees || []).join("\n"))}</textarea>`,
                 "runs jouées avant le site, une par ligne")}
@@ -256,10 +260,15 @@ const mj = (() => {
   async function enregistrerDistrict(form) {
     const f = new FormData(form);
     const id = form.dataset.district;
+    const listeVirgules = (nom) => String(f.get(nom) ?? "").split(",").map((s) => s.trim()).filter(Boolean);
     const donnees = {
       nom: f.get("nom"),
       gang_dominant: f.get("gang_dominant"),
-      gangs_presents: String(f.get("gangs_presents") ?? "").split(",").map((s) => s.trim()).filter(Boolean),
+      gangs_presents: listeVirgules("gangs_presents"),
+      megacorp_dominante: f.get("megacorp_dominante"),
+      megacorps_presentes: listeVirgules("megacorps_presentes"),
+      autre_faction_dominante: f.get("autre_faction_dominante"),
+      autres_factions_presentes: listeVirgules("autres_factions_presentes"),
       description: f.get("description"),
       runs_jouees: String(f.get("runs_jouees") ?? "").split("\n").map((s) => s.trim()).filter(Boolean),
     };

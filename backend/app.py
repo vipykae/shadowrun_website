@@ -154,7 +154,13 @@ ORDRE_RUN = [
     "date", "duree_estimee", "lieu", "paiement", "difficulte", "risques",
     "themes", "avertissements", "notes", "brief", "image", "compte_rendu",
 ]
-ORDRE_DISTRICT = ["id", "nom", "gang_dominant", "gangs_presents", "description", "fiche", "runs_jouees", "polygone"]
+ORDRE_DISTRICT = [
+    "id", "nom",
+    "gang_dominant", "gangs_presents",
+    "megacorp_dominante", "megacorps_presentes",
+    "autre_faction_dominante", "autres_factions_presentes",
+    "description", "fiche", "runs_jouees", "polygone",
+]
 ENTETE_DISTRICTS = (
     "# Généré par scripts/labelme_vers_districts.py — les champs autres que\n"
     "# 'polygone' sont éditables à la main et préservés à la régénération.\n"
@@ -452,15 +458,19 @@ class DistrictEntree(BaseModel):
     nom: str = Field(min_length=1, max_length=80)
     gang_dominant: str | None = Field(None, max_length=120)
     gangs_presents: list[str] = []
+    megacorp_dominante: str | None = Field(None, max_length=120)
+    megacorps_presentes: list[str] = []
+    autre_faction_dominante: str | None = Field(None, max_length=120)
+    autres_factions_presentes: list[str] = []
     description: str | None = Field(None, max_length=5000)
     runs_jouees: list[str] = []
 
-    @field_validator("gang_dominant", "description", "nom", mode="before")
+    @field_validator("gang_dominant", "megacorp_dominante", "autre_faction_dominante", "description", "nom", mode="before")
     @classmethod
     def _nettoyer(cls, v):
         return _vide_vers_none(v)
 
-    @field_validator("gangs_presents", "runs_jouees", mode="before")
+    @field_validator("gangs_presents", "megacorps_presentes", "autres_factions_presentes", "runs_jouees", mode="before")
     @classmethod
     def _nettoyer_liste(cls, v):
         return [s.strip()[:120] for s in (v or []) if isinstance(s, str) and s.strip()]

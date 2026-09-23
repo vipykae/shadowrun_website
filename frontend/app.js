@@ -530,12 +530,9 @@ function ouvrirSidebarDistrict(d) {
   sidebarContent.innerHTML = `
     <div class="run-kicker">District</div>
     <div class="run-titre">${echapper(d.nom)}</div>
-    <div class="run-meta">
-      <div class="meta-item"><div class="meta-label">Contrôlé par</div>
-        <div class="meta-value">${echapper(d.gang_dominant || "?")}</div></div>
-      <div class="meta-item"><div class="meta-label">Aussi présents</div>
-        <div class="meta-value meta-value-small">${(d.gangs_presents || []).map(echapper).join(", ") || "—"}</div></div>
-    </div>
+    ${blocFaction("Gang dominant", "Autres gangs présents", d.gang_dominant, d.gangs_presents)}
+    ${blocFaction("Mégacorp dominante", "Autres mégacorps présentes", d.megacorp_dominante, d.megacorps_presentes)}
+    ${blocFaction("Autre faction dominante", "Autres factions présentes", d.autre_faction_dominante, d.autres_factions_presentes)}
     ${d.description ? `<p class="run-synopsis">${echapper(d.description)}</p>` : ""}
     ${blocFicheComplete(d.fiche)}
     <div class="section-title">Runs disponibles</div>
@@ -562,6 +559,20 @@ function ouvrirSidebarDistrict(d) {
   }
 
   ouvrirSidebar();
+}
+
+// Un des trois blocs de contrôle d'un district (gang / mégacorp / autre
+// faction). Masqué entièrement si rien n'est renseigné pour ce niveau-là,
+// plutôt que d'afficher un encart vide.
+function blocFaction(labelDominant, labelPresents, dominant, presents) {
+  if (!dominant && !(presents && presents.length)) return "";
+  return `
+    <div class="run-meta">
+      <div class="meta-item"><div class="meta-label">${echapper(labelDominant)}</div>
+        <div class="meta-value">${dominant ? echapper(dominant) : "—"}</div></div>
+      <div class="meta-item"><div class="meta-label">${echapper(labelPresents)}</div>
+        <div class="meta-value meta-value-small">${(presents || []).map(echapper).join(", ") || "—"}</div></div>
+    </div>`;
 }
 
 // Fiche complète d'un district (population, indice, ambiance...), dépliable.
