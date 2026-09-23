@@ -1,6 +1,6 @@
 [project]
 name = "seattle-2080"
-version = "0.6.0"
+version = "0.7.0"
 description = "Tableau des runs — campagne Shadowrun Anarchy, Table ouverte"
 requires-python = ">=3.11"
 dependencies = [
