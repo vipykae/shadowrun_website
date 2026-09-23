@@ -52,8 +52,10 @@ const personnages = (() => {
     vueActive = true;
     document.getElementById("map").hidden = true;
     document.getElementById("personnages").hidden = false;
-    document.getElementById("btn-vue").querySelector(".txt").textContent = "CARTE";
-    document.getElementById("btn-vue").querySelector(".ico").textContent = "🗺";
+    const btnVue = document.getElementById("btn-vue");
+    btnVue.querySelector(".txt").textContent = "CARTE";
+    btnVue.querySelector(".ico").textContent = "🗺";
+    btnVue.dataset.tooltip = "Retour à la carte";
     document.getElementById("btn-nouvelle-run").hidden = true;
     document.getElementById("btn-filtre").hidden = true;
     document.getElementById("btn-nouveau-perso").hidden = false;
@@ -65,8 +67,10 @@ const personnages = (() => {
     vueActive = false;
     document.getElementById("map").hidden = false;
     document.getElementById("personnages").hidden = true;
-    document.getElementById("btn-vue").querySelector(".txt").textContent = "PERSONNAGES";
-    document.getElementById("btn-vue").querySelector(".ico").textContent = "▣";
+    const btnVue = document.getElementById("btn-vue");
+    btnVue.querySelector(".txt").textContent = "PERSONNAGES";
+    btnVue.querySelector(".ico").textContent = "♟";
+    btnVue.dataset.tooltip = "Galerie des PJ et PNJ de la campagne";
     document.getElementById("btn-nouvelle-run").hidden = ROLE !== "mj";
     document.getElementById("btn-filtre").hidden = false;
     document.getElementById("btn-nouveau-perso").hidden = true;
@@ -82,10 +86,12 @@ const personnages = (() => {
     const vignette = perso.image
       ? `<div class="perso-card-img" style="background-image:url('${val(perso.image)}')"></div>`
       : `<div class="perso-card-img perso-card-img-vide">${val((perso.nom || "?")[0].toUpperCase())}</div>`;
-    return `<div class="perso-card" data-id="${val(perso.id)}" data-type="${type}">
+    const tags = (perso.tags || []).join(",").toLowerCase();
+    return `<div class="perso-card" data-id="${val(perso.id)}" data-type="${type}" data-nom="${val(perso.nom.toLowerCase())}" data-tags="${val(tags)}">
       ${vignette}
       <div class="perso-card-nom">${val(perso.nom)}</div>
       ${sousTitre ? `<div class="perso-card-sub">${val(sousTitre)}</div>` : ""}
+      ${(perso.tags || []).length ? `<div class="perso-card-tags">${perso.tags.map((t) => `<span class="tag">${val(t)}</span>`).join("")}</div>` : ""}
     </div>`;
   }
 
@@ -97,6 +103,50 @@ const personnages = (() => {
     grillePNJ().innerHTML = donnees.pnj.length
       ? donnees.pnj.map((p) => carteHtml(p, "pnj")).join("")
       : `<p class="perso-vide">Aucun PNJ notable pour l'instant.</p>`;
+    remplirFiltreTags();
+    appliquerFiltrePerso();
+  }
+
+  // ---------- Filtre (tag + recherche texte) ----------
+
+  function tousLesTags() {
+    const ensemble = new Set();
+    [...donnees.pj, ...donnees.pnj].forEach((p) => (p.tags || []).forEach((t) => ensemble.add(t)));
+    return [...ensemble].sort((a, b) => a.localeCompare(b, "fr"));
+  }
+
+  function remplirFiltreTags() {
+    const select = document.getElementById("filtre-perso-tag");
+    if (!select) return;
+    const valeurActuelle = select.value;
+    select.innerHTML = '<option value="">Tous</option>' +
+      tousLesTags().map((t) => `<option value="${val(t.toLowerCase())}">${val(t)}</option>`).join("");
+    select.value = valeurActuelle;
+  }
+
+  function appliquerFiltrePerso() {
+    const tagSelect = document.getElementById("filtre-perso-tag");
+    const rechercheChamp = document.getElementById("filtre-perso-recherche");
+    if (!tagSelect || !rechercheChamp) return;
+    const tag = tagSelect.value;
+    const recherche = rechercheChamp.value.trim().toLowerCase();
+
+    [[grillePJ(), "perso-pj-vide"], [grillePNJ(), "perso-pnj-vide"]].forEach(([grille, idVide]) => {
+      const cartes = grille.querySelectorAll(".perso-card");
+      let visibles = 0;
+      cartes.forEach((carte) => {
+        const correspondTag = !tag || (carte.dataset.tags || "").split(",").includes(tag);
+        const correspondRecherche = !recherche || (carte.dataset.nom || "").includes(recherche);
+        const visible = correspondTag && correspondRecherche;
+        carte.hidden = !visible;
+        if (visible) visibles++;
+      });
+      // Le message "aucun perso pour l'instant" (dans le HTML de la grille
+      // quand elle est vraiment vide) gère déjà ce cas — celui-ci ne
+      // s'affiche que si des cartes existent mais qu'aucune ne matche.
+      const vide = document.getElementById(idVide);
+      if (vide) vide.hidden = visibles > 0 || cartes.length === 0;
+    });
   }
 
   function trouver(id, type) {
@@ -144,6 +194,7 @@ const personnages = (() => {
       <div class="run-kicker">${type === "pj" ? "Personnage joueuse" : "PNJ"}</div>
       <div class="run-titre">${val(perso.nom)}</div>
       ${perso.image ? `<img class="perso-portrait" src="${val(perso.image)}" alt="">` : ""}
+      ${(perso.tags || []).length ? `<div class="run-tags">${perso.tags.map((t) => `<span class="tag">${val(t)}</span>`).join("")}</div>` : ""}
       ${metaHtml ? `<div class="run-meta">${metaHtml}</div>` : ""}
       ${perso.concept ? `<div class="section-title">Concept</div><p class="run-synopsis">${val(perso.concept)}</p>` : ""}
       ${perso.notes ? `<div class="section-title">Notes</div><p class="run-texte">${val(perso.notes)}</p>` : ""}
@@ -166,7 +217,7 @@ const personnages = (() => {
   function formulaire(perso, typeImpose) {
     nettoyerUploadEnAttente(); // un formulaire déjà ouvert (autre personnage) est abandonné
     const creation = !perso;
-    const p = perso || { id: "", nom: "", archetype: "", concept: "", notes: "", image: "" };
+    const p = perso || { id: "", nom: "", archetype: "", tags: [], concept: "", notes: "", image: "" };
     const type = typeImpose || (perso && donnees.pnj.includes(perso) ? "pnj" : "pj");
     idModifieALaMain = false;
 
@@ -199,6 +250,7 @@ const personnages = (() => {
           </div>
         </div>
         ${champ("Archétype", `<input name="archetype" maxlength="80" value="${val(p.archetype)}" placeholder="Decker, infiltratrice, chef de gang…">`)}
+        ${champ("Tags", `<input name="tags" value="${val((p.tags || []).join(", "))}">`, "séparés par des virgules — libres, pour filtrer la galerie")}
         ${champ("Portrait", `<div class="champ-image">
               <div class="champ-image-apercu" id="apercu-image">${p.image ? `<img src="${val(p.image)}" alt="">` : `<span class="champ-image-vide">Aucune image</span>`}</div>
               <div class="champ-image-boutons">
@@ -226,6 +278,7 @@ const personnages = (() => {
     const texte = (nom) => String(f.get(nom) ?? "").trim();
     return {
       id: texte("id"), nom: texte("nom"), archetype: texte("archetype"),
+      tags: texte("tags").split(",").map((s) => s.trim()).filter(Boolean),
       concept: texte("concept"), notes: texte("notes"), image: texte("image"),
       joueuse: texte("joueuse"), faction: texte("faction"), district: texte("district"),
     };
@@ -236,8 +289,8 @@ const personnages = (() => {
     const creation = !!form.dataset.creation;
     const d = lireFormulaire(form);
     const corps = type === "pj"
-      ? { id: d.id, nom: d.nom, archetype: d.archetype, concept: d.concept, notes: d.notes, image: d.image, joueuse: d.joueuse }
-      : { id: d.id, nom: d.nom, archetype: d.archetype, concept: d.concept, notes: d.notes, image: d.image, faction: d.faction, district: d.district };
+      ? { id: d.id, nom: d.nom, archetype: d.archetype, tags: d.tags, concept: d.concept, notes: d.notes, image: d.image, joueuse: d.joueuse }
+      : { id: d.id, nom: d.nom, archetype: d.archetype, tags: d.tags, concept: d.concept, notes: d.notes, image: d.image, faction: d.faction, district: d.district };
     try {
       const p = creation
         ? await api(`/api/personnages/${type}`, corps)
@@ -320,6 +373,9 @@ const personnages = (() => {
     });
 
     document.getElementById("btn-nouveau-perso").addEventListener("click", () => formulaire(null));
+
+    document.getElementById("filtre-perso-tag").addEventListener("change", appliquerFiltrePerso);
+    document.getElementById("filtre-perso-recherche").addEventListener("input", appliquerFiltrePerso);
 
     [grillePJ(), grillePNJ()].forEach((grille) => {
       grille.addEventListener("click", (evt) => {

@@ -4,7 +4,9 @@
   faction: Crimson Crush
   district: redmond
   archetype: Chef de gang
-  concept: |
+  tags: []
+  concept: |-
     Dirige les Crimson Crush d'une main de fer chromée. Négocie rarement, mais tient toujours parole quand elle le fait.
-  notes: |
+  notes: |-
     Ne jamais lui manquer de respect en public — l'humiliation compte plus pour elle que l'argent.
+  image: null

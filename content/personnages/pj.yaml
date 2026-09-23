@@ -3,10 +3,12 @@
   nom: Nadja
   joueuse: Nadja
   archetype: Infiltratrice
-  concept: |
+  tags: []
+  concept: |-
     Ancienne militaire reconvertie dans la discrétion plutôt que dans le combat frontal. Préfère ne jamais avoir été là.
-  notes: |
+  notes: |-
     Allergique aux plans qui tournent mal — ce qui arrive systématiquement.
+  image: null
 - id: vex
   nom: Vex
   joueuse: Vex

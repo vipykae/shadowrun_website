@@ -20,28 +20,40 @@
       <span class="subtitle">tableau des runs</span>
     </div>
     <div class="topbar-right">
-      <button id="btn-vue" class="badge badge-bouton" hidden title="Voir les personnages"><span class="ico">▣</span><span class="txt">PERSONNAGES</span></button>
-      <button id="btn-historique" class="badge badge-bouton" hidden title="Historique des runs"><span class="ico">🗒</span><span class="txt">HISTORIQUE</span></button>
-      <button id="btn-calendrier" class="badge badge-bouton" hidden title="S'abonner au calendrier des runs"><span class="ico">📅</span><span class="txt">CALENDRIER</span></button>
-      <button id="btn-nouvelle-run" class="badge badge-bouton badge-mj" hidden title="Créer une run"><span class="ico">+</span><span class="txt">RUN</span></button>
-      <button id="btn-nouveau-perso" class="badge badge-bouton" hidden title="Ajouter un personnage"><span class="ico">+</span><span class="txt">PERSO</span></button>
-      <button id="btn-filtre" class="badge badge-bouton" hidden title="Afficher les runs jouées"><span class="ico">○</span><span class="txt">RUNS JOUÉES</span></button>
-      <button id="btn-reload" class="badge badge-bouton" hidden title="Recharger les fichiers YAML"><span class="ico">⟳</span><span class="txt">CONTENU</span></button>
+      <button id="btn-vue" class="badge badge-bouton" hidden aria-label="Voir les personnages" data-tooltip="Galerie des PJ et PNJ de la campagne"><span class="ico">♟</span><span class="txt">PERSONNAGES</span></button>
+      <button id="btn-historique" class="badge badge-bouton" hidden aria-label="Historique des runs" data-tooltip="Tableau de toutes les runs, avec filtres"><span class="ico">▤</span><span class="txt">HISTORIQUE</span></button>
+      <button id="btn-calendrier" class="badge badge-bouton" hidden aria-label="S'abonner au calendrier des runs" data-tooltip="Lien à ajouter dans ton appli calendrier"><span class="ico">📅</span><span class="txt">CALENDRIER</span></button>
+      <button id="btn-nouvelle-run" class="badge badge-bouton badge-mj" hidden aria-label="Créer une run" data-tooltip="Créer une nouvelle run"><span class="ico">+</span><span class="txt">RUN</span></button>
+      <button id="btn-nouveau-perso" class="badge badge-bouton" hidden aria-label="Ajouter un personnage" data-tooltip="Ajouter un PJ ou un PNJ"><span class="ico">+</span><span class="txt">PERSO</span></button>
+      <button id="btn-filtre" class="badge badge-bouton" hidden aria-label="Afficher les runs jouées" data-tooltip="Afficher/masquer les runs déjà jouées"><span class="ico">○</span><span class="txt">RUNS JOUÉES</span></button>
+      <button id="btn-reload" class="badge badge-bouton" hidden aria-label="Recharger les fichiers YAML" data-tooltip="Recharger le contenu depuis les fichiers du serveur (après une modif manuelle)"><span class="ico">↻</span><span class="txt">CONTENU</span></button>
       <span id="badge-role" class="badge badge-role" hidden><span class="txt">ACCÈS :</span><span id="badge-role-nom"></span></span>
-      <button id="btn-logout" class="badge badge-bouton" hidden title="Se déconnecter"><span class="ico">⏻</span></button>
+      <button id="btn-logout" class="badge badge-bouton" hidden aria-label="Se déconnecter" data-tooltip="Se déconnecter"><span class="ico">⏻</span></button>
     </div>
   </header>
 
   <main id="map"></main>
 
   <main id="personnages" hidden>
+    <div class="historique-filtres">
+      <label class="champ-filtre">
+        <span>Tag</span>
+        <select id="filtre-perso-tag"><option value="">Tous</option></select>
+      </label>
+      <label class="champ-filtre champ-filtre-recherche">
+        <span>Recherche</span>
+        <input id="filtre-perso-recherche" type="text" placeholder="Nom…">
+      </label>
+    </div>
     <section class="perso-section">
       <h2 class="perso-titre-section">Personnages joueuses</h2>
       <div class="perso-grid" id="grille-pj"></div>
+      <p class="historique-vide" id="perso-pj-vide" hidden>Aucun PJ ne correspond à ces filtres.</p>
     </section>
     <section class="perso-section">
       <h2 class="perso-titre-section">PNJ notables</h2>
       <div class="perso-grid" id="grille-pnj"></div>
+      <p class="historique-vide" id="perso-pnj-vide" hidden>Aucun PNJ ne correspond à ces filtres.</p>
     </section>
   </main>
 
