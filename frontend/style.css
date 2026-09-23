@@ -202,6 +202,30 @@ body::after {
   box-shadow: 0 0 12px rgba(41, 182, 255, 0.35);
 }
 
+/* Bouton Underground actif = on est en mode "sous-sol" */
+.districts-hors-carte a.actif {
+  color: var(--magenta);
+  border-color: var(--magenta);
+  box-shadow: 0 0 12px rgba(255, 46, 136, 0.35);
+}
+.districts-hors-carte a.actif:hover {
+  box-shadow: 0 0 12px rgba(255, 46, 136, 0.55);
+}
+
+/* ---------- Mode carte "sous-sol" (Underground) ---------- */
+
+/* Teinte le vide autour de l'image (zones hors carte) en un ton terreux
+   plutôt que le fond spatial par défaut — visible même sans la vraie
+   carte souterraine. */
+#map.mode-underground { background: #100b08; }
+
+/* Tant que content/carte.yaml n'a pas de vraie image_underground, l'API
+   retombe sur la carte de surface : ce filtre évite de la faire passer
+   pour la carte définitive du niveau souterrain. */
+#map.carte-sans-image-dediee .leaflet-image-layer {
+  filter: grayscale(0.7) sepia(0.4) hue-rotate(260deg) brightness(0.6);
+}
+
 /* ---------- Pins ---------- */
 
 .pin {

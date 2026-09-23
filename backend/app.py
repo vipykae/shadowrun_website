@@ -338,13 +338,28 @@ def carte(role: str = Depends(role_courant)):
         r = dict(r)
         r["inscrites"] = inscriptions.get(r["id"], [])
         runs.append(r)
-    return {"role": role, "carte": {k: v for k, v in contenu.carte.items() if k != "image"},
-            "districts": contenu.districts, "runs": runs}
+    carte = {k: v for k, v in contenu.carte.items() if k not in ("image", "image_underground")}
+    carte["a_carte_underground"] = bool(
+        contenu.carte.get("image_underground")
+        and (CONTENU / "carte" / contenu.carte["image_underground"]).exists()
+    )
+    return {"role": role, "carte": carte, "districts": contenu.districts, "runs": runs}
 
 
 @app.get("/api/carte/image")
 def image_carte(role: str = Depends(role_courant)):
     return FileResponse(CONTENU / "carte" / contenu.carte["image"])
+
+
+@app.get("/api/carte/image-underground")
+def image_carte_underground(role: str = Depends(role_courant)):
+    # Retombe sur la carte de surface tant que la carte souterraine n'est
+    # pas fournie, pour que le mode "sous-sol" reste testable sans elle.
+    nom = contenu.carte.get("image_underground")
+    chemin = CONTENU / "carte" / nom if nom else None
+    if not chemin or not chemin.exists():
+        chemin = CONTENU / "carte" / contenu.carte["image"]
+    return FileResponse(chemin)
 
 
 def _run_ou_404(run_id: str) -> dict:

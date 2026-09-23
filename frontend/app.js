@@ -25,6 +25,11 @@ function iconeDivPin(classe) {
 let afficherJouees = false;
 try { afficherJouees = localStorage.getItem("afficherJouees") === "1"; } catch {}
 
+// "ville" (surface) ou "underground" — bascule via le bouton dédié
+// (voir construireControleHorsCarte). Détermine l'image de fond, les
+// districts cliquables et les runs visibles sur la carte.
+let modeCarte = "ville";
+
 // ---------- Statuts ----------
 // ouverte | complete  -> run à venir (inscriptions possibles ou équipe pleine)
 // jouee               -> run passée, visible avec le filtre « runs jouées »
@@ -34,7 +39,8 @@ const statutDe = (run) => run.statut || "ouverte";
 const estAVenir = (run) => ["ouverte", "complete"].includes(statutDe(run));
 const estJouee = (run) => statutDe(run) === "jouee";
 const estComplete = (run) => statutDe(run) === "complete" || run.inscrites.length >= run.places;
-const estVisible = (run) => estAVenir(run) || afficherJouees;
+const estDuNiveauAffiche = (run) => (modeCarte === "underground") === (run.district === "underground");
+const estVisible = (run) => (estAVenir(run) || afficherJouees) && estDuNiveauAffiche(run);
 
 // ---------- Appels API ----------
 
@@ -209,6 +215,7 @@ function iconePour(run) {
 
 let couches = []; // polygones des districts, pour les reconstruire au rafraîchissement
 let controleHorsCarte = null; // districts sans tracé (ex. Underground), bouton dédié
+let imageCarte = null; // référence à l'overlay Leaflet, pour changer son URL au bascule de mode
 
 function creerCarte() {
   const H = DONNEES.carte.hauteur;
@@ -225,10 +232,10 @@ function creerCarte() {
   const bornes = [[0, 0], [H, W]];
   const conteneur = document.getElementById("map");
   conteneur.classList.remove("pret");
-  const image = L.imageOverlay("/api/carte/image", bornes);
-  image.on("load", () => conteneur.classList.add("pret"));
+  imageCarte = L.imageOverlay("/api/carte/image", bornes);
+  imageCarte.on("load", () => conteneur.classList.add("pret"));
   setTimeout(() => conteneur.classList.add("pret"), 2500); // filet de sécurité
-  image.addTo(map);
+  imageCarte.addTo(map);
   map.fitBounds(bornes);
   map.setMaxBounds([[-H * 0.1, -W * 0.1], [H * 1.1, W * 1.1]]);
 
@@ -290,16 +297,32 @@ function construireCouches() {
       });
   });
 
+  appliquerVisibiliteDistricts();
   construireControleHorsCarte();
+}
+
+// Ajoute/retire les polygones de districts de surface selon le mode
+// courant : masqués en mode souterrain (un seul "district" y a cours,
+// Underground, qui n'a de toute façon pas de tracé).
+function appliquerVisibiliteDistricts() {
+  couches.forEach((c) => {
+    if (modeCarte === "underground") map.removeLayer(c);
+    else if (!map.hasLayer(c)) c.addTo(map);
+  });
 }
 
 // Districts sans tracé sur la carte (ex. Underground) : un petit contrôle
 // Leaflet flottant, un bouton par district, plutôt qu'un polygone invisible.
+// Underground est spécial : son bouton ne montre pas juste sa fiche, il
+// bascule toute la carte en mode "sous-sol" (voir basculerModeCarte).
+let boutonSousSol = null; // <a> du bouton Underground, pour mettre à jour son libellé
+
 function construireControleHorsCarte() {
   if (controleHorsCarte) {
     controleHorsCarte.remove();
     controleHorsCarte = null;
   }
+  boutonSousSol = null;
   const horsCarte = DONNEES.districts.filter((d) => !d.polygone || d.polygone.length < 3);
   if (horsCarte.length === 0) return;
 
@@ -311,12 +334,20 @@ function construireControleHorsCarte() {
       horsCarte.forEach((d) => {
         const bouton = L.DomUtil.create("a", "", conteneur);
         bouton.href = "#";
-        bouton.textContent = d.nom;
-        bouton.title = `${d.nom} (hors carte)`;
-        L.DomEvent.on(bouton, "click", (evt) => {
-          L.DomEvent.preventDefault(evt);
-          ouvrirSidebarDistrict(d);
-        });
+        if (d.id === "underground") {
+          boutonSousSol = bouton;
+          L.DomEvent.on(bouton, "click", (evt) => {
+            L.DomEvent.preventDefault(evt);
+            basculerModeCarte();
+          });
+        } else {
+          bouton.textContent = d.nom;
+          bouton.title = `${d.nom} (hors carte)`;
+          L.DomEvent.on(bouton, "click", (evt) => {
+            L.DomEvent.preventDefault(evt);
+            ouvrirSidebarDistrict(d);
+          });
+        }
       });
       return conteneur;
     },
@@ -324,6 +355,46 @@ function construireControleHorsCarte() {
 
   controleHorsCarte = new Controle();
   controleHorsCarte.addTo(map);
+  mettreAJourBoutonSousSol();
+}
+
+function mettreAJourBoutonSousSol() {
+  if (!boutonSousSol) return;
+  const enSousSol = modeCarte === "underground";
+  boutonSousSol.textContent = enSousSol ? "↑ Retour en surface" : "Underground";
+  boutonSousSol.title = enSousSol ? "Revenir à la carte de surface" : "Passer en vue souterraine";
+  boutonSousSol.classList.toggle("actif", enSousSol);
+}
+
+// Bascule toute la carte entre la surface ("ville") et le sous-sol
+// ("underground") : image de fond, districts cliquables (aucun en
+// sous-sol, ce niveau n'en a qu'un, sans tracé) et runs visibles
+// (estVisible, dans le bloc "Statuts" plus haut, filtre déjà par
+// run.district vs modeCarte).
+function basculerModeCarte() {
+  modeCarte = modeCarte === "ville" ? "underground" : "ville";
+
+  const conteneur = document.getElementById("map");
+  const enSousSol = modeCarte === "underground";
+  conteneur.classList.toggle("mode-underground", enSousSol);
+  // Tant que la vraie carte souterraine n'existe pas, l'API retombe sur
+  // l'image de surface : ce filtre visuel évite de laisser croire que
+  // c'est la carte définitive.
+  conteneur.classList.toggle("carte-sans-image-dediee", enSousSol && !DONNEES.carte.a_carte_underground);
+
+  conteneur.classList.remove("pret");
+  imageCarte.setUrl(enSousSol ? "/api/carte/image-underground" : "/api/carte/image");
+  setTimeout(() => conteneur.classList.add("pret"), 2500); // filet de sécurité, comme au chargement initial
+
+  appliquerVisibiliteDistricts();
+  appliquerFiltre();
+  mettreAJourBoutonSousSol();
+
+  if (enSousSol) {
+    ouvrirSidebarDistrict(DONNEES.districts.find((d) => d.id === "underground"));
+  } else {
+    fermerSidebar();
+  }
 }
 
 // ---------- Sidebar ----------

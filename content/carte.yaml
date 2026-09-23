@@ -3,3 +3,9 @@
 image: carte_seattle_web.jpg
 largeur: 2048
 hauteur: 3974
+# Carte du niveau "sous-sol" (Underground), affichée quand on bascule dans
+# ce mode. Doit avoir exactement les mêmes largeur/hauteur que l'image
+# ci-dessus (mêmes coordonnées de districts/pins pour les deux niveaux).
+# Tant que ce fichier n'existe pas dans content/carte/, l'API retombe sur
+# l'image de surface (voir /api/carte/image-underground côté backend).
+image_underground: carte_seattle_underground.jpg
