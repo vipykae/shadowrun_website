@@ -112,6 +112,7 @@ async function chargerEtAfficher() {
   document.getElementById("btn-logout").hidden = false;
   document.getElementById("btn-filtre").hidden = false;
   document.getElementById("btn-vue").hidden = false;
+  document.getElementById("btn-historique").hidden = false;
   document.getElementById("btn-calendrier").hidden = false;
 
   if (!map) creerCarte();

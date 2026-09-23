@@ -21,6 +21,7 @@
     </div>
     <div class="topbar-right">
       <button id="btn-vue" class="badge badge-bouton" hidden title="Voir les personnages"><span class="ico">▣</span><span class="txt">PERSONNAGES</span></button>
+      <button id="btn-historique" class="badge badge-bouton" hidden title="Historique des runs"><span class="ico">🗒</span><span class="txt">HISTORIQUE</span></button>
       <button id="btn-calendrier" class="badge badge-bouton" hidden title="S'abonner au calendrier des runs"><span class="ico">📅</span><span class="txt">CALENDRIER</span></button>
       <button id="btn-nouvelle-run" class="badge badge-bouton badge-mj" hidden title="Créer une run"><span class="ico">+</span><span class="txt">RUN</span></button>
       <button id="btn-nouveau-perso" class="badge badge-bouton" hidden title="Ajouter un personnage"><span class="ico">+</span><span class="txt">PERSO</span></button>
@@ -42,6 +43,42 @@
       <h2 class="perso-titre-section">PNJ notables</h2>
       <div class="perso-grid" id="grille-pnj"></div>
     </section>
+  </main>
+
+  <main id="historique" hidden>
+    <div class="historique-filtres">
+      <label class="champ-filtre">
+        <span>District</span>
+        <select id="filtre-district"><option value="">Tous</option></select>
+      </label>
+      <label class="champ-filtre">
+        <span>Statut</span>
+        <select id="filtre-statut">
+          <option value="a-venir">À venir</option>
+          <option value="jouee">Jouées</option>
+          <option value="annulee">Annulées</option>
+          <option value="toutes">Toutes</option>
+        </select>
+      </label>
+      <label class="champ-filtre champ-filtre-recherche">
+        <span>Recherche</span>
+        <input id="filtre-recherche" type="text" placeholder="Titre…">
+      </label>
+    </div>
+    <table class="tableau-runs">
+      <thead>
+        <tr>
+          <th>Titre</th>
+          <th>District</th>
+          <th>Date</th>
+          <th>Statut</th>
+          <th>Places</th>
+          <th>Difficulté</th>
+        </tr>
+      </thead>
+      <tbody id="corps-tableau-runs"></tbody>
+    </table>
+    <p id="historique-vide" class="historique-vide" hidden>Aucune run ne correspond à ces filtres.</p>
   </main>
 
   <aside id="sidebar" class="sidebar" aria-hidden="true">
@@ -71,6 +108,7 @@
   <script src="fond.js"></script>
   <script src="mj.js"></script>
   <script src="personnages.js"></script>
+  <script src="historique.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
