@@ -54,7 +54,7 @@ const personnages = (() => {
     document.getElementById("personnages").hidden = false;
     const btnVue = document.getElementById("btn-vue");
     btnVue.querySelector(".txt").textContent = "CARTE";
-    btnVue.querySelector(".ico").textContent = "🗺";
+    btnVue.querySelector(".ico").textContent = "◈";
     btnVue.dataset.tooltip = "Retour à la carte";
     document.getElementById("btn-nouvelle-run").hidden = true;
     document.getElementById("btn-filtre").hidden = true;

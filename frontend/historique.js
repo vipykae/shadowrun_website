@@ -28,7 +28,7 @@ const historique = (() => {
     document.getElementById("historique").hidden = false;
     const btnHistorique = document.getElementById("btn-historique");
     btnHistorique.querySelector(".txt").textContent = "CARTE";
-    btnHistorique.querySelector(".ico").textContent = "🗺";
+    btnHistorique.querySelector(".ico").textContent = "◈";
     btnHistorique.dataset.tooltip = "Retour à la carte";
     document.getElementById("btn-nouvelle-run").hidden = true;
     document.getElementById("btn-filtre").hidden = true;
