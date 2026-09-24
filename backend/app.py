@@ -844,6 +844,30 @@ def _echapper_ics(texte: str) -> str:
     return (texte or "").replace("\\", "\\\\").replace(";", "\\;").replace(",", "\\,").replace("\n", "\\n")
 
 
+# Les dates des runs sont saisies à l'heure de Paris : sans TZID, les clients
+# calendrier les liraient dans leur fuseau local. Bloc statique (règles UE)
+# pour ne pas dépendre de tzdata dans l'image.
+VTIMEZONE_PARIS = [
+    "BEGIN:VTIMEZONE",
+    "TZID:Europe/Paris",
+    "BEGIN:DAYLIGHT",
+    "TZOFFSETFROM:+0100",
+    "TZOFFSETTO:+0200",
+    "TZNAME:CEST",
+    "DTSTART:19700329T020000",
+    "RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU",
+    "END:DAYLIGHT",
+    "BEGIN:STANDARD",
+    "TZOFFSETFROM:+0200",
+    "TZOFFSETTO:+0100",
+    "TZNAME:CET",
+    "DTSTART:19701025T030000",
+    "RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU",
+    "END:STANDARD",
+    "END:VTIMEZONE",
+]
+
+
 @app.get("/api/calendrier/url")
 def calendrier_url(request: Request, role: str = Depends(role_courant)):
     if not CALENDRIER_TOKEN:
@@ -856,7 +880,8 @@ def calendrier_url(request: Request, role: str = Depends(role_courant)):
 def calendrier_ics(cle: str = ""):
     if not CALENDRIER_TOKEN or not hmac.compare_digest(cle, CALENDRIER_TOKEN):
         raise HTTPException(404)  # pas 401 : ne pas laisser deviner que l'endpoint existe
-    lignes = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Seattle2080//FR", "CALSCALE:GREGORIAN"]
+    lignes = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Seattle2080//FR", "CALSCALE:GREGORIAN",
+              "X-WR-TIMEZONE:Europe/Paris", *VTIMEZONE_PARIS]
     for run in contenu.runs:
         if run.get("statut") == "annulee":
             continue
@@ -868,8 +893,8 @@ def calendrier_ics(cle: str = ""):
             "BEGIN:VEVENT",
             f"UID:{run['id']}@seattle2080",
             f"DTSTAMP:{datetime.utcnow().strftime('%Y%m%dT%H%M%SZ')}",
-            f"DTSTART:{debut.strftime('%Y%m%dT%H%M%S')}",
-            f"DTEND:{fin.strftime('%Y%m%dT%H%M%S')}",
+            f"DTSTART;TZID=Europe/Paris:{debut.strftime('%Y%m%dT%H%M%S')}",
+            f"DTEND;TZID=Europe/Paris:{fin.strftime('%Y%m%dT%H%M%S')}",
             f"SUMMARY:{_echapper_ics(run['titre'])}",
             f"LOCATION:{_echapper_ics(run.get('lieu') or contenu.nom_district(run.get('district')))}",
             f"DESCRIPTION:{_echapper_ics(run.get('brief') or '')}",
