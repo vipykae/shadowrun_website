@@ -74,6 +74,10 @@ const historique = (() => {
     const district = DONNEES.districts.find((d) => d.id === run.district);
     const statut = statutDe(run);
     const difficulte = run.difficulte ? "●".repeat(run.difficulte) + "○".repeat(5 - run.difficulte) : "—";
+    const tags = [
+      ...(run.themes || run.tags || []).map((t) => `<span class="tag">${echapper(t)}</span>`),
+      ...(run.avertissements || []).map((t) => `<span class="tag tag-tw" title="Avertissement de contenu">⚠ ${echapper(t)}</span>`),
+    ].join("");
     return `<tr data-run="${echapper(run.id)}" class="ligne-run ligne-run-${statut}">
       <td>${echapper(run.titre)}</td>
       <td>${echapper(district ? district.nom : run.district)}</td>
@@ -81,6 +85,7 @@ const historique = (() => {
       <td>${echapper(LIBELLES_STATUT[statut] || statut)}</td>
       <td>${run.inscrites.length}/${run.places}</td>
       <td>${difficulte}</td>
+      <td><div class="cellule-tags">${tags}</div></td>
     </tr>`;
   }
 
