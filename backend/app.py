@@ -13,7 +13,7 @@ Configuration par variables d'environnement (voir deploy/.env.example) :
     CALENDRIER_TOKEN               : jeton d'accès au flux .ics (indépendant du login)
 Sans ces variables, l'app démarre en mode dev avec les mots de passe
 « joueuse » et « mj » et une clé aléatoire (sessions perdues au redémarrage).
-Les notifications Discord passent par le bot (bot/notifications.py) : absentes
+Les annonces Discord passent par le bot (bot/notifications.py) : absentes
 si celui-ci n'est pas configuré/lancé (ex. en dev avec uvicorn seul), sans erreur.
 Le calendrier est simplement absent si non configuré.
 """
@@ -42,7 +42,7 @@ from dotenv import load_dotenv
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from bot.notifications import envoyer as notifier_discord
+from bot import notifications as annonces
 from itsdangerous import BadSignature, SignatureExpired, TimestampSigner
 from PIL import Image, UnidentifiedImageError
 from pydantic import BaseModel, Field, field_validator
@@ -139,12 +139,12 @@ contenu = Contenu()
 contenu.charger()
 
 
-# ---------- Notification Discord ----------
-# `notifier_discord` est importée depuis bot/notifications.py (voir les imports en
-# tête de fichier) : elle envoie directement via le bot connecté, plutôt que par un
-# webhook HTTP. No-op silencieux si le bot n'est pas configuré (ex. dev avec uvicorn
-# seul) ; une panne Discord ne doit jamais faire échouer une requête de l'API, donc
-# toujours invoquée via BackgroundTasks après la réponse.
+# ---------- Annonces Discord ----------
+# `annonces` (bot/notifications.py, voir les imports en tête de fichier) tient à
+# jour un post de forum par run, via le bot connecté. No-op silencieux si le bot
+# n'est pas configuré (ex. dev avec uvicorn seul) ; une panne Discord ne doit
+# jamais faire échouer une requête de l'API, donc toujours invoquées via
+# BackgroundTasks après la réponse.
 
 
 # ---------- Écriture YAML lisible (interface MJ) ----------
@@ -153,7 +153,7 @@ ORDRE_RUN = [
     "id", "titre", "district", "position", "mj", "type", "places", "statut",
     "date", "duree_estimee", "lieu", "paiement", "difficulte", "risques",
     "fixer", "autres_personnages_probables",
-    "themes", "avertissements", "notes", "brief", "image", "compte_rendu",
+    "themes", "avertissements", "notes", "brief", "image", "compte_rendu", "flash_news",
 ]
 ORDRE_DISTRICT = [
     "id", "nom",
@@ -226,6 +226,7 @@ def initialiser_db():
 
 
 initialiser_db()
+annonces.initialiser_stockage(DB)
 
 
 def db() -> sqlite3.Connection:
@@ -375,8 +376,22 @@ def _liste_inscrites(con: sqlite3.Connection, run_id: str) -> list[str]:
         "SELECT nom FROM inscriptions WHERE run_id = ? ORDER BY id", (run_id,))]
 
 
+def _base(request: Request) -> str:
+    """Secours pour les URL d'images quand URL_SITE/DOMAINE ne sont pas définis."""
+    return str(request.base_url)
+
+
+def _programmer_annonce_equipe(arriere_plan: BackgroundTasks, request: Request, run: dict,
+                               inscrites: list[str], nom: str, arrivee: bool):
+    arriere_plan.add_task(
+        annonces.annoncer_equipe, dict(run), contenu.nom_district(run.get("district")),
+        list(inscrites), nom, arrivee, _base(request),
+    )
+
+
 @app.post("/api/runs/{run_id}/inscription")
-def inscription(run_id: str, joueuse: Joueuse, arriere_plan: BackgroundTasks, role: str = Depends(role_courant)):
+def inscription(run_id: str, joueuse: Joueuse, request: Request, arriere_plan: BackgroundTasks,
+                role: str = Depends(role_courant)):
     run = _run_ou_404(run_id)
     nom = joueuse.nom.strip()
     if not nom:
@@ -390,19 +405,21 @@ def inscription(run_id: str, joueuse: Joueuse, arriere_plan: BackgroundTasks, ro
         con.execute("INSERT OR IGNORE INTO inscriptions (run_id, nom) VALUES (?, ?)", (run_id, nom))
         apres = _liste_inscrites(con, run_id)
     if nom not in avant:
-        places = run.get("places", 4)
-        suffixe = " — équipe complète !" if len(apres) >= places else f" ({len(apres)}/{places})"
-        arriere_plan.add_task(notifier_discord, f"✅ **{nom}** s'inscrit à *{run['titre']}*{suffixe}")
+        _programmer_annonce_equipe(arriere_plan, request, run, apres, nom, arrivee=True)
     return {"inscrites": apres}
 
 
 @app.post("/api/runs/{run_id}/desinscription")
-def desinscription(run_id: str, joueuse: Joueuse, role: str = Depends(role_courant)):
-    _run_ou_404(run_id)
+def desinscription(run_id: str, joueuse: Joueuse, request: Request, arriere_plan: BackgroundTasks,
+                   role: str = Depends(role_courant)):
+    run = _run_ou_404(run_id)
+    nom = joueuse.nom.strip()
     with db() as con:
-        con.execute("DELETE FROM inscriptions WHERE run_id = ? AND nom = ?",
-                    (run_id, joueuse.nom.strip()))
-        return {"inscrites": _liste_inscrites(con, run_id)}
+        cur = con.execute("DELETE FROM inscriptions WHERE run_id = ? AND nom = ?", (run_id, nom))
+        apres = _liste_inscrites(con, run_id)
+    if cur.rowcount:
+        _programmer_annonce_equipe(arriere_plan, request, run, apres, nom, arrivee=False)
+    return {"inscrites": apres}
 
 
 @app.post("/api/reload")
@@ -445,6 +462,9 @@ class RunEntree(BaseModel):
     brief: str | None = Field(None, max_length=10000)
     image: str | None = Field(None, max_length=500)
     compte_rendu: str | None = Field(None, max_length=20000)
+    # Une ou deux phrases sur ce que la run a changé dans le monde, postées
+    # dans le salon Discord « flash news » quand la run passe en jouée.
+    flash_news: str | None = Field(None, max_length=1000)
     # Nom du fixer et des autres persos probables : texte libre, mais rendu
     # cliquable côté frontend quand ça correspond au nom d'un PJ/PNJ existant
     # (comme les inscrites) — pas de référence d'id stockée, juste le nom.
@@ -452,7 +472,7 @@ class RunEntree(BaseModel):
     autres_personnages_probables: list[str] = []
 
     @field_validator("mj", "type", "date", "duree_estimee", "lieu", "paiement", "risques",
-                     "notes", "brief", "image", "compte_rendu", "titre", "fixer", mode="before")
+                     "notes", "brief", "image", "compte_rendu", "flash_news", "titre", "fixer", mode="before")
     @classmethod
     def _nettoyer(cls, v):
         return _vide_vers_none(v)
@@ -522,16 +542,6 @@ def _run_avec_inscrites(run_id: str) -> dict:
     return run
 
 
-def _url_absolue(request: Request, chemin: str | None) -> str | None:
-    """Les images doivent être une URL absolue pour Discord, qui les
-    récupère lui-même depuis ses propres serveurs (pas relatif à une page)."""
-    if not chemin:
-        return None
-    if chemin.startswith("http://") or chemin.startswith("https://"):
-        return chemin
-    return f"{str(request.base_url).rstrip('/')}{chemin}"
-
-
 @app.post("/api/mj/runs", status_code=201)
 def creer_run(entree: RunEntree, request: Request, arriere_plan: BackgroundTasks, role: str = Depends(role_mj)):
     entree.verifier()
@@ -543,47 +553,49 @@ def creer_run(entree: RunEntree, request: Request, arriere_plan: BackgroundTasks
         chemin = CONTENU / "runs" / f"{entree.id}.yaml"
     chemin.write_text(dump_yaml(entree.vers_yaml()), encoding="utf-8")
     contenu.charger()
+    run = _run_avec_inscrites(entree.id)
     arriere_plan.add_task(
-        notifier_discord,
-        f"📢 **Nouvelle run publiée** : *{entree.titre}* — "
-        f"{contenu.nom_district(entree.district)} · {entree.date or 'date à définir'}",
-        _url_absolue(request, entree.image),
+        annonces.annoncer_nouvelle_run, dict(run), contenu.nom_district(entree.district),
+        run["inscrites"], _base(request),
     )
-    return _run_avec_inscrites(entree.id)
+    return run
 
 
 @app.put("/api/mj/runs/{run_id}")
-def modifier_run(run_id: str, entree: RunEntree, arriere_plan: BackgroundTasks, role: str = Depends(role_mj)):
+def modifier_run(run_id: str, entree: RunEntree, request: Request, arriere_plan: BackgroundTasks,
+                 role: str = Depends(role_mj)):
     chemin = contenu.fichiers.get(run_id)
     if chemin is None:
         raise HTTPException(404, "Run inconnue")
     if entree.id != run_id:
         raise HTTPException(422, "L'id d'une run ne se modifie pas.")
     entree.verifier()
-    ancienne = _run_ou_404(run_id)
-    ancien_statut, ancienne_image = ancienne.get("statut"), ancienne.get("image")
+    ancienne = dict(_run_ou_404(run_id))
     chemin.write_text(dump_yaml(entree.vers_yaml()), encoding="utf-8")
     contenu.charger()
-    if ancienne_image != entree.image:
-        _supprimer_upload_si_interne(ancienne_image)
-    if ancien_statut != "jouee" and entree.statut == "jouee":
-        arriere_plan.add_task(
-            notifier_discord, f"📜 **Run jouée** : *{entree.titre}* — compte-rendu disponible sur le site"
-        )
-    return _run_avec_inscrites(run_id)
+    if ancienne.get("image") != entree.image:
+        _supprimer_upload_si_interne(ancienne.get("image"))
+    run = _run_avec_inscrites(run_id)
+    arriere_plan.add_task(
+        annonces.annoncer_modification, ancienne, dict(run), contenu.nom_district(entree.district),
+        run["inscrites"], _base(request),
+    )
+    return run
 
 
 @app.delete("/api/mj/runs/{run_id}")
-def supprimer_run(run_id: str, role: str = Depends(role_mj)):
+def supprimer_run(run_id: str, arriere_plan: BackgroundTasks, role: str = Depends(role_mj)):
     chemin = contenu.fichiers.get(run_id)
     if chemin is None:
         raise HTTPException(404, "Run inconnue")
-    ancienne_image = _run_ou_404(run_id).get("image")
+    ancienne = dict(_run_ou_404(run_id))
+    ancienne_image = ancienne.get("image")
     chemin.unlink()
     with db() as con:
         con.execute("DELETE FROM inscriptions WHERE run_id = ?", (run_id,))
     contenu.charger()
     _supprimer_upload_si_interne(ancienne_image)
+    arriere_plan.add_task(annonces.annoncer_suppression, ancienne)
     return {"ok": True}
 
 

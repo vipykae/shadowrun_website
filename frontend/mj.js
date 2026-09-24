@@ -132,7 +132,8 @@ const mj = (() => {
         ${champ("Brief", `<textarea name="brief" rows="5">${val(r.brief || r.synopsis)}</textarea>`)}
         ${champ("Risques", `<textarea name="risques" rows="3">${val(r.risques)}</textarea>`)}
         ${champ("Recommandé", `<textarea name="notes" rows="3">${val(r.notes)}</textarea>`)}
-        ${champ("Compte rendu", `<textarea name="compte_rendu" rows="4">${val(r.compte_rendu)}</textarea>`, "à remplir quand la run est jouée")}
+        ${champ("Compte rendu", `<textarea name="compte_rendu" rows="4">${val(r.compte_rendu)}</textarea>`, "à remplir quand la run est jouée ; posté dans le post Discord de la run")}
+        ${champ("Flash news", `<textarea name="flash_news" rows="2" maxlength="1000">${val(r.flash_news)}</textarea>`, "une ou deux phrases sur ce que la run a changé dans le monde ; postée dans le salon Discord flash news quand la run passe en jouée")}
         <div class="formulaire-actions">
           <button type="submit" class="btn">${creation ? "Créer la run" : "Enregistrer"}</button>
           <button type="button" class="btn btn-secondaire" data-mj-action="annuler" data-run="${val(r.id)}">Annuler</button>
@@ -161,7 +162,7 @@ const mj = (() => {
       fixer: texte("fixer"), autres_personnages_probables: liste("autres_personnages_probables"),
       themes: liste("themes"), avertissements: liste("avertissements"),
       notes: texte("notes"), brief: texte("brief"), image: texte("image"),
-      compte_rendu: texte("compte_rendu"),
+      compte_rendu: texte("compte_rendu"), flash_news: texte("flash_news"),
     };
   }
 

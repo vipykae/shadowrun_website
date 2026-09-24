@@ -1,3 +1,9 @@
+## 0.17.0 - 2026-09-24
+- Discord : un post de forum par run, tenu à jour (inscriptions, départs, date, modifications, compte rendu)
+- Nouveau champ « flash news » dans les runs, postée dans le salon Discord dédié quand la run est jouée
+- Liens directs vers une run (depuis Discord ou ailleurs) : la fiche s'ouvre toute seule
+- Onglet Personnages : rappel que c'est une présentation, pas la fiche de jeu
+
 ## 0.16.0 - 2026-09-24
 - Bouton œil pour afficher ou masquer le mot de passe à la connexion
 
