@@ -1,6 +1,8 @@
+## 0.15.0 - 2026-09-24
+- Numéro de version en bas de page, avec le changelog au clic
+
 ## 0.14.0 - 2026-09-24
 - Sidebar redimensionnable à la souris (poignée sur le bord gauche, double-clic pour réinitialiser), contenu adaptatif
-- Numéro de version et changelog en bas de page
 
 ## 0.13.0 - 2026-09-24
 - Filtre par tag dans l'historique des runs
