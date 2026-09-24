@@ -12,6 +12,6 @@
 
 Toutes les commandes marchent aussi bien dans un salon du serveur qu'en MP direct avec le bot.
 
-Le bot annonce aussi automatiquement dans le salon les nouvelles runs, les inscriptions et les comptes-rendus publiés.
+Le bot tient aussi à jour un post par run dans le forum des runs : fiche de la run, inscriptions et départs, changements de date ou de contenu, puis le compte rendu une fois la run jouée. Les flash news (ce que la run a changé dans le monde) partent dans le salon dédié. Chaque titre de run est un lien direct vers sa fiche sur le site.
 
 *(Ce texte est modifiable directement sur le serveur, dans `content/aide_bot.md` — on le complète au fur et à mesure qu'on ajoute des commandes.)*

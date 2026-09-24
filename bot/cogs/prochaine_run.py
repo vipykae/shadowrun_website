@@ -4,19 +4,12 @@ pas polluer le salon à chaque fois que quelqu'un veut vérifier)."""
 
 from __future__ import annotations
 
-from datetime import datetime
-
 import discord
 from discord import app_commands
 from discord.ext import commands
 
 from backend.app import contenu, db, inscrites_par_run
-
-JOURS_FR = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"]
-MOIS_FR = [
-    "janvier", "février", "mars", "avril", "mai", "juin",
-    "juillet", "août", "septembre", "octobre", "novembre", "décembre",
-]
+from bot.formatage import embed_run
 
 
 def _est_a_venir(run: dict) -> bool:
@@ -37,24 +30,6 @@ def prochaine_run_a_venir() -> dict | None:
     if not a_venir:
         return None
     return sorted(a_venir, key=_cle_tri)[0]
-
-
-def texte_date(brut: str | None) -> str:
-    if not brut:
-        return "à définir"
-    if brut.startswith(("http://", "https://")):
-        return "sondage en cours (date pas encore fixée)"
-    if len(brut) >= 10 and brut[:4].isdigit() and brut[4] == "-":
-        try:
-            avec_heure = len(brut) > 10
-            dt = datetime.fromisoformat(brut if avec_heure else f"{brut}T00:00")
-        except ValueError:
-            return brut
-        texte = f"{JOURS_FR[dt.weekday()]} {dt.day} {MOIS_FR[dt.month - 1]} {dt.year}"
-        if avec_heure:
-            texte += f" à {dt.hour:02d}h{dt.minute:02d}"
-        return texte
-    return brut
 
 
 class ProchaineRun(commands.Cog):
@@ -78,20 +53,7 @@ class ProchaineRun(commands.Cog):
         with db() as con:
             inscrites = inscrites_par_run(con).get(run["id"], [])
 
-        places = run.get("places", 4)
-        brief = (run.get("brief") or "")[:4096] or None
-        embed = discord.Embed(title=run["titre"][:256], description=brief)
-        embed.add_field(name="District", value=contenu.nom_district(run.get("district")), inline=True)
-        embed.add_field(name="Date", value=texte_date(run.get("date")), inline=True)
-        embed.add_field(name="Places", value=f"{len(inscrites)}/{places}", inline=True)
-        if run.get("difficulte"):
-            d = run["difficulte"]
-            embed.add_field(name="Difficulté", value="●" * d + "○" * (5 - d), inline=True)
-        if run.get("duree_estimee"):
-            embed.add_field(name="Durée estimée", value=run["duree_estimee"], inline=True)
-        if run.get("mj"):
-            embed.add_field(name="MJ", value=run["mj"], inline=True)
-
+        embed = embed_run(run, contenu.nom_district(run.get("district")), inscrites)
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
 

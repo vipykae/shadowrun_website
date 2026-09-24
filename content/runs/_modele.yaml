@@ -40,3 +40,5 @@ brief: >
   ce qu'il veut, ce qu'il ne dit pas.
 
 compte_rendu: null                 # à remplir quand statut passe à jouee
+flash_news: null                   # une/deux phrases : ce que la run a changé dans le monde
+                                   # (postée dans le salon Discord flash news)

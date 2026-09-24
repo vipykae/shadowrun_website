@@ -122,8 +122,31 @@ async function chargerEtAfficher() {
   // Chargé maintenant (pas seulement à l'ouverture de l'onglet Personnages)
   // pour que les noms de fixer/persos probables/inscrites soient déjà
   // reconnaissables dès l'ouverture d'une run — voir lienPersoOuTexte.
-  personnages.charger();
+  // Attendu avant d'ouvrir une run depuis l'ancre, pour la même raison.
+  try { await personnages.charger(); } catch {}
+  ouvrirRunDepuisAncre();
 }
+
+// ---------- Lien direct vers une run (#run=<id>) ----------
+// Utilisé par les messages du bot Discord : un clic ouvre la fiche de la
+// run. Sans session, l'ancre survit à la connexion (pas de rechargement).
+
+function ouvrirRunDepuisAncre() {
+  const m = location.hash.match(/^#run=([a-z0-9-]+)$/);
+  if (!m || !DONNEES) return;
+  const run = DONNEES.runs.find((r) => r.id === m[1]);
+  // L'ancre a servi : on la retire, pour qu'un rechargement ou un lien
+  // copié plus tard ne rouvre pas cette run sans qu'on l'ait demandé.
+  history.replaceState(null, "", location.pathname + location.search);
+  if (!run) { toast("Cette run n'existe plus sur le site."); return; }
+  if (typeof personnages !== "undefined" && personnages.estActive()) personnages.masquerVue();
+  if (typeof historique !== "undefined" && historique.estActive()) historique.masquerVue();
+  if ((run.district === "underground") !== (modeCarte === "underground")) basculerModeCarte();
+  map.setView(px(run.position[0], run.position[1]), Math.max(map.getZoom(), -0.5));
+  ouvrirSidebarRun(run);
+}
+
+window.addEventListener("hashchange", ouvrirRunDepuisAncre);
 
 // Recharge les données sans toucher au zoom / cadrage de la carte.
 async function rafraichir() {
@@ -549,6 +572,7 @@ function ouvrirSidebarRun(run) {
     <div class="difficulte-ligne"><span class="difficulte">${"◆".repeat(difficulte)}${"◇".repeat(5 - difficulte)}</span></div>
     ${run.risques ? `<p class="run-texte">${echapper(run.risques)}</p>` : ""}
     ${section("Recommandé", run.notes)}
+    ${estJouee(run) ? section("Flash news", run.flash_news, "run-synopsis flash-news") : ""}
     ${estJouee(run) ? section("Compte rendu", run.compte_rendu, "run-synopsis compte-rendu") : ""}
     <div class="section-title">Équipe${aVenir ? ` (${run.inscrites.length}/${run.places})` : ""}</div>
     <ul class="inscrites">${lignes.join("")}</ul>

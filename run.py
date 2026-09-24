@@ -12,9 +12,10 @@ bot/notifications.py peut appeler directement le bot déjà connecté, sans pass
 un webhook HTTP intermédiaire.
 
 Variables d'environnement : voir deploy/.env.example (site) et bot/.env.example (bot),
-plus DISCORD_NOTIFY_CHANNEL_ID (ID du salon où poster les notifications — remplace
-l'ancien DISCORD_WEBHOOK_URL). Sans DISCORD_BOT_TOKEN, le bot ne démarre pas et les
-notifications sont silencieusement désactivées ; le site continue de fonctionner.
+plus DISCORD_FORUM_RUNS_ID (salon forum : un post par run) et
+DISCORD_FLASH_NEWS_CHANNEL_ID (salon textuel des flash news). Sans DISCORD_BOT_TOKEN,
+le bot ne démarre pas et les annonces sont silencieusement désactivées ; le site
+continue de fonctionner.
 """
 
 from __future__ import annotations
@@ -36,22 +37,34 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("run")
 
 
+def _id_depuis_env(nom: str) -> int | None:
+    brut = (os.environ.get(nom) or "").strip()
+    return int(brut) if brut else None
+
+
 async def main() -> None:
     token = os.environ.get("DISCORD_BOT_TOKEN")
-    channel_id_brut = os.environ.get("DISCORD_NOTIFY_CHANNEL_ID")
-    channel_id = int(channel_id_brut) if channel_id_brut else None
+    forum_id = _id_depuis_env("DISCORD_FORUM_RUNS_ID")
+    flash_id = _id_depuis_env("DISCORD_FLASH_NEWS_CHANNEL_ID")
 
     taches = []
 
     if token:
         bot = BotCampagne()
-        configurer_notifications(bot, channel_id)
+        configurer_notifications(bot, forum_id, flash_id)
         taches.append(bot.start(token))
-        if not channel_id:
+        if not forum_id:
             logger.warning(
-                "DISCORD_BOT_TOKEN défini mais DISCORD_NOTIFY_CHANNEL_ID absent : "
-                "le bot tourne (commandes slash actives) mais les notifications de "
-                "runs restent désactivées."
+                "DISCORD_BOT_TOKEN défini mais DISCORD_FORUM_RUNS_ID absent : "
+                "le bot tourne (commandes slash actives) mais les runs ne sont pas "
+                "annoncées sur le forum."
+            )
+        if not flash_id:
+            logger.warning("DISCORD_FLASH_NEWS_CHANNEL_ID absent : flash news non publiées.")
+        if os.environ.get("DISCORD_NOTIFY_CHANNEL_ID"):
+            logger.warning(
+                "DISCORD_NOTIFY_CHANNEL_ID n'est plus utilisé : les annonces passent "
+                "par le forum (DISCORD_FORUM_RUNS_ID)."
             )
     else:
         logger.warning(

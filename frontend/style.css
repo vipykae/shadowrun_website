@@ -499,6 +499,7 @@ body::after {
 .run-titre-jouee { color: var(--text-dim); text-shadow: none; }
 .statut-complete.statut-jouee { color: var(--text-dim); }
 .compte-rendu { border-left-color: var(--text-dim); color: var(--text); font-style: italic; }
+.flash-news { border-left-color: var(--magenta); color: var(--text); }
 
 .difficulte { color: var(--neon); letter-spacing: 2px; }
 
@@ -1012,6 +1013,20 @@ body::after {
 }
 
 .perso-section + .perso-section { margin-top: 38px; }
+
+/* Rappel : la galerie présente les personnages, elle ne gère pas leur fiche de jeu. */
+.perso-intro {
+  max-width: 70ch;
+  margin: 0 0 24px;
+  padding: 10px 14px;
+  border-left: 2px solid var(--neon-dim);
+  background: rgba(41, 182, 255, 0.05);
+  color: var(--text-dim);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.perso-intro strong { color: var(--text); font-weight: 600; }
+.perso-intro-form { margin: 4px 0 16px; font-size: 12px; }
 
 .perso-titre-section {
   font-family: var(--font-title);

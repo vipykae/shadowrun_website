@@ -145,19 +145,31 @@ Remplacer une image ou supprimer la run/le personnage efface automatiquement
 l'ancien fichier ; annuler le formulaire après un envoi non sauvegardé
 l'efface aussi.
 
-## Notifications Discord
+## Annonces Discord
 
-Si `DISCORD_BOT_TOKEN` et `DISCORD_NOTIFY_CHANNEL_ID` sont renseignés dans `.env`, le
-bot (voir [bot/README.md](bot/README.md)) poste directement sur Discord — lui-même,
-pas de webhook — lors de la publication d'une run, d'une inscription, et du passage
-d'une run en « jouée ». Si la run publiée a une image, elle est jointe au message
-(embed Discord) — l'URL envoyée est complète (`https://ton-domaine/api/uploads/...`),
-construite à partir de l'adresse à laquelle la requête est arrivée. Laisser
-`DISCORD_NOTIFY_CHANNEL_ID` vide désactive silencieusement les notifications (le bot
-reste actif pour `/roll` et `/purge_between`) ; laisser `DISCORD_BOT_TOKEN` vide
-désactive le bot entièrement, le site continue de fonctionner seul. Une panne Discord
-ne fait jamais échouer une requête de l'API (l'appel est fait en tâche de fond, après
-la réponse).
+Si `DISCORD_BOT_TOKEN` et `DISCORD_FORUM_RUNS_ID` sont renseignés dans `.env`, le bot
+(voir [bot/README.md](bot/README.md)) tient à jour **un post par run** dans un salon
+forum Discord :
+
+- à la publication d'une run : création du post, avec la fiche complète en embed
+  (brief, attributs, image) ;
+- à chaque changement : un message dans le post (arrivée ou départ d'une joueuse,
+  nouvelle date, run modifiée/annulée, inscriptions fermées…), et la fiche du premier
+  message est rééditée pour rester à jour ;
+- quand la run passe en « jouée » : le compte rendu est posté dans le post, et la
+  **flash news** (champ du formulaire de run, une ou deux phrases sur ce que la run a
+  changé dans le monde) part dans le salon `DISCORD_FLASH_NEWS_CHANNEL_ID`. Corriger la
+  flash news ensuite édite le message déjà posté plutôt que d'en reposter un.
+
+L'association run → post est gardée dans `data/app.db` (table `fils_discord`). Une run
+publiée avant la mise en place du forum reçoit son post au premier changement qui la
+concerne (sauf si elle est déjà jouée). Chaque mention d'une run est un lien direct
+vers sa fiche sur le site (`https://ton-domaine/#run=<id>`, construit depuis
+`URL_SITE`, ou à défaut `DOMAINE`). Laisser `DISCORD_FORUM_RUNS_ID` vide désactive
+silencieusement les annonces (le bot reste actif pour `/roll` et `/purge_between`) ;
+laisser `DISCORD_BOT_TOKEN` vide désactive le bot entièrement, le site continue de
+fonctionner seul. Une panne Discord ne fait jamais échouer une requête de l'API
+(l'appel est fait en tâche de fond, après la réponse).
 
 ## Export calendrier (.ics)
 
@@ -178,7 +190,7 @@ Voir [CADRAGE.md](CADRAGE.md) section 5. En résumé :
 cd deploy
 cp .env.example .env
 uv run ../scripts/genere_hash.py   # génère hashs + clé + jeton calendrier, à coller dans .env
-# renseigner DOMAINE dans .env (et DISCORD_BOT_TOKEN / DISCORD_NOTIFY_CHANNEL_ID si voulu — voir bot/README.md)
+# renseigner DOMAINE dans .env (et DISCORD_BOT_TOKEN / DISCORD_FORUM_RUNS_ID / DISCORD_FLASH_NEWS_CHANNEL_ID si voulu — voir bot/README.md)
 docker compose up -d --build
 ```
 
