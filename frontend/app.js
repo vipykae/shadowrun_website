@@ -783,3 +783,44 @@ document.addEventListener("keydown", (evt) => {
     try { localStorage.removeItem(CLE); } catch (e) { /* ignoré */ }
   });
 })();
+
+// ---------- Version + changelog ----------
+
+(async () => {
+  const bouton = document.getElementById("btn-version");
+  let version = "?";
+  try {
+    version = (await (await fetch("/api/version")).json()).version;
+    bouton.textContent = `v${version}`;
+    bouton.hidden = false;
+  } catch (e) { return; }
+
+  function versions(texte) {
+    return texte.split(/^## /m).filter(Boolean).map((bloc) => {
+      const [entete, ...lignes] = bloc.split(/\r?\n/);
+      const [num, date] = entete.split(" - ");
+      return { num: num.trim(), date: (date || "").trim(), items: lignes.filter((l) => l.startsWith("- ")).map((l) => l.slice(2)) };
+    });
+  }
+
+  bouton.addEventListener("click", async () => {
+    if (document.getElementById("changelog")) return;
+    let liste = [];
+    try { liste = versions(await (await fetch("changelog.md")).text()); } catch (e) { /* liste vide */ }
+    const overlay = document.createElement("div");
+    overlay.id = "changelog";
+    overlay.className = "changelog-overlay";
+    overlay.innerHTML = `<div class="changelog-panel" role="dialog" aria-label="Changelog">
+      <button type="button" class="changelog-close" aria-label="Fermer">✕</button>
+      <div class="changelog-titre">CHANGELOG</div>
+      ${liste.length ? liste.map((v) => `<div class="${v.num === version ? "changelog-courante" : ""}">
+        <div class="changelog-version">v${echapper(v.num)}<small>${echapper(v.date)}</small></div>
+        <ul>${v.items.map((i) => `<li>${echapper(i)}</li>`).join("")}</ul></div>`).join("") : "<p>Changelog indisponible.</p>"}
+    </div>`;
+    const fermer = () => { overlay.remove(); document.removeEventListener("keydown", surTouche, true); };
+    const surTouche = (evt) => { if (evt.key === "Escape") { evt.stopPropagation(); fermer(); } };
+    overlay.addEventListener("click", (evt) => { if (evt.target === overlay || evt.target.closest(".changelog-close")) fermer(); });
+    document.addEventListener("keydown", surTouche, true);
+    document.body.appendChild(overlay);
+  });
+})();
