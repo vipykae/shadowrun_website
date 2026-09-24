@@ -1331,3 +1331,22 @@ body::after {
 .changelog-courante .changelog-version::after { content: "actuelle"; margin-left: 10px; font-size: 10px; color: var(--ok); }
 .changelog-panel ul { margin-left: 18px; }
 .changelog-panel li { margin: 3px 0; line-height: 1.4; }
+
+/* ---------- Champ mot de passe avec bouton œil ---------- */
+
+.champ-mdp { position: relative; display: flex; }
+.champ-mdp input { width: 100%; padding-right: 42px; padding-left: 42px; }
+.btn-oeil {
+  position: absolute;
+  top: 0; right: 0; bottom: 0;
+  width: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+}
+.btn-oeil:hover, .btn-oeil[aria-pressed="true"] { color: var(--neon); }
+.btn-oeil[hidden], .btn-oeil svg[hidden] { display: none; }
