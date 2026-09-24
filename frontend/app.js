@@ -824,3 +824,19 @@ document.addEventListener("keydown", (evt) => {
     document.body.appendChild(overlay);
   });
 })();
+
+// ---------- Voir / masquer le mot de passe ----------
+
+document.getElementById("login-oeil").addEventListener("click", () => {
+  const champ = document.getElementById("login-mdp");
+  const bouton = document.getElementById("login-oeil");
+  const visible = champ.type === "password";
+  champ.type = visible ? "text" : "password";
+  const libelle = visible ? "Masquer le mot de passe" : "Afficher le mot de passe";
+  bouton.setAttribute("aria-pressed", String(visible));
+  bouton.setAttribute("aria-label", libelle);
+  bouton.dataset.tooltip = libelle;
+  bouton.querySelector(".oeil-ouvert").hidden = visible;
+  bouton.querySelector(".oeil-barre").hidden = !visible;
+  champ.focus();
+});

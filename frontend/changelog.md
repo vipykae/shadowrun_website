@@ -1,3 +1,6 @@
+## 0.16.0 - 2026-09-24
+- Bouton œil pour afficher ou masquer le mot de passe à la connexion
+
 ## 0.15.0 - 2026-09-24
 - Numéro de version en bas de page, avec le changelog au clic
 
