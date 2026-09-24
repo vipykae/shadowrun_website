@@ -747,3 +747,39 @@ document.addEventListener("keydown", (evt) => {
     fermerImagePleinEcran();
   }
 }, true);
+
+// ---------- Sidebar redimensionnable (bureau) ----------
+
+(() => {
+  const CLE = "sidebar-largeur";
+  const MIN = 320;
+  const poignee = document.getElementById("sidebar-poignee");
+  const largeurMax = () => Math.min(1000, Math.floor(window.innerWidth * 0.8));
+  const appliquer = (px) => sidebar.style.setProperty("--sidebar-w", `${Math.round(Math.max(MIN, Math.min(largeurMax(), px)))}px`);
+
+  try {
+    const sauvee = parseInt(localStorage.getItem(CLE), 10);
+    if (sauvee) appliquer(sauvee);
+  } catch (e) { /* stockage indisponible : largeur par défaut */ }
+
+  poignee.addEventListener("pointerdown", (evt) => {
+    evt.preventDefault();
+    poignee.setPointerCapture(evt.pointerId);
+    sidebar.classList.add("redimensionne");
+  });
+  poignee.addEventListener("pointermove", (evt) => {
+    if (!sidebar.classList.contains("redimensionne")) return;
+    appliquer(window.innerWidth - evt.clientX);
+  });
+  const fin = () => {
+    if (!sidebar.classList.contains("redimensionne")) return;
+    sidebar.classList.remove("redimensionne");
+    try { localStorage.setItem(CLE, parseInt(sidebar.style.getPropertyValue("--sidebar-w"), 10)); } catch (e) { /* ignoré */ }
+  };
+  poignee.addEventListener("pointerup", fin);
+  poignee.addEventListener("pointercancel", fin);
+  poignee.addEventListener("dblclick", () => {
+    sidebar.style.removeProperty("--sidebar-w");
+    try { localStorage.removeItem(CLE); } catch (e) { /* ignoré */ }
+  });
+})();

@@ -327,7 +327,9 @@ body::after {
 .sidebar {
   position: fixed;
   top: 56px; bottom: 30px; right: 0;
-  width: min(400px, 92vw);
+  width: min(var(--sidebar-w, 400px), 92vw);
+  container-type: inline-size;
+  container-name: sidebar;
   z-index: 1200;
   background: linear-gradient(200deg, var(--bg-panel-2), var(--bg-panel));
   border-left: 1px solid var(--neon-dim);
@@ -339,6 +341,21 @@ body::after {
 }
 
 .sidebar.open { transform: translateX(0); }
+.sidebar.redimensionne { transition: none; user-select: none; }
+
+/* Bord gauche : à glisser pour élargir / rétrécir (bureau seulement). */
+.sidebar-poignee {
+  position: absolute;
+  top: 0; bottom: 0; left: 0;
+  width: 8px;
+  z-index: 2;
+  cursor: col-resize;
+  touch-action: none;
+}
+.sidebar-poignee:hover, .sidebar.redimensionne .sidebar-poignee {
+  background: linear-gradient(90deg, rgba(41, 182, 255, 0.45), transparent);
+}
+
 
 .sidebar-close {
   position: absolute;
@@ -1108,7 +1125,7 @@ body::after {
   cursor: zoom-in;
   display: block;
   max-width: 100%;
-  max-height: 180px;
+  max-height: clamp(180px, 45cqw, 460px);
   margin-left: auto;
   margin-right: auto;
   object-fit: contain;
@@ -1193,6 +1210,7 @@ body::after {
   }
   .sidebar.open { transform: translateY(0); }
   .sidebar-close { top: 12px; right: 12px; }
+  .sidebar-poignee { display: none; }
 
   .run-titre { font-size: 18px; }
   .run-meta { gap: 8px; }
@@ -1236,3 +1254,13 @@ body::after {
 .status-sep { color: var(--neon-dim); }
 
 #status-coords { color: var(--neon); font-variant-numeric: tabular-nums; }
+
+/* Le contenu se réorganise selon la largeur réelle de la sidebar. */
+@container sidebar (max-width: 300px) {
+  .run-meta { grid-template-columns: 1fr; }
+  .champ-ligne { flex-direction: column; gap: 12px; }
+}
+@container sidebar (min-width: 560px) {
+  .run-meta { grid-template-columns: repeat(3, 1fr); }
+  .run-synopsis, .run-texte { max-width: 70ch; }
+}
