@@ -904,6 +904,23 @@ def calendrier_ics(cle: str = ""):
     return Response(content="\r\n".join(lignes) + "\r\n", media_type="text/calendar; charset=utf-8")
 
 
+def _lire_version() -> str:
+    import tomllib
+    try:
+        with open(RACINE / "pyproject.toml", "rb") as f:
+            return tomllib.load(f)["project"]["version"]
+    except (OSError, KeyError, ValueError):
+        return "?"
+
+
+VERSION = _lire_version()
+
+
+@app.get("/api/version")
+def version():
+    return {"version": VERSION}
+
+
 # Le frontend (la sidebar, la page de login…) est public ; toutes les
 # données passent par l'API, protégée par session.
 app.mount("/", StaticFiles(directory=RACINE / "frontend", html=True), name="frontend")
