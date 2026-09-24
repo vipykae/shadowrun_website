@@ -13,6 +13,7 @@ const historique = (() => {
   const vide = () => document.getElementById("historique-vide");
   const selectDistrict = () => document.getElementById("filtre-district");
   const selectStatut = () => document.getElementById("filtre-statut");
+  const selectTag = () => document.getElementById("filtre-tag-run");
   const champRecherche = () => document.getElementById("filtre-recherche");
 
   // ---------- Vue (bascule carte / historique) ----------
@@ -34,6 +35,7 @@ const historique = (() => {
     document.getElementById("btn-filtre").hidden = true;
     fermerSidebar();
     remplirDistricts();
+    remplirTags();
     rafraichirTableau();
   }
 
@@ -57,6 +59,17 @@ const historique = (() => {
     const valeurActuelle = select.value;
     select.innerHTML = '<option value="">Tous les districts</option>' +
       DONNEES.districts.map((d) => `<option value="${d.id}">${echapper(d.nom)}</option>`).join("");
+    select.value = valeurActuelle;
+  }
+
+  const tagsDe = (run) => [...(run.themes || run.tags || []), ...(run.avertissements || [])];
+
+  function remplirTags() {
+    const select = selectTag();
+    const valeurActuelle = select.value;
+    const tous = [...new Set(DONNEES.runs.flatMap(tagsDe))].sort((a, b) => a.localeCompare(b, "fr"));
+    select.innerHTML = '<option value="">Tous</option>' +
+      tous.map((t) => `<option value="${echapper(t.toLowerCase())}">${echapper(t)}</option>`).join("");
     select.value = valeurActuelle;
   }
 
@@ -92,11 +105,13 @@ const historique = (() => {
   function rafraichirTableau() {
     const filtreDistrict = selectDistrict().value;
     const filtreStatut = selectStatut().value;
+    const filtreTag = selectTag().value;
     const recherche = champRecherche().value.trim().toLowerCase();
 
     const runs = DONNEES.runs
       .filter((run) => !filtreDistrict || run.district === filtreDistrict)
       .filter((run) => correspondStatut(run, filtreStatut))
+      .filter((run) => !filtreTag || tagsDe(run).some((t) => t.toLowerCase() === filtreTag))
       .filter((run) => !recherche || run.titre.toLowerCase().includes(recherche));
 
     corps().innerHTML = runs.map(ligneRun).join("");
@@ -110,7 +125,7 @@ const historique = (() => {
       estActive() ? masquerVue() : afficherVue();
     });
 
-    [selectDistrict(), selectStatut()].forEach((el) => el.addEventListener("change", rafraichirTableau));
+    [selectDistrict(), selectStatut(), selectTag()].forEach((el) => el.addEventListener("change", rafraichirTableau));
     champRecherche().addEventListener("input", rafraichirTableau);
 
     corps().addEventListener("click", (evt) => {
