@@ -721,3 +721,29 @@ function echapper(texte) {
 
 effets.glitchPeriodique(document.querySelector(".topbar h1"));
 demarrer();
+
+// ---------- Image en plein écran (portrait de perso / image de run) ----------
+
+function fermerImagePleinEcran() {
+  const el = document.getElementById("lightbox");
+  if (el) el.remove();
+}
+
+document.addEventListener("click", (evt) => {
+  const img = evt.target.closest("img.perso-portrait");
+  if (!img) return;
+  fermerImagePleinEcran();
+  const overlay = document.createElement("div");
+  overlay.id = "lightbox";
+  overlay.className = "lightbox";
+  overlay.innerHTML = `<button type="button" class="lightbox-close" aria-label="Fermer">✕</button><img src="${echapper(img.getAttribute("src"))}" alt="">`;
+  overlay.addEventListener("click", fermerImagePleinEcran);
+  document.body.appendChild(overlay);
+});
+
+document.addEventListener("keydown", (evt) => {
+  if (evt.key === "Escape" && document.getElementById("lightbox")) {
+    evt.stopPropagation();
+    fermerImagePleinEcran();
+  }
+}, true);
