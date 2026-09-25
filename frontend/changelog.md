@@ -1,3 +1,7 @@
+## 0.18.0 - 2026-09-25
+- Fiche district : « Organisation criminelle dominante » et « Autres organisations criminelles » remplacent les champs gang
+- Nouvel encart « Gangs présents » dans la fiche district (les gangs déjà saisis y ont été reportés)
+
 ## 0.17.0 - 2026-09-24
 - Discord : un post de forum par run, tenu à jour (inscriptions, départs, date, modifications, compte rendu)
 - Nouveau champ « flash news » dans les runs, postée dans le salon Discord dédié quand la run est jouée
