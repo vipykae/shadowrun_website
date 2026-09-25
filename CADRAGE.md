@@ -33,7 +33,7 @@ réactif au survol de la souris (réseau de particules en canvas).
 
 ### Dans le périmètre
 - Carte interactive de la ville (image fournie) : zoom/pan, districts survolables, pins cliquables.
-- Infobulle district : nom, gang dominant, gangs présents, runs déjà jouées.
+- Infobulle district : nom, organisation criminelle dominante, gangs présents, runs déjà jouées.
 - Sidebar run : titre, synopsis, date/heure, difficulté, tags, places, liste des inscrites.
 - Inscription/désinscription par nom (accès joueuse).
 - Deux niveaux d'accès par mot de passe partagé.
@@ -113,7 +113,7 @@ Internet ──HTTPS:443──> Box (NAT) ──> Raspberry Pi
 ```yaml
 - id: redmond
   nom: Redmond Barrens
-  gang_dominant: Les Crimson Crush
+  orga_criminelle_dominante: Yakuza
   gangs_presents: [Halloweeners, Rusted Stilettos]
   description: >
     Zone de non-droit, ruines et squats...

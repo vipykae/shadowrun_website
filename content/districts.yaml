@@ -2,7 +2,8 @@
 # 'polygone' sont éditables à la main et préservés à la régénération.
 - id: everett
   nom: Everett
-  gang_dominant: null
+  orga_criminelle_dominante: null
+  orgas_criminelles_presentes: []
   gangs_presents: []
   megacorp_dominante: Federated-Boeing
   megacorps_presentes: []
@@ -100,7 +101,8 @@
   - [1024, 682]
 - id: snohomish
   nom: Snohomish
-  gang_dominant: null
+  orga_criminelle_dominante: null
+  orgas_criminelles_presentes: []
   gangs_presents: []
   megacorp_dominante: null
   megacorps_presentes: []
@@ -212,8 +214,9 @@
   - [1270, 914]
 - id: redmond
   nom: Redmond
-  gang_dominant: Crimson Crush
-  gangs_presents: [Halloweeners, Cutters, 162s, Rusted Stilettos]
+  orga_criminelle_dominante: null
+  orgas_criminelles_presentes: []
+  gangs_presents: [Crimson Crush, Halloweeners, Cutters, 162s, Rusted Stilettos]
   megacorp_dominante: Aztechnology
   megacorps_presentes: []
   autre_faction_dominante: null
@@ -337,7 +340,8 @@
   - [1916, 1686]
 - id: bellevue
   nom: Bellevue
-  gang_dominant: null
+  orga_criminelle_dominante: null
+  orgas_criminelles_presentes: []
   gangs_presents: [405 Hellhounds, Leather Devils]
   megacorp_dominante: null
   megacorps_presentes: []
@@ -506,7 +510,8 @@
   - [1513, 1773]
 - id: council-island
   nom: Council Island
-  gang_dominant: null
+  orga_criminelle_dominante: null
+  orgas_criminelles_presentes: []
   gangs_presents: []
   megacorp_dominante: null
   megacorps_presentes: []
@@ -555,7 +560,8 @@
   - [1214, 1694]
 - id: downtown-seattle
   nom: Downtown Seattle
-  gang_dominant: null
+  orga_criminelle_dominante: null
+  orgas_criminelles_presentes: []
   gangs_presents: []
   megacorp_dominante: Shiawase
   megacorps_presentes: [Aztechnology]
@@ -710,7 +716,8 @@
   - [1159, 2176]
 - id: renton
   nom: Renton
-  gang_dominant: null
+  orga_criminelle_dominante: null
+  orgas_criminelles_presentes: []
   gangs_presents: [Blood Mountain Boys, Night Hunters]
   megacorp_dominante: null
   megacorps_presentes: []
@@ -805,8 +812,9 @@
   - [1334, 2434]
 - id: auburn
   nom: Auburn
-  gang_dominant: Skraacha
-  gangs_presents: [Ancients]
+  orga_criminelle_dominante: null
+  orgas_criminelles_presentes: []
+  gangs_presents: [Skraacha, Ancients]
   megacorp_dominante: null
   megacorps_presentes: []
   autre_faction_dominante: Yakuza
@@ -918,8 +926,9 @@
   - [1656, 2906]
 - id: puyallup
   nom: Puyallup
-  gang_dominant: Ancients
-  gangs_presents: []
+  orga_criminelle_dominante: null
+  orgas_criminelles_presentes: []
+  gangs_presents: [Ancients]
   megacorp_dominante: null
   megacorps_presentes: []
   autre_faction_dominante: Yakuza
@@ -1111,7 +1120,8 @@
   - [965, 3960]
 - id: tacoma
   nom: Tacoma
-  gang_dominant: null
+  orga_criminelle_dominante: null
+  orgas_criminelles_presentes: []
   gangs_presents: []
   megacorp_dominante: Shiawase
   megacorps_presentes: []
@@ -1287,7 +1297,8 @@
   - [257, 3149]
 - id: fort-lewis
   nom: Fort Lewis
-  gang_dominant: null
+  orga_criminelle_dominante: null
+  orgas_criminelles_presentes: []
   gangs_presents: []
   megacorp_dominante: null
   megacorps_presentes: []
@@ -1399,8 +1410,9 @@
   - [444, 3650]
 - id: outremer
   nom: Outremer
-  gang_dominant: TilDawns
-  gangs_presents: []
+  orga_criminelle_dominante: null
+  orgas_criminelles_presentes: []
+  gangs_presents: [TilDawns]
   megacorp_dominante: MCT
   megacorps_presentes: [Ares]
   autre_faction_dominante: null
@@ -1487,7 +1499,8 @@
   - [630, 2332]
 - id: underground
   nom: Underground
-  gang_dominant: null
+  orga_criminelle_dominante: null
+  orgas_criminelles_presentes: []
   gangs_presents: []
   megacorp_dominante: null
   megacorps_presentes: []
