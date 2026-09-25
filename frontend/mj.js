@@ -251,8 +251,9 @@ const mj = (() => {
       <div class="run-titre">${val(d.nom)}</div>
       <form id="form-district" class="formulaire" autocomplete="off" data-district="${val(d.id)}">
         ${champ("Nom", `<input name="nom" required maxlength="80" value="${val(d.nom)}">`)}
-        ${champ("Gang dominant", `<input name="gang_dominant" maxlength="120" value="${val(d.gang_dominant)}">`)}
-        ${champ("Autres gangs présents", `<input name="gangs_presents" value="${val((d.gangs_presents || []).join(", "))}">`, "séparés par des virgules")}
+        ${champ("Organisation criminelle dominante", `<input name="orga_criminelle_dominante" maxlength="120" value="${val(d.orga_criminelle_dominante)}">`, "Yakuza, Mafia, Triades, Vory...")}
+        ${champ("Autres organisations criminelles", `<input name="orgas_criminelles_presentes" value="${val((d.orgas_criminelles_presentes || []).join(", "))}">`, "séparées par des virgules")}
+        ${champ("Gangs présents", `<input name="gangs_presents" value="${val((d.gangs_presents || []).join(", "))}">`, "séparés par des virgules")}
         ${champ("Mégacorp dominante", `<input name="megacorp_dominante" maxlength="120" value="${val(d.megacorp_dominante)}">`)}
         ${champ("Autres mégacorps présentes", `<input name="megacorps_presentes" value="${val((d.megacorps_presentes || []).join(", "))}">`, "séparées par des virgules")}
         ${champ("Autre faction dominante", `<input name="autre_faction_dominante" maxlength="120" value="${val(d.autre_faction_dominante)}">`, "syndicat, politigroupe, organisation gouvernementale...")}
@@ -282,7 +283,8 @@ const mj = (() => {
     const listeVirgules = (nom) => String(f.get(nom) ?? "").split(",").map((s) => s.trim()).filter(Boolean);
     const donnees = {
       nom: f.get("nom"),
-      gang_dominant: f.get("gang_dominant"),
+      orga_criminelle_dominante: f.get("orga_criminelle_dominante"),
+      orgas_criminelles_presentes: listeVirgules("orgas_criminelles_presentes"),
       gangs_presents: listeVirgules("gangs_presents"),
       megacorp_dominante: f.get("megacorp_dominante"),
       megacorps_presentes: listeVirgules("megacorps_presentes"),

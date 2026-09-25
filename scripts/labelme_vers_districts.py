@@ -92,7 +92,8 @@ def main():
             {
                 "id": ident,
                 "nom": forme["label"],
-                "gang_dominant": "À COMPLÉTER",
+                "orga_criminelle_dominante": None,
+                "orgas_criminelles_presentes": [],
                 "gangs_presents": [],
                 "description": "",
                 "runs_jouees": [],
@@ -103,7 +104,7 @@ def main():
         print(f"  {ident:20s} {len(brut):4d} pts -> {len(poly):3d} pts")
 
     # Ordre des clés stable et lisible dans le YAML
-    ordre = ["id", "nom", "gang_dominant", "gangs_presents", "description", "runs_jouees", "polygone"]
+    ordre = ["id", "nom", "orga_criminelle_dominante", "orgas_criminelles_presentes", "gangs_presents", "description", "runs_jouees", "polygone"]
     districts = [{k: d[k] for k in ordre if k in d} for d in districts]
 
     YAML_OUT.write_text(

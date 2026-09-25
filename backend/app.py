@@ -157,7 +157,7 @@ ORDRE_RUN = [
 ]
 ORDRE_DISTRICT = [
     "id", "nom",
-    "gang_dominant", "gangs_presents",
+    "orga_criminelle_dominante", "orgas_criminelles_presentes", "gangs_presents",
     "megacorp_dominante", "megacorps_presentes",
     "autre_faction_dominante", "autres_factions_presentes",
     "description", "fiche", "runs_jouees", "polygone",
@@ -514,7 +514,8 @@ class FicheDistrict(BaseModel):
 
 class DistrictEntree(BaseModel):
     nom: str = Field(min_length=1, max_length=80)
-    gang_dominant: str | None = Field(None, max_length=120)
+    orga_criminelle_dominante: str | None = Field(None, max_length=120)
+    orgas_criminelles_presentes: list[str] = []
     gangs_presents: list[str] = []
     megacorp_dominante: str | None = Field(None, max_length=120)
     megacorps_presentes: list[str] = []
@@ -524,12 +525,12 @@ class DistrictEntree(BaseModel):
     fiche: FicheDistrict | None = None
     runs_jouees: list[str] = []
 
-    @field_validator("gang_dominant", "megacorp_dominante", "autre_faction_dominante", "description", "nom", mode="before")
+    @field_validator("orga_criminelle_dominante", "megacorp_dominante", "autre_faction_dominante", "description", "nom", mode="before")
     @classmethod
     def _nettoyer(cls, v):
         return _vide_vers_none(v)
 
-    @field_validator("gangs_presents", "megacorps_presentes", "autres_factions_presentes", "runs_jouees", mode="before")
+    @field_validator("orgas_criminelles_presentes", "gangs_presents", "megacorps_presentes", "autres_factions_presentes", "runs_jouees", mode="before")
     @classmethod
     def _nettoyer_liste(cls, v):
         return [s.strip()[:120] for s in (v or []) if isinstance(s, str) and s.strip()]
