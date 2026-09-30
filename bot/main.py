@@ -5,6 +5,7 @@ Usage :
 
 Variables d'environnement (voir bot/.env.example) :
     DISCORD_BOT_TOKEN      Token du bot (Developer Portal > Bot > Reset Token)
+    DISCORD_MESSAGE_BIENVENUE=1  MP d'accueil aux nouveaux membres (intent Server Members requis)
     DISCORD_TEST_GUILD_ID  ID du serveur de test, pour une synchro instantanée des
                             commandes slash (optionnel : sans lui, la synchro est
                             globale et peut prendre jusqu'à 1h à apparaître partout)
@@ -24,14 +25,19 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("bot")
 
-EXTENSIONS = ["bot.cogs.purge", "bot.cogs.roll", "bot.cogs.prochaine_run", "bot.cogs.aide"]
+EXTENSIONS = ["bot.cogs.purge", "bot.cogs.roll", "bot.cogs.prochaine_run", "bot.cogs.aide", "bot.cogs.bienvenue"]
 
 
 class BotCampagne(commands.Bot):
     def __init__(self) -> None:
         # Aucun intent privilégié nécessaire : les commandes slash et la suppression
         # de messages passent par l'API REST, pas par le flux d'événements gateway.
+        # Seule exception, opt-in : le MP de bienvenue écoute l'arrivée des membres,
+        # ce qui exige l'intent « Server Members » (à activer aussi dans le Developer
+        # Portal, sinon Discord refuse la connexion — d'où le drapeau).
         intents = discord.Intents.default()
+        if os.environ.get("DISCORD_MESSAGE_BIENVENUE") == "1":
+            intents.members = True
         super().__init__(command_prefix="!", intents=intents)
 
     async def setup_hook(self) -> None:
