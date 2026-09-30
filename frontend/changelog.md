@@ -1,3 +1,7 @@
+## 0.20.0 - 2026-09-30
+- Calendrier : un lien par personnage (seulement les runs où il est inscrit), en plus du lien « toutes les runs »
+- La barre de navigation n'apparaît qu'une fois connecté
+
 ## 0.19.0 - 2026-09-30
 - Barre de navigation identique sur toutes les pages : Carte, Personnages, Tableau des runs, Calendrier, toujours aux mêmes places (la page courante est surlignée)
 - Le sous-titre en haut à gauche et le titre de l'onglet rappellent la page courante

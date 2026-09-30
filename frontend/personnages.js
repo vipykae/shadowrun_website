@@ -424,5 +424,6 @@ const personnages = (() => {
   return {
     estActive, afficherVue, masquerVue, nettoyerUpload: nettoyerUploadEnAttente,
     charger, trouver, trouverParNom, tousLesNoms, ouvrirFiche,
+    liste: (type) => donnees[type] || [],
   };
 })();
