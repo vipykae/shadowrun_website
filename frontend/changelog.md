@@ -1,3 +1,6 @@
+## 0.23.0 - 2026-09-30
+- Message de bienvenue Discord détaillé : le concept de la West March, comment se lancer, le site, le bot (envoyé en plusieurs encarts, texte découpé par sections dans content/message_bienvenue.md)
+
 ## 0.22.0 - 2026-09-30
 - Discord : message d'accueil en MP pour les nouveaux membres (le serveur, le bot, le site), relisible avec la commande /bienvenue ; texte modifiable dans content/message_bienvenue.md
 
