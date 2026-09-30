@@ -117,8 +117,14 @@ async def _fil(fil_id: int | None) -> discord.Thread | None:
     return fil
 
 
-def _nom_fil(run: dict) -> str:
-    return (run.get("titre") or run["id"])[:100]
+def _nom_fil(run: dict, inscrites: list[str]) -> str:
+    """Titre du post. Tant que la run est à venir, il porte le remplissage de
+    l'équipe (« [1/4] Titre ») pour le voir d'un coup d'œil dans la liste du forum."""
+    titre = run.get("titre") or run["id"]
+    if run.get("statut", "ouverte") in ("ouverte", "complete"):
+        prefixe = f"[{len(inscrites)}/{run.get('places', 4)}] "
+        return prefixe + titre[:100 - len(prefixe)]
+    return titre[:100]
 
 
 async def _creer_fil(run: dict, nom_district: str, inscrites: list[str], base: str | None):
@@ -128,7 +134,7 @@ async def _creer_fil(run: dict, nom_district: str, inscrites: list[str], base: s
             logger.warning("DISCORD_FORUM_RUNS_ID (%s) ne désigne pas un salon forum.", _forum_id)
         return None
     resultat = await forum.create_thread(
-        name=_nom_fil(run),
+        name=_nom_fil(run, inscrites),
         content=f"📢 **Nouvelle run publiée** : {lien_run(run)}",
         embed=embed_run(run, nom_district, inscrites, base),
     )
@@ -159,8 +165,16 @@ async def _rafraichir_fiche(fil: discord.Thread, run: dict, nom_district: str, i
             await premier.edit(embed=embed_run(run, nom_district, inscrites, base))
     except discord.NotFound:
         pass
-    if fil.name != _nom_fil(run):
-        await fil.edit(name=_nom_fil(run))
+    nom = _nom_fil(run, inscrites)
+    if fil.name != nom:
+        # Discord limite le renommage d'un post à 2 fois / 10 min : au-delà,
+        # la requête attendrait (sous le verrou, donc bloquerait toutes les
+        # annonces). On abandonne alors ; le titre sera remis à jour au
+        # prochain changement.
+        try:
+            await asyncio.wait_for(fil.edit(name=nom), timeout=10)
+        except asyncio.TimeoutError:
+            logger.warning("Renommage du post %s (« %s ») différé : limite Discord atteinte.", fil.id, nom)
 
 
 def _morceaux(texte: str, taille: int = 4000) -> list[str]:
