@@ -1,3 +1,6 @@
+## 0.21.0 - 2026-09-30
+- Discord : le titre du post de chaque run à venir affiche l'équipe actuelle, par ex. « [1/4] Extraction : Euphoria » (mis à jour à chaque inscription ou désinscription)
+
 ## 0.20.0 - 2026-09-30
 - Calendrier : un lien par personnage (seulement les runs où il est inscrit), en plus du lien « toutes les runs »
 - La barre de navigation n'apparaît qu'une fois connecté
