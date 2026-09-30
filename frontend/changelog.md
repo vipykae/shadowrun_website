@@ -1,3 +1,6 @@
+## 0.23.1 - 2026-09-30
+- Message de bienvenue : « table ouverte » (plus « West March »), runs IRL ou Discord, campagne évolutive dans l'espace et dans le temps (de ganger à runner d'élite)
+
 ## 0.23.0 - 2026-09-30
 - Message de bienvenue Discord détaillé : le concept de la West March, comment se lancer, le site, le bot (envoyé en plusieurs encarts, texte découpé par sections dans content/message_bienvenue.md)
 
