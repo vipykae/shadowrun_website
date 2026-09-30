@@ -52,13 +52,7 @@ const personnages = (() => {
     vueActive = true;
     document.getElementById("map").hidden = true;
     document.getElementById("personnages").hidden = false;
-    const btnVue = document.getElementById("btn-vue");
-    btnVue.querySelector(".txt").textContent = "CARTE";
-    btnVue.querySelector(".ico").textContent = "◈";
-    btnVue.dataset.tooltip = "Retour à la carte";
-    document.getElementById("btn-nouvelle-run").hidden = true;
-    document.getElementById("btn-filtre").hidden = true;
-    document.getElementById("btn-nouveau-perso").hidden = false;
+    mettreAJourNavigation();
     fermerSidebar();
     await charger();
   }
@@ -67,13 +61,7 @@ const personnages = (() => {
     vueActive = false;
     document.getElementById("map").hidden = false;
     document.getElementById("personnages").hidden = true;
-    const btnVue = document.getElementById("btn-vue");
-    btnVue.querySelector(".txt").textContent = "PERSONNAGES";
-    btnVue.querySelector(".ico").textContent = "♟";
-    btnVue.dataset.tooltip = "Galerie des PJ et PNJ de la campagne";
-    document.getElementById("btn-nouvelle-run").hidden = ROLE !== "mj";
-    document.getElementById("btn-filtre").hidden = false;
-    document.getElementById("btn-nouveau-perso").hidden = true;
+    mettreAJourNavigation();
     fermerSidebar();
   }
 
@@ -370,7 +358,7 @@ const personnages = (() => {
 
   document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("btn-vue").addEventListener("click", () => {
-      estActive() ? masquerVue() : afficherVue();
+      if (!estActive()) afficherVue();
     });
 
     document.getElementById("btn-nouveau-perso").addEventListener("click", () => formulaire(null));

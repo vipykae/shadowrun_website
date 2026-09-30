@@ -27,12 +27,7 @@ const historique = (() => {
     vueActive = true;
     document.getElementById("map").hidden = true;
     document.getElementById("historique").hidden = false;
-    const btnHistorique = document.getElementById("btn-historique");
-    btnHistorique.querySelector(".txt").textContent = "CARTE";
-    btnHistorique.querySelector(".ico").textContent = "◈";
-    btnHistorique.dataset.tooltip = "Retour à la carte";
-    document.getElementById("btn-nouvelle-run").hidden = true;
-    document.getElementById("btn-filtre").hidden = true;
+    mettreAJourNavigation();
     fermerSidebar();
     remplirDistricts();
     remplirTags();
@@ -43,12 +38,7 @@ const historique = (() => {
     vueActive = false;
     document.getElementById("map").hidden = false;
     document.getElementById("historique").hidden = true;
-    const btnHistorique = document.getElementById("btn-historique");
-    btnHistorique.querySelector(".txt").textContent = "HISTORIQUE";
-    btnHistorique.querySelector(".ico").textContent = "▤";
-    btnHistorique.dataset.tooltip = "Tableau de toutes les runs, avec filtres";
-    document.getElementById("btn-nouvelle-run").hidden = ROLE !== "mj";
-    document.getElementById("btn-filtre").hidden = false;
+    mettreAJourNavigation();
     fermerSidebar();
   }
 
@@ -122,7 +112,7 @@ const historique = (() => {
 
   document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("btn-historique").addEventListener("click", () => {
-      estActive() ? masquerVue() : afficherVue();
+      if (!estActive()) afficherVue();
     });
 
     [selectDistrict(), selectStatut(), selectTag()].forEach((el) => el.addEventListener("change", rafraichirTableau));
