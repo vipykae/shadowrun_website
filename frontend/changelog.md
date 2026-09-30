@@ -1,3 +1,10 @@
+## 0.19.0 - 2026-09-30
+- Barre de navigation identique sur toutes les pages : Carte, Personnages, Tableau des runs, Calendrier, toujours aux mêmes places (la page courante est surlignée)
+- Le sous-titre en haut à gauche et le titre de l'onglet rappellent la page courante
+- « Historique » devient « Tableau des runs » (tableau de bord des runs)
+- Le bouton d'ajout de personnage est maintenant dans la page Personnages ; « + Run » et « Runs jouées » sont sur la carte
+- Points des runs sur la carte : plus gros, plus lumineux, avec deux ondes qui pulsent
+
 ## 0.18.0 - 2026-09-25
 - Fiche district : « Organisation criminelle dominante » et « Autres organisations criminelles » remplacent les champs gang
 - Nouvel encart « Gangs présents » dans la fiche district (les gangs déjà saisis y ont été reportés)

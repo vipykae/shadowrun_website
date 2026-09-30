@@ -110,14 +110,11 @@ async function chargerEtAfficher() {
   document.getElementById("btn-reload").hidden = ROLE !== "mj";
   document.getElementById("btn-nouvelle-run").hidden = ROLE !== "mj";
   document.getElementById("btn-logout").hidden = false;
-  document.getElementById("btn-filtre").hidden = false;
-  document.getElementById("btn-vue").hidden = false;
-  document.getElementById("btn-historique").hidden = false;
-  document.getElementById("btn-calendrier").hidden = false;
 
   if (!map) creerCarte();
   construireCouches();
   appliquerFiltre();
+  mettreAJourNavigation();
 
   // Chargé maintenant (pas seulement à l'ouverture de l'onglet Personnages)
   // pour que les noms de fixer/persos probables/inscrites soient déjà
@@ -126,6 +123,44 @@ async function chargerEtAfficher() {
   try { await personnages.charger(); } catch {}
   ouvrirRunDepuisAncre();
 }
+
+// ---------- Navigation ----------
+// Les boutons de la barre du haut sont toujours les mêmes, au même endroit :
+// seul l'état « actif » change. Le sous-titre et le titre de l'onglet
+// rappellent la page courante ; les actions propres à une page (créer une run,
+// filtre des runs jouées, ajouter un perso) vivent dans la page elle-même.
+
+const PAGES = {
+  carte:       { bouton: "btn-nav-carte",  sousTitre: "carte des runs",            titre: "Carte des runs" },
+  personnages: { bouton: "btn-vue",        sousTitre: "personnages",               titre: "Personnages" },
+  historique:  { bouton: "btn-historique", sousTitre: "tableau de bord des runs",  titre: "Tableau de bord des runs" },
+};
+
+function pageCourante() {
+  if (typeof personnages !== "undefined" && personnages.estActive()) return "personnages";
+  if (typeof historique !== "undefined" && historique.estActive()) return "historique";
+  return "carte";
+}
+
+function mettreAJourNavigation() {
+  const courante = pageCourante();
+  for (const [nom, page] of Object.entries(PAGES)) {
+    const bouton = document.getElementById(page.bouton);
+    bouton.classList.toggle("badge-actif", nom === courante);
+    bouton.setAttribute("aria-current", nom === courante ? "page" : "false");
+  }
+  document.getElementById("sous-titre").textContent = PAGES[courante].sousTitre;
+  document.title = `Seattle 2080 — ${PAGES[courante].titre}`;
+  // La barre d'outils de la carte n'existe que sur la carte, et seulement une fois connecté.
+  document.getElementById("barre-carte").hidden = courante !== "carte" || !DONNEES;
+}
+
+document.getElementById("btn-nav-carte").addEventListener("click", () => {
+  if (typeof personnages !== "undefined" && personnages.estActive()) personnages.masquerVue();
+  if (typeof historique !== "undefined" && historique.estActive()) historique.masquerVue();
+  mettreAJourNavigation();
+  if (map) map.invalidateSize();
+});
 
 // ---------- Lien direct vers une run (#run=<id>) ----------
 // Utilisé par les messages du bot Discord : un clic ouvre la fiche de la
@@ -220,7 +255,7 @@ function appliquerFiltre() {
   const bouton = document.getElementById("btn-filtre");
   bouton.querySelector(".ico").textContent = afficherJouees ? "◉" : "○";
   bouton.classList.toggle("badge-actif", afficherJouees);
-  bouton.title = afficherJouees ? "Masquer les runs jouées" : "Afficher les runs jouées";
+  bouton.dataset.tooltip = afficherJouees ? "Masquer les runs jouées" : "Afficher les runs jouées";
 
   const aVenir = DONNEES.runs.filter(estAVenir).length;
   const jouees = DONNEES.runs.filter(estJouee).length;
