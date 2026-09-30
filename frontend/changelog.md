@@ -1,3 +1,6 @@
+## 0.22.0 - 2026-09-30
+- Discord : message d'accueil en MP pour les nouveaux membres (le serveur, le bot, le site), relisible avec la commande /bienvenue ; texte modifiable dans content/message_bienvenue.md
+
 ## 0.21.0 - 2026-09-30
 - Discord : le titre du post de chaque run à venir affiche l'équipe actuelle, par ex. « [1/4] Extraction : Euphoria » (mis à jour à chaque inscription ou désinscription)
 

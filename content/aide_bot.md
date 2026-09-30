@@ -8,6 +8,8 @@
 
 ❓ `/help` — ce message.
 
+👋 `/bienvenue` — relire le message d'accueil (le serveur, le bot, le site).
+
 🧹 `/purge_between` — réservé à la MJ, nettoie une plage de messages entre deux ID.
 
 Toutes les commandes marchent aussi bien dans un salon du serveur qu'en MP direct avec le bot.
