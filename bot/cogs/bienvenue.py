@@ -28,11 +28,23 @@ def texte_bienvenue() -> str:
     if not CHEMIN_MESSAGE.exists():
         return TEXTE_PAR_DEFAUT
     texte = CHEMIN_MESSAGE.read_text(encoding="utf-8").strip()
-    return texte[:4096] if texte else TEXTE_PAR_DEFAUT
+    return texte or TEXTE_PAR_DEFAUT
 
 
-def embed_bienvenue() -> discord.Embed:
-    return discord.Embed(title="Seattle // 2080 — bienvenue !", description=texte_bienvenue(), colour=0x29B6FF)
+def embeds_bienvenue() -> list[discord.Embed]:
+    """Le message est découpé en sections (séparées par une ligne « --- ») ;
+    une ligne « # Titre » en tête de section devient le titre de son encart."""
+    embeds = []
+    for section in texte_bienvenue().split("\n---\n"):
+        section = section.strip()
+        if not section:
+            continue
+        titre = None
+        if section.startswith("# "):
+            titre, _, section = section[2:].partition("\n")
+        embeds.append(discord.Embed(title=titre[:256] if titre else None,
+                                    description=section.strip()[:4096] or None, colour=0x29B6FF))
+    return embeds[:10]
 
 
 class Bienvenue(commands.Cog):
@@ -44,7 +56,10 @@ class Bienvenue(commands.Cog):
         if membre.bot or os.environ.get("DISCORD_MESSAGE_BIENVENUE") != "1":
             return
         try:
-            await membre.send(embed=embed_bienvenue())
+            embeds = embeds_bienvenue()
+            # Discord limite un message à 6000 caractères d'encarts au total : un message par encart.
+            for embed in embeds:
+                await membre.send(embed=embed)
         except discord.Forbidden:
             logger.info("MP de bienvenue impossible pour %s (messages privés fermés).", membre)
         except discord.HTTPException as erreur:
@@ -56,7 +71,10 @@ class Bienvenue(commands.Cog):
     )
     @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=False)
     async def bienvenue(self, interaction: discord.Interaction) -> None:
-        await interaction.response.send_message(embed=embed_bienvenue(), ephemeral=True)
+        embeds = embeds_bienvenue()
+        await interaction.response.send_message(embed=embeds[0], ephemeral=True)
+        for embed in embeds[1:]:
+            await interaction.followup.send(embed=embed, ephemeral=True)
 
 
 async def setup(bot: commands.Bot) -> None:
