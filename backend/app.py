@@ -881,22 +881,47 @@ VTIMEZONE_PARIS = [
 ]
 
 
+def _pj_ou_404(perso_id: str) -> dict:
+    for p in contenu.pj:
+        if p["id"] == perso_id:
+            return p
+    raise HTTPException(404, "Personnage inconnu")
+
+
 @app.get("/api/calendrier/url")
-def calendrier_url(request: Request, role: str = Depends(role_courant)):
+def calendrier_url(request: Request, perso: str = "", role: str = Depends(role_courant)):
+    """Lien d'abonnement : toutes les runs, ou (avec `perso`, l'id d'un PJ)
+    seulement celles où ce personnage est inscrit."""
     if not CALENDRIER_TOKEN:
         raise HTTPException(503, "Calendrier non configuré (CALENDRIER_TOKEN absent côté serveur).")
     base = str(request.base_url).rstrip("/")
-    return {"url": f"{base}/api/calendrier.ics?cle={CALENDRIER_TOKEN}"}
+    url = f"{base}/api/calendrier.ics?cle={CALENDRIER_TOKEN}"
+    if perso:
+        url += f"&perso={_pj_ou_404(perso)['id']}"
+    return {"url": url}
 
 
 @app.get("/api/calendrier.ics")
-def calendrier_ics(cle: str = ""):
+def calendrier_ics(cle: str = "", perso: str = ""):
     if not CALENDRIER_TOKEN or not hmac.compare_digest(cle, CALENDRIER_TOKEN):
         raise HTTPException(404)  # pas 401 : ne pas laisser deviner que l'endpoint existe
+    # Les inscriptions sont du texte libre : on reconnaît un PJ à son nom ou à
+    # celui de sa joueuse, sans tenir compte de la casse.
+    noms_perso: set[str] | None = None
+    nom_cal = "Seattle 2080"
+    inscrites: dict[str, list[str]] = {}
+    if perso:
+        pj = _pj_ou_404(perso)
+        nom_cal = f"Seattle 2080 — {pj['nom']}"
+        noms_perso = {str(n).strip().lower() for n in (pj.get("nom"), pj.get("joueuse")) if n}
+        with db() as con:
+            inscrites = inscrites_par_run(con)
     lignes = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Seattle2080//FR", "CALSCALE:GREGORIAN",
-              "X-WR-TIMEZONE:Europe/Paris", *VTIMEZONE_PARIS]
+              "X-WR-TIMEZONE:Europe/Paris", f"X-WR-CALNAME:{_echapper_ics(nom_cal)}", *VTIMEZONE_PARIS]
     for run in contenu.runs:
         if run.get("statut") == "annulee":
+            continue
+        if noms_perso is not None and not any(n.strip().lower() in noms_perso for n in inscrites.get(run["id"], [])):
             continue
         debut = _date_run_ics(run.get("date"))
         if debut is None:

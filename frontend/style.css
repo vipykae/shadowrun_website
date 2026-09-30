@@ -124,6 +124,7 @@ body::after {
 }
 
 .topbar-right { flex-shrink: 0; }
+.topbar-right[hidden] { display: none; }
 .topbar-title { min-width: 0; }
 .topbar h1 { white-space: nowrap; }
 
@@ -1393,3 +1394,7 @@ body::after {
 }
 .btn-oeil:hover, .btn-oeil[aria-pressed="true"] { color: var(--neon); }
 .btn-oeil[hidden], .btn-oeil svg[hidden] { display: none; }
+
+/* Panneau Calendrier */
+.calendrier-aide { color: var(--text-dim); font-size: 14px; margin: 4px 0 10px; }
+.calendrier-ligne { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }

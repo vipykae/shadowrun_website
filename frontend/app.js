@@ -110,6 +110,7 @@ async function chargerEtAfficher() {
   document.getElementById("btn-reload").hidden = ROLE !== "mj";
   document.getElementById("btn-nouvelle-run").hidden = ROLE !== "mj";
   document.getElementById("btn-logout").hidden = false;
+  document.getElementById("navigation").hidden = false;
 
   if (!map) creerCarte();
   construireCouches();
@@ -212,18 +213,38 @@ document.getElementById("btn-filtre").addEventListener("click", () => {
   appliquerFiltre();
 });
 
-document.getElementById("btn-calendrier").addEventListener("click", async () => {
+// Calendrier : un lien pour toutes les runs, ou un lien par personnage
+// (seulement les runs où il est inscrit) pour ne pas remplir son agenda de
+// celles des autres.
+async function copierLienCalendrier(persoId) {
   try {
-    const { url } = await api("/api/calendrier/url");
+    const { url } = await api(`/api/calendrier/url${persoId ? `?perso=${encodeURIComponent(persoId)}` : ""}`);
     try {
       await navigator.clipboard.writeText(url);
-      toast("Lien du calendrier copié — colle-le dans Google Calendar, Apple Calendar ou Outlook.");
+      toast("Lien copié — colle-le dans Google Calendar, Apple Calendar ou Outlook (abonnement à une URL).");
     } catch {
       window.prompt("Copie ce lien dans ton appli calendrier (abonnement à une URL) :", url);
     }
   } catch (e) {
     toast(e.message);
   }
+}
+
+document.getElementById("btn-calendrier").addEventListener("click", () => {
+  const pj = (typeof personnages !== "undefined" && personnages.liste) ? personnages.liste("pj") : [];
+  sidebarContent.innerHTML = `
+    <div class="run-titre">Calendrier</div>
+    <p class="calendrier-aide">Abonne ton appli calendrier à l'un de ces liens : les runs s'y ajoutent et s'y mettent à jour toutes seules.</p>
+    <div class="section-title">Toutes les runs</div>
+    <button class="btn" data-cal="">Copier le lien</button>
+    <div class="section-title">Mon personnage seulement</div>
+    <p class="calendrier-aide">Ne contient que les runs où ton personnage est inscrit (le calendrier reste vide tant qu'il n'est sur aucune run).</p>
+    ${pj.length
+      ? pj.map((p) => `<div class="calendrier-ligne"><span>${echapper(p.nom)}</span><button class="btn" data-cal="${echapper(p.id)}">Copier le lien</button></div>`).join("")
+      : "<p class=\"calendrier-aide\">Aucun personnage joueuse pour l'instant.</p>"}`;
+  sidebarContent.querySelectorAll("[data-cal]").forEach((b) =>
+    b.addEventListener("click", () => copierLienCalendrier(b.dataset.cal)));
+  ouvrirSidebar();
 });
 
 // ---------- Toast (petite confirmation en bas d'écran) ----------

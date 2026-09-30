@@ -173,7 +173,9 @@ fonctionner seul. Une panne Discord ne fait jamais échouer une requête de l'AP
 
 ## Export calendrier (.ics)
 
-Bouton « CALENDRIER » (visible une fois connectée) : copie dans le
+Bouton « CALENDRIER » (visible une fois connectée) : ouvre un panneau avec un lien
+« toutes les runs » et un lien par PJ (`&perso=<id>` : seulement les runs où son nom
+ou celui de sa joueuse est inscrit). Chaque bouton copie dans le
 presse-papiers un lien à coller dans Google Calendar / Apple Calendar /
 Outlook comme abonnement à une URL — le calendrier se met à jour tout seul
 au fil des runs publiées. Nécessite `CALENDRIER_TOKEN` dans `.env` (généré
