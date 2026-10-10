@@ -41,6 +41,19 @@ def texte_date(brut: str | None) -> str:
     return brut
 
 
+def date_courte(brut) -> str | None:
+    """« 15/01/2026 » si la date est fixée (ISO), sinon None (sondage, texte libre,
+    pas de date) — pour les titres de posts, où une date floue n'a pas sa place."""
+    brut = str(brut or "")
+    if len(brut) >= 10 and brut[:4].isdigit() and brut[4] == "-":
+        try:
+            dt = datetime.fromisoformat(brut[:10])
+        except ValueError:
+            return None
+        return f"{dt.day:02d}/{dt.month:02d}/{dt.year}"
+    return None
+
+
 def url_site() -> str | None:
     """Adresse publique du site : URL_SITE si définie, sinon https://DOMAINE
     (la variable que Caddy utilise déjà en prod). None en dev sans l'une ni

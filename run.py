@@ -27,9 +27,9 @@ import os
 import uvicorn
 from dotenv import load_dotenv
 
-from backend.app import app as application_web
+from backend.app import app as application_web, contenu, db, inscrites_par_run
 from bot.main import EXTENSIONS, BotCampagne  # noqa: F401 (EXTENSIONS chargé par setup_hook)
-from bot.notifications import configurer as configurer_notifications
+from bot.notifications import configurer as configurer_notifications, resynchroniser_titres
 
 load_dotenv()
 
@@ -40,6 +40,14 @@ logger = logging.getLogger("run")
 def _id_depuis_env(nom: str) -> int | None:
     brut = (os.environ.get(nom) or "").strip()
     return int(brut) if brut else None
+
+
+async def _resynchroniser_titres_au_demarrage(bot) -> None:
+    """Applique le format courant des titres aux posts déjà existants."""
+    await bot.wait_until_ready()
+    with db() as con:
+        inscrites = inscrites_par_run(con)
+    await resynchroniser_titres([(r, inscrites.get(r["id"], [])) for r in contenu.runs])
 
 
 async def main() -> None:
@@ -53,6 +61,8 @@ async def main() -> None:
         bot = BotCampagne()
         configurer_notifications(bot, forum_id, flash_id)
         taches.append(bot.start(token))
+        if forum_id:
+            taches.append(_resynchroniser_titres_au_demarrage(bot))
         if not forum_id:
             logger.warning(
                 "DISCORD_BOT_TOKEN défini mais DISCORD_FORUM_RUNS_ID absent : "
