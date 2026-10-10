@@ -1,3 +1,6 @@
+## 0.24.0 - 2026-10-10
+- Discord : le titre du post de chaque run affiche aussi la date de la séance quand elle est fixée, par ex. « [1/4] Extraction : Euphoria — 15/01/2026 » (les posts existants sont renommés au démarrage du bot)
+
 ## 0.23.1 - 2026-09-30
 - Message de bienvenue : « table ouverte » (plus « West March »), runs IRL ou Discord, campagne évolutive dans l'espace et dans le temps (de ganger à runner d'élite)
 
