@@ -28,7 +28,7 @@ from pathlib import Path
 
 import discord
 
-from bot.formatage import embed_run, lien_run, texte_date
+from bot.formatage import date_courte, embed_run, lien_run, texte_date
 
 logger = logging.getLogger("bot.notifications")
 
@@ -121,10 +121,26 @@ def _nom_fil(run: dict, inscrites: list[str]) -> str:
     """Titre du post. Tant que la run est à venir, il porte le remplissage de
     l'équipe (« [1/4] Titre ») pour le voir d'un coup d'œil dans la liste du forum."""
     titre = run.get("titre") or run["id"]
+    date = date_courte(run.get("date"))
+    suffixe = f" — {date}" if date else ""
+    prefixe = ""
     if run.get("statut", "ouverte") in ("ouverte", "complete"):
         prefixe = f"[{len(inscrites)}/{run.get('places', 4)}] "
-        return prefixe + titre[:100 - len(prefixe)]
-    return titre[:100]
+    return prefixe + titre[:100 - len(prefixe) - len(suffixe)] + suffixe
+
+
+async def resynchroniser_titres(runs: list[tuple[dict, list[str]]]) -> None:
+    """Remet à jour le titre de tous les posts existants (ex. après un changement
+    de format). `runs` : (run, inscrites). Lancé une fois au démarrage du bot."""
+    async def _faire():
+        for run, inscrites in runs:
+            fil = await _fil(_lire(run["id"])[0])
+            nom = _nom_fil(run, inscrites)
+            if fil is not None and fil.name != nom:
+                await asyncio.wait_for(fil.edit(name=nom), timeout=10)
+                logger.info("Post de la run %s renommé en « %s »", run["id"], nom)
+
+    await _proteger("resynchronisation des titres", _faire())
 
 
 async def _creer_fil(run: dict, nom_district: str, inscrites: list[str], base: str | None):
