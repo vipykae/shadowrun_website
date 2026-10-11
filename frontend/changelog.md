@@ -1,3 +1,6 @@
+## 0.24.1 - 2026-10-12
+- Personnages : le bouton « + PERSONNAGE » ouvre de nouveau le formulaire de création (il se refermait aussitôt)
+
 ## 0.24.0 - 2026-10-10
 - Discord : le titre du post de chaque run affiche aussi la date de la séance quand elle est fixée, par ex. « [1/4] Extraction : Euphoria — 15/01/2026 » (les posts existants sont renommés au démarrage du bot)
 
