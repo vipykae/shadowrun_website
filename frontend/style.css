@@ -1398,3 +1398,22 @@ body::after {
 /* Panneau Calendrier */
 .calendrier-aide { color: var(--text-dim); font-size: 14px; margin: 4px 0 10px; }
 .calendrier-ligne { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+
+/* Liste de suggestions de personnages (suggestions.js) */
+.suggestions {
+  position: fixed;
+  z-index: 6000;
+  margin: 0;
+  padding: 4px 0;
+  list-style: none;
+  overflow-y: auto;
+  background: var(--bg-panel-2);
+  border: 1px solid var(--neon);
+  border-radius: 3px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, .6), 0 0 8px rgba(41, 182, 255, .25);
+  font-family: var(--font-body);
+  font-size: 15px;
+}
+.suggestions[hidden] { display: none; }
+.suggestions li { padding: 6px 12px; color: var(--text); cursor: pointer; }
+.suggestions li:hover, .suggestions li.actif { background: rgba(41, 182, 255, .18); color: #fff; }

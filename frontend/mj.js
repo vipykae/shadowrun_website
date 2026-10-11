@@ -95,11 +95,10 @@ const mj = (() => {
           ${champ("MJ", `<input name="mj" maxlength="60" value="${val(r.mj)}">`)}
           ${champ("Type", `<input name="type" maxlength="60" value="${val(r.type)}" placeholder="One-shot, Run avec suite…">`)}
         </div>
-        ${champ("Fixer", `<input name="fixer" list="datalist-noms-persos" maxlength="200" value="${val(r.fixer)}">`,
-                "un PJ/PNJ existant (suggestions) ou texte libre — devient cliquable si le nom correspond")}
-        ${champ("Autres persos probables", `<input name="autres_personnages_probables" value="${val((r.autres_personnages_probables || []).join(", "))}">`,
+        ${champ("Fixer", `<input name="fixer" data-suggest="tous" autocomplete="off" maxlength="200" value="${val(r.fixer)}">`,
+                "un PJ/PNJ existant (liste de suggestions) ou texte libre — devient cliquable si le nom correspond")}
+        ${champ("Autres persos probables", `<input name="autres_personnages_probables" data-suggest="tous" data-suggest-multi autocomplete="off" value="${val((r.autres_personnages_probables || []).join(", "))}">`,
                 "séparés par des virgules — mêmes règles que Fixer")}
-        <datalist id="datalist-noms-persos">${personnages.tousLesNoms().map((n) => `<option value="${val(n)}">`).join("")}</datalist>
         <div class="champ-ligne">
           ${champ("Places", `<input name="places" type="number" min="1" max="12" value="${r.places ?? 4}">`)}
           ${champ("Difficulté", `<input name="difficulte" type="number" min="1" max="5" value="${r.difficulte ?? 3}">`)}

@@ -585,7 +585,7 @@ function ouvrirSidebarRun(run) {
   let pied;
   if (inscriptionsOuvertes) {
     pied = `<div class="inscription-form">
-              <input id="nom-joueuse" type="text" maxlength="30" placeholder="Ton nom de runneuse…">
+              <input id="nom-joueuse" type="text" data-suggest="pj" autocomplete="off" maxlength="30" placeholder="Ton nom de runneuse…">
               <button class="btn" id="btn-inscription">S'inscrire</button>
             </div>`;
   } else {
