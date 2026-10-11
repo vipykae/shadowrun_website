@@ -5,6 +5,13 @@ sur le site** (le public lit `frontend/changelog.md`, volontairement court et sa
 Une section par version, la plus récente en tête : ce qui a été touché, pourquoi, les
 pièges. Voir CLAUDE.md pour la règle.
 
+## 0.25.1 - 2026-10-12
+- Le changelog (`fetch("changelog.md")`) restait en cache navigateur après un déploiement :
+  nginx/uvicorn n'envoient ni `Cache-Control` ni validité explicite, le navigateur applique
+  un cache heuristique à partir de `last-modified`. Corrigé avec `{ cache: "no-cache" }`
+  (revalidation par etag, 304 si inchangé). Même piège possible pour tout fichier statique
+  lu en `fetch` : poser `no-cache`.
+
 ## 0.25.0 - 2026-10-12
 - Nouveau `frontend/suggestions.js` : liste déroulante maison (pas `<datalist>`, qui ne
   s'ouvre pas au clic partout). Abonnement par attributs et délégation d'événements, donc

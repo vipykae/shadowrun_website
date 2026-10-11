@@ -897,7 +897,7 @@ document.addEventListener("keydown", (evt) => {
   bouton.addEventListener("click", async () => {
     if (document.getElementById("changelog")) return;
     let liste = [];
-    try { liste = versions(await (await fetch("changelog.md")).text()); } catch (e) { /* liste vide */ }
+    try { liste = versions(await (await fetch("changelog.md", { cache: "no-cache" })).text()); } catch (e) { /* liste vide */ }
     const overlay = document.createElement("div");
     overlay.id = "changelog";
     overlay.className = "changelog-overlay";

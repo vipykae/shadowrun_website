@@ -1,3 +1,6 @@
+## 0.25.1 - 2026-10-12
+- Le changelog affiche toujours la dernière version (il pouvait rester figé sur l'ancienne)
+
 ## 0.25.0 - 2026-10-12
 - Fixer, autres persos probables et inscription : une liste de personnages s'ouvre au clic et se filtre pendant la frappe
 
