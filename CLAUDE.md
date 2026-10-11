@@ -86,6 +86,14 @@ changement utilisateur, en français, datée). Le numéro de version s'affiche d
 site lui-même (bas de page, changelog au clic) — c'est une fonctionnalité pour
 l'utilisatrice, pas juste un artefact de dev.
 
+**Tout changement est journalisé, à chaque version, sans exception** (fonctionnalité,
+correctif, ajustement) — deux endroits, deux publics :
+- `frontend/changelog.md` : pour les utilisatrices, affiché dans le site. Une ligne par
+  changement, en français, courte, sans jargon ni détails d'implémentation.
+- `docs/changelog-dev.md` : pour Claude, non affiché. Une section par version avec le
+  détail technique : fichiers touchés, pourquoi, pièges rencontrés.
+Les deux s'écrivent dans le commit `chore: bump version`, jamais « plus tard ».
+
 ## Déploiement réel
 
 `deploy/` (Caddy, Raspberry Pi dédié) était le plan initial (CADRAGE.md) mais le
