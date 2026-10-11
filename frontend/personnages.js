@@ -378,7 +378,7 @@ const personnages = (() => {
     // Clic sur le fond de la vue (hors carte) : referme la sidebar,
     // comme un clic sur la carte le fait dans la vue « carte ».
     document.getElementById("personnages").addEventListener("click", (evt) => {
-      if (!evt.target.closest(".perso-card")) fermerSidebar();
+      if (!evt.target.closest(".perso-card, #btn-nouveau-perso")) fermerSidebar();
     });
 
     const sidebar = zone();
