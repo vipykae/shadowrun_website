@@ -1,3 +1,6 @@
+## 0.25.0 - 2026-10-12
+- Fixer, autres persos probables et inscription : une liste de personnages s'ouvre au clic et se filtre à chaque caractère tapé (PJ + PNJ ; PJ seulement pour l'inscription), le texte libre reste possible
+
 ## 0.24.1 - 2026-10-12
 - Personnages : le bouton « + PERSONNAGE » ouvre de nouveau le formulaire de création (il se refermait aussitôt)
 
