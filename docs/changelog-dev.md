@@ -5,6 +5,22 @@ sur le site** (le public lit `frontend/changelog.md`, volontairement court et sa
 Une section par version, la plus récente en tête : ce qui a été touché, pourquoi, les
 pièges. Voir CLAUDE.md pour la règle.
 
+## 0.28.0 - 2026-10-12
+- Nuyens sur les PJ (pas les PNJ) : champ `nuyens`, texte libre ≤ 40 car., stocké sans l'unité
+  (le validateur retire un « ¥ » tapé), l'interface ajoute « ¥ » à l'affichage.
+- **Architecture prévue pour un calcul automatique** (non développé) : le front ne lit jamais
+  `nuyens` pour l'affichage mais `nuyens_affiche`, que l'API dérive via
+  `calculer_nuyens(perso)` dans `backend/app.py` (renvoie aussi `nuyens_mode`, « manuel »
+  aujourd'hui). Ces champs dérivés sont ajoutés à l'export (`_exporter_perso`) et jamais
+  réécrits dans les YAML (le front n'envoie que `nuyens`). Pour passer en auto : brancher le
+  calcul dans `calculer_nuyens` (ex. somme du `paiement` des runs jouées où le PJ est
+  inscrit — mais `paiement` est du texte libre à parser, et les inscrites sont des noms de
+  joueuses/persos en base, voir `trouverParNom` — plus un champ d'ajustements manuels
+  ou une liste de mouvements dans le YAML du PJ), renvoyer `mode: "auto"`, et décider alors si
+  le champ manuel devient un « ajustement » ou disparaît.
+- Test API : sous Windows, envoyer un corps JSON contenant « ¥ » depuis un fichier UTF-8
+  (`--data-binary @fichier`), pas en ligne de commande (curl mal encodé → 422).
+
 ## 0.27.0 - 2026-10-12
 - Fiche de personnage (PDF ou image) : champs `fiche` (URL `/api/fiches/<uuid>.pdf|jpg`) et
   `fiche_nom` (nom d'origine, affichage) sur PJ et PNJ, dans les YAML. Fichiers dans

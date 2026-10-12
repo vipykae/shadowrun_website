@@ -1,3 +1,6 @@
+## 0.28.0 - 2026-10-12
+- Personnages joueuses : un compteur de Nuyens (¥), à saisir à la main pour l'instant
+
 ## 0.27.0 - 2026-10-12
 - Personnages : on peut joindre sa fiche de personnage (PDF ou image) ; en envoyer une nouvelle remplace l'ancienne
 

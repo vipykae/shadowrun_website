@@ -167,7 +167,7 @@ ENTETE_DISTRICTS = (
     "# 'polygone' sont éditables à la main et préservés à la régénération.\n"
 )
 
-ORDRE_PJ = ["id", "nom", "joueuse", "archetype", "tags", "concept", "notes", "image", "fiche", "fiche_nom"]
+ORDRE_PJ = ["id", "nom", "joueuse", "archetype", "tags", "concept", "notes", "image", "fiche", "fiche_nom", "nuyens"]
 ORDRE_PNJ = ["id", "nom", "faction", "district", "archetype", "tags", "concept", "notes", "image", "fiche", "fiche_nom"]
 ENTETE_PJ = "# Personnages joueuses — modifiable par n'importe qui de connecté (joueuse ou MJ).\n"
 ENTETE_PNJ = "# PNJ notables — modifiable uniquement par la MJ.\n"
@@ -772,11 +772,18 @@ class PersonnageEntree(BaseModel):
 
 class PJEntree(PersonnageEntree):
     joueuse: str | None = Field(None, max_length=60)
+    nuyens: str | None = Field(None, max_length=40)  # texte libre, saisi sans l'unité (¥)
 
     @field_validator("joueuse", mode="before")
     @classmethod
     def _nettoyer_joueuse(cls, v):
         return _vide_vers_none(v)
+
+    @field_validator("nuyens", mode="before")
+    @classmethod
+    def _nettoyer_nuyens(cls, v):
+        # L'unité est affichée par l'interface : si elle est tapée quand même, on la retire.
+        return _vide_vers_none(v.replace("¥", "") if isinstance(v, str) else v)
 
 
 class PNJEntree(PersonnageEntree):
@@ -794,9 +801,29 @@ class PNJEntree(PersonnageEntree):
         return _vide_vers_none(v)
 
 
+# ---------- Nuyens ----------
+# Aujourd'hui : un champ texte libre (`nuyens` dans le YAML du PJ), saisi à la main.
+# L'interface ne lit JAMAIS ce champ directement pour l'affichage : elle lit
+# `nuyens_affiche`, produit par `calculer_nuyens`. Le jour où le solde se déduira des
+# runs (paiement des runs jouées où le personnage est inscrit, dépenses saisies…), seul ce
+# point change — le calcul s'y branche, sans toucher au format des fichiers ni au front.
+# `nuyens_mode` dit d'où vient la valeur affichée ("manuel" aujourd'hui).
+
+
+def calculer_nuyens(perso: dict) -> tuple[str | None, str]:
+    """(valeur affichée, mode) du solde d'un personnage."""
+    return perso.get("nuyens"), "manuel"
+
+
+def _exporter_perso(perso: dict) -> dict:
+    """PJ tel que renvoyé par l'API : champs stockés + champs dérivés (jamais réécrits)."""
+    affiche, mode = calculer_nuyens(perso)
+    return {**perso, "nuyens_affiche": affiche, "nuyens_mode": mode}
+
+
 @app.get("/api/personnages")
 def personnages(role: str = Depends(role_courant)):
-    return {"pj": contenu.pj, "pnj": contenu.pnj}
+    return {"pj": [_exporter_perso(p) for p in contenu.pj], "pnj": contenu.pnj}
 
 
 def _personnage_ou_404(liste: list[dict], perso_id: str) -> dict:
@@ -813,7 +840,7 @@ def creer_pj(entree: PJEntree, role: str = Depends(role_courant)):
     liste = [*[dict(p) for p in contenu.pj], entree.model_dump()]
     _sauver_personnages("pj", liste, ORDRE_PJ, ENTETE_PJ)
     contenu.charger()
-    return _personnage_ou_404(contenu.pj, entree.id)
+    return _exporter_perso(_personnage_ou_404(contenu.pj, entree.id))
 
 
 @app.put("/api/personnages/pj/{pj_id}")
@@ -833,7 +860,7 @@ def modifier_pj(pj_id: str, entree: PJEntree, role: str = Depends(role_courant))
         _supprimer_upload_si_interne(ancienne_image)
     if ancienne_fiche != entree.fiche:
         _supprimer_fiche_si_interne(ancienne_fiche)
-    return _personnage_ou_404(contenu.pj, pj_id)
+    return _exporter_perso(_personnage_ou_404(contenu.pj, pj_id))
 
 
 @app.delete("/api/personnages/pj/{pj_id}")

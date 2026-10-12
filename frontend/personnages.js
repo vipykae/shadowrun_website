@@ -185,7 +185,7 @@ const personnages = (() => {
       : null;
 
     const lignesMeta = type === "pj"
-      ? [["Jouée par", perso.joueuse], ["Archétype", perso.archetype]]
+      ? [["Jouée par", perso.joueuse], ["Archétype", perso.archetype], ["Nuyens", perso.nuyens_affiche ? `${String(perso.nuyens_affiche).replace(/\s*¥\s*/g, "")} ¥` : null]]
       : [["Faction", perso.faction], ["Archétype", perso.archetype], ["District", nomDistrict]];
     const metaHtml = lignesMeta
       .filter(([, v]) => v)
@@ -247,6 +247,7 @@ const personnages = (() => {
                 creation ? "minuscules, chiffres, tirets — proposé depuis le nom" : "non modifiable")}
         <div class="champ-perso-pj" ${type === "pnj" ? "hidden" : ""}>
           ${champ("Jouée par", `<input name="joueuse" maxlength="60" value="${val(p.joueuse)}">`)}
+          ${champ("Nuyens (¥)", `<input name="nuyens" maxlength="40" value="${val(p.nuyens)}" placeholder="12 500">`, "texte libre, sans l'unité")}
         </div>
         <div class="champ-perso-pnj" ${type === "pj" ? "hidden" : ""}>
           <div class="champ-ligne">
@@ -298,7 +299,7 @@ const personnages = (() => {
       tags: texte("tags").split(",").map((s) => s.trim()).filter(Boolean),
       concept: texte("concept"), notes: texte("notes"), image: texte("image"),
       fiche: texte("fiche"), fiche_nom: texte("fiche_nom"),
-      joueuse: texte("joueuse"), faction: texte("faction"), district: texte("district"),
+      joueuse: texte("joueuse"), nuyens: texte("nuyens"), faction: texte("faction"), district: texte("district"),
     };
   }
 
@@ -307,7 +308,7 @@ const personnages = (() => {
     const creation = !!form.dataset.creation;
     const d = lireFormulaire(form);
     const corps = type === "pj"
-      ? { id: d.id, nom: d.nom, archetype: d.archetype, tags: d.tags, concept: d.concept, notes: d.notes, image: d.image, fiche: d.fiche, fiche_nom: d.fiche_nom, joueuse: d.joueuse }
+      ? { id: d.id, nom: d.nom, archetype: d.archetype, tags: d.tags, concept: d.concept, notes: d.notes, image: d.image, fiche: d.fiche, fiche_nom: d.fiche_nom, joueuse: d.joueuse, nuyens: d.nuyens }
       : { id: d.id, nom: d.nom, archetype: d.archetype, tags: d.tags, concept: d.concept, notes: d.notes, image: d.image, fiche: d.fiche, fiche_nom: d.fiche_nom, faction: d.faction, district: d.district };
     try {
       const p = creation
