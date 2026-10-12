@@ -5,6 +5,19 @@ sur le site** (le public lit `frontend/changelog.md`, volontairement court et sa
 Une section par version, la plus récente en tête : ce qui a été touché, pourquoi, les
 pièges. Voir CLAUDE.md pour la règle.
 
+## 0.27.0 - 2026-10-12
+- Fiche de personnage (PDF ou image) : champs `fiche` (URL `/api/fiches/<uuid>.pdf|jpg`) et
+  `fiche_nom` (nom d'origine, affichage) sur PJ et PNJ, dans les YAML. Fichiers dans
+  `data/uploads/fiches/` (couvert par la sauvegarde horaire, qui copie `uploads/` en entier).
+- Routes : `POST /api/uploads/fiche` (PDF reconnu par `%PDF-`, sinon image Pillow → JPEG 2400 px
+  max ; 15 Mo), `GET`/`DELETE /api/fiches/<nom>` — **avec session** (pas une nouvelle route
+  publique, contrairement aux portraits qui doivent être lisibles par Discord).
+- Remplacement : même mécanique que le portrait — le serveur supprime l'ancien fichier à
+  l'enregistrement si `fiche` change ; côté front `ficheEnAttente` efface un envoi jamais
+  enregistré (remplacé/abandonné), nettoyé par `nettoyerUploadEnAttente`.
+- Piège de test sous Windows/Git Bash : `/tmp/...` n'est pas résolu pareil par Python et curl ;
+  utiliser `cygpath -m $TMPDIR`.
+
 ## 0.26.0 - 2026-10-12
 - Retour à un seul niveau depuis une fiche personnage : `personnages.ouvrirFiche(perso, type, retour)`
   reçoit un callback optionnel (`app.js`, clic sur `.lien-perso` dans la fiche de run → rouvre

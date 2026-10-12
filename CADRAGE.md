@@ -52,7 +52,10 @@ réactif au survol de la souris (réseau de particules en canvas).
   modifie que par la MJ. Portraits envoyés en fichier (pas une URL) :
   compressés côté serveur (Pillow, 800 px max, JPEG) et stockés dans
   `data/uploads/` ; le fichier remplacé ou abandonné est effacé
-  automatiquement, jamais accumulé.
+  automatiquement, jamais accumulé. Un PJ/PNJ peut aussi porter une fiche de
+  personnage (PDF ou image, 15 Mo) dans `data/uploads/fiches/` : un seul fichier
+  par personnage (le nouveau remplace l'ancien), lecture `GET /api/fiches/<nom>`
+  **avec session** (pas une exception publique, contrairement aux portraits).
 - **Polish visuel** : animations futuristes (fade/slide/glitch à l'apparition
   des panneaux), fond mesh réactif à la souris.
 

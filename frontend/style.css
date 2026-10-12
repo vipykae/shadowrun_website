@@ -1431,3 +1431,8 @@ body::after {
   cursor: pointer;
 }
 .btn-retour:hover { color: #fff; }
+
+/* Fiche de personnage (PDF / image) */
+.lien-fiche { display: inline-block; margin: 8px 0 4px; text-decoration: none; }
+.champ-fiche-etat { font-size: 14px; word-break: break-all; }
+.champ-fiche-etat a { color: var(--neon); }

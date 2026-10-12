@@ -141,6 +141,8 @@ lecture (`GET /api/uploads/<nom>`) est la **seule autre exception**, avec
 le calendrier, à l'exigence de session sur l'API : Discord doit pouvoir
 charger l'image lui-même pour l'aperçu du message, sans jamais présenter de
 cookie ; le nom aléatoire (uuid4) rend le fichier impossible à deviner.
+Les fiches de personnage (PDF/image, `data/uploads/fiches/`, `GET /api/fiches/<nom>`)
+ne font pas partie de ces exceptions : leur lecture exige une session.
 Remplacer une image ou supprimer la run/le personnage efface automatiquement
 l'ancien fichier ; annuler le formulaire après un envoi non sauvegardé
 l'efface aussi.

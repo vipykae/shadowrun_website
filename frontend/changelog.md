@@ -1,3 +1,6 @@
+## 0.27.0 - 2026-10-12
+- Personnages : on peut joindre sa fiche de personnage (PDF ou image) ; en envoyer une nouvelle remplace l'ancienne
+
 ## 0.26.0 - 2026-10-12
 - Fiche d'un personnage ouverte depuis une run : un bouton « Retour » ramène à la run au lieu de tout fermer
 

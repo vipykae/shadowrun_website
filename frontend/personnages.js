@@ -14,6 +14,7 @@ const personnages = (() => {
   // d'édition en cours et pas encore confirmée par un enregistrement —
   // permet de l'effacer du serveur si elle est remplacée ou abandonnée.
   let uploadEnAttente = null;
+  let ficheEnAttente = null; // idem pour la fiche de personnage (PDF/image)
 
   const grillePJ = () => document.getElementById("grille-pj");
   const grillePNJ = () => document.getElementById("grille-pnj");
@@ -26,6 +27,11 @@ const personnages = (() => {
 
   // Best-effort : n'empêche jamais la suite du travail si ça échoue.
   function nettoyerUploadEnAttente() {
+    if (ficheEnAttente) {
+      const f = ficheEnAttente;
+      ficheEnAttente = null;
+      fetch(`/api/fiches/${f}`, { method: "DELETE" }).catch(() => {});
+    }
     if (!uploadEnAttente) return;
     const nom = uploadEnAttente;
     uploadEnAttente = null;
@@ -193,6 +199,7 @@ const personnages = (() => {
       ${perso.image ? `<img class="perso-portrait" src="${val(perso.image)}" alt="">` : ""}
       ${(perso.tags || []).length ? `<div class="run-tags">${perso.tags.map((t) => `<span class="tag">${val(t)}</span>`).join("")}</div>` : ""}
       ${metaHtml ? `<div class="run-meta">${metaHtml}</div>` : ""}
+      ${perso.fiche ? `<a class="btn btn-secondaire lien-fiche" href="${val(perso.fiche)}" target="_blank" rel="noopener">📄 Fiche de personnage${perso.fiche_nom ? ` — ${val(perso.fiche_nom)}` : ""}</a>` : ""}
       ${perso.concept ? `<div class="section-title">Concept</div><p class="run-synopsis">${val(perso.concept)}</p>` : ""}
       ${perso.notes ? `<div class="section-title">Notes</div><p class="run-texte">${val(perso.notes)}</p>` : ""}
       ${peutEditer(type) ? `<div class="mj-actions">
@@ -260,6 +267,18 @@ const personnages = (() => {
               </div>
               <input type="hidden" name="image" value="${val(p.image)}">
             </div>`, "compressée automatiquement à l'envoi")}
+        ${champ("Fiche de personnage", `<div class="champ-image">
+              <div class="champ-fiche-etat" id="etat-fiche">${p.fiche ? `<a href="${val(p.fiche)}" target="_blank" rel="noopener">${val(p.fiche_nom || "Fiche")}</a>` : `<span class="champ-image-vide">Aucune fiche</span>`}</div>
+              <div class="champ-image-boutons">
+                <label class="btn btn-secondaire champ-image-parcourir">
+                  Choisir un fichier…
+                  <input type="file" id="champ-fiche-fichier" accept="application/pdf,image/*" class="cache">
+                </label>
+                <button type="button" class="btn btn-secondaire" id="btn-retirer-fiche" data-perso-action="retirer-fiche" ${p.fiche ? "" : "hidden"}>✕ Retirer</button>
+              </div>
+              <input type="hidden" name="fiche" value="${val(p.fiche)}">
+              <input type="hidden" name="fiche_nom" value="${val(p.fiche_nom)}">
+            </div>`, "PDF ou image, 15 Mo max. Un seul fichier : en envoyer un nouveau remplace l'ancien")}
         ${champ("Concept", `<textarea name="concept" rows="8">${val(p.concept)}</textarea>`)}
         ${champ("Notes", `<textarea name="notes" rows="10">${val(p.notes)}</textarea>`, "fluff, quirks, lore complet — pas de limite pratique. Présentation seulement : pas de stats ni d'équipement, la fiche de jeu se gère ailleurs")}
         <div class="formulaire-actions">
@@ -278,6 +297,7 @@ const personnages = (() => {
       id: texte("id"), nom: texte("nom"), archetype: texte("archetype"),
       tags: texte("tags").split(",").map((s) => s.trim()).filter(Boolean),
       concept: texte("concept"), notes: texte("notes"), image: texte("image"),
+      fiche: texte("fiche"), fiche_nom: texte("fiche_nom"),
       joueuse: texte("joueuse"), faction: texte("faction"), district: texte("district"),
     };
   }
@@ -287,13 +307,14 @@ const personnages = (() => {
     const creation = !!form.dataset.creation;
     const d = lireFormulaire(form);
     const corps = type === "pj"
-      ? { id: d.id, nom: d.nom, archetype: d.archetype, tags: d.tags, concept: d.concept, notes: d.notes, image: d.image, joueuse: d.joueuse }
-      : { id: d.id, nom: d.nom, archetype: d.archetype, tags: d.tags, concept: d.concept, notes: d.notes, image: d.image, faction: d.faction, district: d.district };
+      ? { id: d.id, nom: d.nom, archetype: d.archetype, tags: d.tags, concept: d.concept, notes: d.notes, image: d.image, fiche: d.fiche, fiche_nom: d.fiche_nom, joueuse: d.joueuse }
+      : { id: d.id, nom: d.nom, archetype: d.archetype, tags: d.tags, concept: d.concept, notes: d.notes, image: d.image, fiche: d.fiche, fiche_nom: d.fiche_nom, faction: d.faction, district: d.district };
     try {
       const p = creation
         ? await api(`/api/personnages/${type}`, corps)
         : await api(`/api/personnages/${type}/${corps.id}`, corps, "PUT");
-      uploadEnAttente = null; // enregistré avec succès : ce n'est plus « en attente », on ne l'efface pas
+      uploadEnAttente = null;
+      ficheEnAttente = null; // enregistré avec succès : ce n'est plus « en attente », on ne l'efface pas
       await charger();
       ouvrirFiche(p, type);
     } catch (e) {
@@ -339,6 +360,49 @@ const personnages = (() => {
     } catch (e) {
       apercu.innerHTML = `<span class="champ-image-vide">Échec : ${val(e.message)}</span>`;
     }
+  }
+
+  async function surChoixFiche(input) {
+    const fichier = input.files[0];
+    if (!fichier) return;
+    const form = input.closest("form");
+    const etat = form.querySelector("#etat-fiche");
+    input.value = "";
+    etat.innerHTML = `<span class="champ-image-vide">Envoi…</span>`;
+    try {
+      const donnees = new FormData();
+      donnees.append("fichier", fichier, fichier.name);
+      const reponse = await fetch("/api/uploads/fiche", { method: "POST", body: donnees });
+      if (!reponse.ok) {
+        let message = `Erreur ${reponse.status}`;
+        try { message = (await reponse.json()).detail || message; } catch {}
+        throw new Error(message);
+      }
+      const { url } = await reponse.json();
+      // Un envoi précédent de CETTE session, jamais enregistré, est remplacé.
+      if (ficheEnAttente) fetch(`/api/fiches/${ficheEnAttente}`, { method: "DELETE" }).catch(() => {});
+      ficheEnAttente = url.slice("/api/fiches/".length);
+      form.elements.fiche.value = url;
+      form.elements.fiche_nom.value = fichier.name.slice(0, 120);
+      etat.innerHTML = `<a href="${val(url)}" target="_blank" rel="noopener">${val(fichier.name)}</a>`;
+      form.querySelector("#btn-retirer-fiche").hidden = false;
+    } catch (e) {
+      etat.innerHTML = `<span class="champ-image-vide">Échec : ${val(e.message)}</span>`;
+    }
+  }
+
+  function retirerFiche(bouton) {
+    const form = bouton.closest("form");
+    // Si c'est un envoi non enregistré on l'efface tout de suite ; sinon l'ancien
+    // fichier est supprimé par le serveur à l'enregistrement.
+    if (ficheEnAttente && form.elements.fiche.value.endsWith(ficheEnAttente)) {
+      fetch(`/api/fiches/${ficheEnAttente}`, { method: "DELETE" }).catch(() => {});
+      ficheEnAttente = null;
+    }
+    form.elements.fiche.value = "";
+    form.elements.fiche_nom.value = "";
+    form.querySelector("#etat-fiche").innerHTML = `<span class="champ-image-vide">Aucune fiche</span>`;
+    bouton.hidden = true;
   }
 
   function retirerImage(bouton) {
@@ -395,6 +459,7 @@ const personnages = (() => {
       const cible = evt.target.closest("[data-perso-action]");
       if (!cible) return;
       if (cible.dataset.persoAction === "retirer-image") { retirerImage(cible); return; }
+      if (cible.dataset.persoAction === "retirer-fiche") { retirerFiche(cible); return; }
       const { persoAction, id, type } = cible.dataset;
       const p = trouver(id, type);
       switch (persoAction) {
@@ -424,6 +489,9 @@ const personnages = (() => {
         const pj = evt.target.value === "pj";
         form.querySelector(".champ-perso-pj").hidden = !pj;
         form.querySelector(".champ-perso-pnj").hidden = pj;
+      }
+      if (evt.target.id === "champ-fiche-fichier") {
+        surChoixFiche(evt.target);
       }
       if (evt.target.id === "champ-image-fichier") {
         surChoixFichier(evt.target);

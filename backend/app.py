@@ -167,8 +167,8 @@ ENTETE_DISTRICTS = (
     "# 'polygone' sont éditables à la main et préservés à la régénération.\n"
 )
 
-ORDRE_PJ = ["id", "nom", "joueuse", "archetype", "tags", "concept", "notes", "image"]
-ORDRE_PNJ = ["id", "nom", "faction", "district", "archetype", "tags", "concept", "notes", "image"]
+ORDRE_PJ = ["id", "nom", "joueuse", "archetype", "tags", "concept", "notes", "image", "fiche", "fiche_nom"]
+ORDRE_PNJ = ["id", "nom", "faction", "district", "archetype", "tags", "concept", "notes", "image", "fiche", "fiche_nom"]
 ENTETE_PJ = "# Personnages joueuses — modifiable par n'importe qui de connecté (joueuse ou MJ).\n"
 ENTETE_PNJ = "# PNJ notables — modifiable uniquement par la MJ.\n"
 
@@ -681,6 +681,70 @@ def upload_image(nom: str):
     return FileResponse(_chemin_upload(nom))
 
 
+# ---------- Fiches de personnage (PDF ou image) ----------
+# Contrairement aux portraits, la lecture exige une session valide : une fiche
+# n'a aucune raison d'être visible hors du site (Discord n'a pas besoin de la
+# charger). Un seul fichier par personnage : en envoyer un nouveau remplace
+# l'ancien (supprimé à l'enregistrement, comme pour le portrait).
+
+NOM_FICHE_RE = re.compile(r"^[a-f0-9]{32}\.(pdf|jpg)$")
+TAILLE_MAX_FICHE = 15 * 1024 * 1024  # 15 Mo
+DIMENSION_MAX_FICHE = 2400  # px : une fiche doit rester lisible une fois zoomée
+DOSSIER_FICHES = DOSSIER_UPLOADS / "fiches"
+
+
+def _chemin_fiche(nom: str) -> Path:
+    return DOSSIER_FICHES / nom
+
+
+def _supprimer_fiche_si_interne(url: str | None):
+    if url and url.startswith("/api/fiches/") and NOM_FICHE_RE.match(url.rsplit("/", 1)[-1]):
+        _chemin_fiche(url.rsplit("/", 1)[-1]).unlink(missing_ok=True)
+
+
+@app.post("/api/uploads/fiche")
+async def televerser_fiche(fichier: UploadFile = File(...), role: str = Depends(role_courant)):
+    brut = await fichier.read(TAILLE_MAX_FICHE + 1)
+    if len(brut) > TAILLE_MAX_FICHE:
+        raise HTTPException(413, "Fichier trop lourd (15 Mo maximum).")
+    DOSSIER_FICHES.mkdir(parents=True, exist_ok=True)
+    if brut.startswith(b"%PDF-"):
+        nom = f"{uuid.uuid4().hex}.pdf"
+        _chemin_fiche(nom).write_bytes(brut)
+    else:
+        try:
+            Image.open(BytesIO(brut)).verify()
+            image = Image.open(BytesIO(brut))
+        except Image.DecompressionBombError:
+            raise HTTPException(422, "Image refusée (dimensions déraisonnables).")
+        except (UnidentifiedImageError, OSError):
+            raise HTTPException(422, "Fichier non reconnu : un PDF ou une image est attendu.")
+        image = image.convert("RGB")
+        image.thumbnail((DIMENSION_MAX_FICHE, DIMENSION_MAX_FICHE), Image.LANCZOS)
+        nom = f"{uuid.uuid4().hex}.jpg"
+        image.save(_chemin_fiche(nom), "JPEG", quality=85, optimize=True)
+    return {"url": f"/api/fiches/{nom}"}
+
+
+@app.delete("/api/fiches/{nom}")
+def supprimer_fiche(nom: str, role: str = Depends(role_courant)):
+    # Nettoyage d'un envoi remplacé ou abandonné avant enregistrement.
+    if NOM_FICHE_RE.match(nom):
+        _chemin_fiche(nom).unlink(missing_ok=True)
+    return {"ok": True}
+
+
+@app.get("/api/fiches/{nom}")
+def lire_fiche(nom: str, role: str = Depends(role_courant)):
+    if not NOM_FICHE_RE.match(nom) or not _chemin_fiche(nom).exists():
+        raise HTTPException(404)
+    return FileResponse(
+        _chemin_fiche(nom),
+        media_type="application/pdf" if nom.endswith(".pdf") else "image/jpeg",
+        headers={"X-Content-Type-Options": "nosniff", "Content-Disposition": "inline"},
+    )
+
+
 # ---------- Personnages : PJ (tout le monde) et PNJ (MJ uniquement) ----------
 
 
@@ -692,8 +756,10 @@ class PersonnageEntree(BaseModel):
     concept: str | None = Field(None, max_length=20000)
     notes: str | None = Field(None, max_length=20000)
     image: str | None = Field(None, max_length=500)
+    fiche: str | None = Field(None, max_length=500)  # fiche de personnage téléversée (PDF ou image)
+    fiche_nom: str | None = Field(None, max_length=120)  # nom d'origine du fichier, pour l'affichage
 
-    @field_validator("nom", "archetype", "concept", "notes", "image", mode="before")
+    @field_validator("nom", "archetype", "concept", "notes", "image", "fiche", "fiche_nom", mode="before")
     @classmethod
     def _nettoyer(cls, v):
         return _vide_vers_none(v)
@@ -759,11 +825,14 @@ def modifier_pj(pj_id: str, entree: PJEntree, role: str = Depends(role_courant))
     if idx is None:
         raise HTTPException(404, "PJ inconnu")
     ancienne_image = liste[idx].get("image")
+    ancienne_fiche = liste[idx].get("fiche")
     liste[idx] = entree.model_dump()
     _sauver_personnages("pj", liste, ORDRE_PJ, ENTETE_PJ)
     contenu.charger()
     if ancienne_image != entree.image:
         _supprimer_upload_si_interne(ancienne_image)
+    if ancienne_fiche != entree.fiche:
+        _supprimer_fiche_si_interne(ancienne_fiche)
     return _personnage_ou_404(contenu.pj, pj_id)
 
 
@@ -775,6 +844,7 @@ def supprimer_pj(pj_id: str, role: str = Depends(role_courant)):
     _sauver_personnages("pj", [dict(p) for p in contenu.pj if p["id"] != pj_id], ORDRE_PJ, ENTETE_PJ)
     contenu.charger()
     _supprimer_upload_si_interne(cible.get("image"))
+    _supprimer_fiche_si_interne(cible.get("fiche"))
     return {"ok": True}
 
 
@@ -804,11 +874,14 @@ def modifier_pnj(pnj_id: str, entree: PNJEntree, role: str = Depends(role_mj)):
     if idx is None:
         raise HTTPException(404, "PNJ inconnu")
     ancienne_image = liste[idx].get("image")
+    ancienne_fiche = liste[idx].get("fiche")
     liste[idx] = entree.model_dump()
     _sauver_personnages("pnj", liste, ORDRE_PNJ, ENTETE_PNJ)
     contenu.charger()
     if ancienne_image != entree.image:
         _supprimer_upload_si_interne(ancienne_image)
+    if ancienne_fiche != entree.fiche:
+        _supprimer_fiche_si_interne(ancienne_fiche)
     return _personnage_ou_404(contenu.pnj, pnj_id)
 
 
@@ -820,6 +893,7 @@ def supprimer_pnj(pnj_id: str, role: str = Depends(role_mj)):
     _sauver_personnages("pnj", [dict(p) for p in contenu.pnj if p["id"] != pnj_id], ORDRE_PNJ, ENTETE_PNJ)
     contenu.charger()
     _supprimer_upload_si_interne(cible.get("image"))
+    _supprimer_fiche_si_interne(cible.get("fiche"))
     return {"ok": True}
 
 
