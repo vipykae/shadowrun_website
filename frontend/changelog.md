@@ -1,3 +1,6 @@
+## 0.26.0 - 2026-10-12
+- Fiche d'un personnage ouverte depuis une run : un bouton « Retour » ramène à la run au lieu de tout fermer
+
 ## 0.25.1 - 2026-10-12
 - Le changelog affiche toujours la dernière version (il pouvait rester figé sur l'ancienne)
 

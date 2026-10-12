@@ -5,6 +5,15 @@ sur le site** (le public lit `frontend/changelog.md`, volontairement court et sa
 Une section par version, la plus récente en tête : ce qui a été touché, pourquoi, les
 pièges. Voir CLAUDE.md pour la règle.
 
+## 0.26.0 - 2026-10-12
+- Retour à un seul niveau depuis une fiche personnage : `personnages.ouvrirFiche(perso, type, retour)`
+  reçoit un callback optionnel (`app.js`, clic sur `.lien-perso` dans la fiche de run → rouvre
+  `ouvrirSidebarRun`, run relue dans `DONNEES` pour avoir les inscrites à jour). `undefined` =
+  on garde le retour si c'est le même personnage (modifier → annuler/enregistrer repassent par
+  `ouvrirFiche`) ; `null` = aucun (clic dans la galerie). Effacé par `fermerSidebar` via
+  `personnages.oublierRetour()`. Pas de retour depuis la fiche de district (seulement les runs
+  ont des liens vers des personnages).
+
 ## 0.25.1 - 2026-10-12
 - Le changelog (`fetch("changelog.md")`) restait en cache navigateur après un déploiement :
   nginx/uvicorn n'envoient ni `Cache-Control` ni validité explicite, le navigateur applique
