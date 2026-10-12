@@ -164,8 +164,16 @@ const personnages = (() => {
 
   // ---------- Fiche (sidebar, lecture) ----------
 
-  function ouvrirFiche(perso, type) {
+  // Un seul niveau de retour : la vue d'où on est arrivé sur la fiche (ex. la run).
+  // `retour` : fonction à appeler (undefined = on garde celui de ce personnage s'il y en a un,
+  // modifier/annuler/enregistrer repassent par ici ; null = pas de retour).
+  let retourFiche = null;
+  let retourId = null;
+
+  function ouvrirFiche(perso, type, retour) {
     nettoyerUploadEnAttente(); // on quitte un éventuel formulaire : abandon de son envoi non sauvegardé
+    if (retour !== undefined) { retourFiche = retour; retourId = retour ? perso.id : null; }
+    else if (retourId !== perso.id) { retourFiche = null; retourId = null; }
     const nomDistrict = perso.district && typeof DONNEES !== "undefined"
       ? (DONNEES.districts.find((d) => d.id === perso.district)?.nom || perso.district)
       : null;
@@ -179,6 +187,7 @@ const personnages = (() => {
       .join("");
 
     zone().innerHTML = `
+      ${retourFiche ? '<button type="button" class="btn-retour" data-perso-action="retour">← Retour</button>' : ""}
       <div class="run-kicker">${type === "pj" ? "Personnage joueuse" : "PNJ"}</div>
       <div class="run-titre">${val(perso.nom)}</div>
       ${perso.image ? `<img class="perso-portrait" src="${val(perso.image)}" alt="">` : ""}
@@ -371,7 +380,7 @@ const personnages = (() => {
         const carte = evt.target.closest(".perso-card");
         if (!carte) return;
         const p = trouver(carte.dataset.id, carte.dataset.type);
-        if (p) ouvrirFiche(p, carte.dataset.type);
+        if (p) ouvrirFiche(p, carte.dataset.type, null);
       });
     });
 
@@ -391,6 +400,7 @@ const personnages = (() => {
       switch (persoAction) {
         case "modifier": formulaire(p, type); break;
         case "supprimer": supprimer(p, type); break;
+        case "retour": { const r = retourFiche; retourFiche = null; retourId = null; if (r) r(); break; }
         case "annuler": p ? ouvrirFiche(p, type) : fermerSidebar(); break;
       }
     });
@@ -424,6 +434,7 @@ const personnages = (() => {
   return {
     estActive, afficherVue, masquerVue, nettoyerUpload: nettoyerUploadEnAttente,
     charger, trouver, trouverParNom, tousLesNoms, ouvrirFiche,
+    oublierRetour: () => { retourFiche = null; retourId = null; },
     liste: (type) => donnees[type] || [],
   };
 })();

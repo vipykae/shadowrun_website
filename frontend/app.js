@@ -493,6 +493,7 @@ document.getElementById("sidebar-close").addEventListener("click", fermerSidebar
 function fermerSidebar() {
   mj.nettoyer();
   personnages.nettoyerUpload();
+  personnages.oublierRetour();
   sidebar.classList.remove("open");
   sidebar.setAttribute("aria-hidden", "true");
 }
@@ -645,7 +646,7 @@ function ouvrirSidebarRun(run) {
   sidebarContent.querySelectorAll(".lien-perso").forEach((el) => {
     el.addEventListener("click", () => {
       const perso = personnages.trouver(el.dataset.id, el.dataset.type);
-      if (perso) personnages.ouvrirFiche(perso, el.dataset.type);
+      if (perso) personnages.ouvrirFiche(perso, el.dataset.type, () => ouvrirSidebarRun(DONNEES.runs.find((r) => r.id === run.id) || run));
     });
   });
 
