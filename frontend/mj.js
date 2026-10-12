@@ -83,9 +83,9 @@ const mj = (() => {
     contenu().innerHTML = `
       <div class="run-kicker">${creation ? "Nouvelle run" : "Modification"}</div>
       <div class="run-titre">${creation ? "Nouvelle run" : val(r.titre)}</div>
-      <form id="form-run" class="formulaire" autocomplete="off" ${creation ? 'data-creation="1"' : ""}>
+      <form id="form-run" class="formulaire" autocomplete="off" data-id="${val(r.id)}" ${creation ? 'data-creation="1"' : ""}>
         ${champ("Titre", `<input name="titre" required maxlength="120" value="${val(r.titre)}">`)}
-        ${champ("Identifiant", `<input name="id" required pattern="[a-z0-9][a-z0-9\\-]*" ${creation ? "" : "readonly"} value="${val(r.id)}">`,
+        ${champ("Identifiant", `<input name="identifiant" autocomplete="off" required pattern="[a-z0-9][a-z0-9\\-]*" ${creation ? "" : "readonly"} value="${val(r.id)}">`,
                 creation ? "minuscules, chiffres, tirets — proposé depuis le titre" : "non modifiable")}
         <div class="champ-ligne">
           ${champ("District", `<select name="district">${optionsDistricts}</select>`)}
@@ -153,7 +153,7 @@ const mj = (() => {
     const texte = (nom) => String(f.get(nom) ?? "");
     const liste = (nom) => texte(nom).split(",").map((s) => s.trim()).filter(Boolean);
     return {
-      id: texte("id").trim(), titre: texte("titre"), district: texte("district"),
+      id: (form.dataset.creation ? texte("identifiant") : form.dataset.id).trim(), titre: texte("titre"), district: texte("district"),
       position: [Number(f.get("x")), Number(f.get("y"))],
       mj: texte("mj"), type: texte("type"), places: Number(f.get("places")), statut: texte("statut"),
       date: texte("date"), duree_estimee: texte("duree_estimee"), lieu: texte("lieu"), paiement: texte("paiement"),
@@ -409,8 +409,8 @@ const mj = (() => {
     zone.addEventListener("input", (evt) => {
       const form = evt.target.form;
       if (!form || form.getAttribute("id") !== "form-run" || !form.dataset.creation) return;
-      if (evt.target.name === "id") idModifieALaMain = true;
-      if (evt.target.name === "titre" && !idModifieALaMain) form.elements.id.value = slug(evt.target.value);
+      if (evt.target.name === "identifiant") idModifieALaMain = true;
+      if (evt.target.name === "titre" && !idModifieALaMain) form.elements.identifiant.value = slug(evt.target.value);
     });
 
     zone.addEventListener("change", (evt) => {

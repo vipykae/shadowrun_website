@@ -1,3 +1,6 @@
+## 0.28.1 - 2026-10-12
+- Enregistrer un personnage ou une run ne peut plus échouer à cause du remplissage automatique du navigateur (« PJ inconnu »)
+
 ## 0.28.0 - 2026-10-12
 - Personnages joueuses : un compteur de Nuyens (¥), à saisir à la main pour l'instant
 

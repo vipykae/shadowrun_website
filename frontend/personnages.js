@@ -240,10 +240,10 @@ const personnages = (() => {
       <div class="run-kicker">${creation ? "Nouveau personnage" : "Modification"}</div>
       <div class="run-titre">${creation ? "Nouveau personnage" : val(p.nom)}</div>
       <p class="perso-intro perso-intro-form">Présentation du personnage, pas sa fiche de jeu : stats et équipement n'ont pas leur place ici.</p>
-      <form id="form-perso" class="formulaire" autocomplete="off" ${creation ? 'data-creation="1"' : ""}>
+      <form id="form-perso" class="formulaire" autocomplete="off" data-id="${val(p.id)}" ${creation ? 'data-creation="1"' : ""}>
         ${choixType}
         ${champ("Nom", `<input name="nom" required maxlength="80" value="${val(p.nom)}">`)}
-        ${champ("Identifiant", `<input name="id" required pattern="[a-z0-9][a-z0-9\\-]*" ${creation ? "" : "readonly"} value="${val(p.id)}">`,
+        ${champ("Identifiant", `<input name="identifiant" autocomplete="off" required pattern="[a-z0-9][a-z0-9\\-]*" ${creation ? "" : "readonly"} value="${val(p.id)}">`,
                 creation ? "minuscules, chiffres, tirets — proposé depuis le nom" : "non modifiable")}
         <div class="champ-perso-pj" ${type === "pnj" ? "hidden" : ""}>
           ${champ("Jouée par", `<input name="joueuse" maxlength="60" value="${val(p.joueuse)}">`)}
@@ -295,7 +295,9 @@ const personnages = (() => {
     const f = new FormData(form);
     const texte = (nom) => String(f.get(nom) ?? "").trim();
     return {
-      id: texte("id"), nom: texte("nom"), archetype: texte("archetype"),
+      // En modification l'id vient du formulaire lui-même, jamais du champ affiché : un
+      // remplissage automatique du navigateur (ex. « admin ») ne doit pas pouvoir le changer.
+      id: form.dataset.creation ? texte("identifiant") : form.dataset.id, nom: texte("nom"), archetype: texte("archetype"),
       tags: texte("tags").split(",").map((s) => s.trim()).filter(Boolean),
       concept: texte("concept"), notes: texte("notes"), image: texte("image"),
       fiche: texte("fiche"), fiche_nom: texte("fiche_nom"),
@@ -480,8 +482,8 @@ const personnages = (() => {
     sidebar.addEventListener("input", (evt) => {
       const form = evt.target.form;
       if (!form || form.getAttribute("id") !== "form-perso" || !form.dataset.creation) return;
-      if (evt.target.name === "id") idModifieALaMain = true;
-      if (evt.target.name === "nom" && !idModifieALaMain) form.elements.id.value = slug(evt.target.value);
+      if (evt.target.name === "identifiant") idModifieALaMain = true;
+      if (evt.target.name === "nom" && !idModifieALaMain) form.elements.identifiant.value = slug(evt.target.value);
     });
 
     sidebar.addEventListener("change", (evt) => {

@@ -5,6 +5,17 @@ sur le site** (le public lit `frontend/changelog.md`, volontairement court et sa
 Une section par version, la plus récente en tête : ce qui a été touché, pourquoi, les
 pièges. Voir CLAUDE.md pour la règle.
 
+## 0.28.1 - 2026-10-12
+- Incident (prod, 2026-10-12) : `PUT /api/personnages/pj/admin` → 404 « PJ inconnu » alors qu'on
+  modifiait Bobaq. Le champ « Identifiant » (`name="id"`, lecture seule en modification) a
+  reçu « admin », très probablement un remplissage automatique de Chrome (identifiant
+  enregistré) — le chemin ET le corps contenaient « admin », donc le formulaire lui-même avait
+  changé. Cause non confirmée à 100 % (pas de reproduction), mais seule explication cohérente.
+- Correctif : champ renommé `identifiant` + `autocomplete="off"`, et en modification l'id est lu
+  dans `form.dataset.id` (posé au rendu) et plus jamais dans le champ affiché. Appliqué aux
+  formulaires de personnage (`personnages.js`) et de run (`mj.js`). Testé en forçant
+  « admin » dans le champ : la requête part bien sur l'id d'origine.
+
 ## 0.28.0 - 2026-10-12
 - Nuyens sur les PJ (pas les PNJ) : champ `nuyens`, texte libre ≤ 40 car., stocké sans l'unité
   (le validateur retire un « ¥ » tapé), l'interface ajoute « ¥ » à l'affichage.
