@@ -1,3 +1,6 @@
+## 0.29.1 - 2026-10-14
+- Calendrier : texte d'aide de l'agenda MJ raccourci
+
 ## 0.29.0 - 2026-10-14
 - Calendrier : un agenda par MJ (seulement les runs qu'il anime), à ajouter à son appli calendrier
 
