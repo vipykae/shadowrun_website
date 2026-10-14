@@ -5,6 +5,18 @@ sur le site** (le public lit `frontend/changelog.md`, volontairement court et sa
 Une section par version, la plus récente en tête : ce qui a été touché, pourquoi, les
 pièges. Voir CLAUDE.md pour la règle.
 
+## 0.29.0 - 2026-10-14
+- Demande d'un MJ : un flux .ics limité à ses runs, pour le synchroniser avec un agenda perso/familial.
+- `GET /api/calendrier.ics` et `GET /api/calendrier/url` acceptent `mj=<nom>` : filtre sur `run["mj"]`
+  (texte libre → comparaison `strip().lower()` exacte, pas de sous-chaîne). Nom du calendrier suffixé
+  « — MJ <nom> ». Pas de nouvelle route publique : même jeton que les autres variantes.
+- Front (`app.js`, panneau Calendrier) : section « Agenda MJ », liste dérivée des valeurs distinctes de
+  `mj` dans les runs existantes (pas de liste en dur ; une shortlist de MJ dédiée n'est pas nécessaire
+  tant que le champ reste libre). `copierLienCalendrier(persoId, mjNom)` via URLSearchParams.
+- Test : serveur jetable port 8399 avec `CALENDRIER_TOKEN=testtok` (le jeton est vide dans `.env`
+  local) ; filtre insensible à la casse vérifié. Piège : curl sous Git Bash envoie « Kaï » en mauvais
+  encodage (�) — artefact du shell, pas du serveur.
+
 ## 0.28.1 - 2026-10-12
 - Incident (prod, 2026-10-12) : `PUT /api/personnages/pj/admin` → 404 « PJ inconnu » alors qu'on
   modifiait Bobaq. Le champ « Identifiant » (`name="id"`, lecture seule en modification) a

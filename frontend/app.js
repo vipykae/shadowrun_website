@@ -216,9 +216,12 @@ document.getElementById("btn-filtre").addEventListener("click", () => {
 // Calendrier : un lien pour toutes les runs, ou un lien par personnage
 // (seulement les runs où il est inscrit) pour ne pas remplir son agenda de
 // celles des autres.
-async function copierLienCalendrier(persoId) {
+async function copierLienCalendrier(persoId, mjNom) {
   try {
-    const { url } = await api(`/api/calendrier/url${persoId ? `?perso=${encodeURIComponent(persoId)}` : ""}`);
+    const params = new URLSearchParams();
+    if (persoId) params.set("perso", persoId);
+    if (mjNom) params.set("mj", mjNom);
+    const { url } = await api(`/api/calendrier/url${params.size ? `?${params}` : ""}`);
     try {
       await navigator.clipboard.writeText(url);
       toast("Lien copié — colle-le dans Google Calendar, Apple Calendar ou Outlook (abonnement à une URL).");
@@ -232,6 +235,10 @@ async function copierLienCalendrier(persoId) {
 
 document.getElementById("btn-calendrier").addEventListener("click", () => {
   const pj = (typeof personnages !== "undefined" && personnages.liste) ? personnages.liste("pj") : [];
+  // Les MJ viennent des runs existantes (champ texte libre), sans doublon de casse.
+  const mjs = new Map();
+  DONNEES.runs.forEach((r) => { const n = (r.mj || "").trim(); if (n && !mjs.has(n.toLowerCase())) mjs.set(n.toLowerCase(), n); });
+  const listeMj = [...mjs.values()].sort((a, b) => a.localeCompare(b, "fr"));
   sidebarContent.innerHTML = `
     <div class="run-titre">Calendrier</div>
     <p class="calendrier-aide">Abonne ton appli calendrier à l'un de ces liens : les runs s'y ajoutent et s'y mettent à jour toutes seules.</p>
@@ -241,9 +248,16 @@ document.getElementById("btn-calendrier").addEventListener("click", () => {
     <p class="calendrier-aide">Ne contient que les runs où ton personnage est inscrit (le calendrier reste vide tant qu'il n'est sur aucune run).</p>
     ${pj.length
       ? pj.map((p) => `<div class="calendrier-ligne"><span>${echapper(p.nom)}</span><button class="btn" data-cal="${echapper(p.id)}">Copier le lien</button></div>`).join("")
-      : "<p class=\"calendrier-aide\">Aucun personnage joueuse pour l'instant.</p>"}`;
+      : "<p class=\"calendrier-aide\">Aucun personnage joueuse pour l'instant.</p>"}
+    <div class="section-title">Agenda MJ</div>
+    <p class="calendrier-aide">Ne contient que les runs animées par ce MJ (pratique pour les caler dans son agenda perso ou familial).</p>
+    ${listeMj.length
+      ? listeMj.map((n) => `<div class="calendrier-ligne"><span>${echapper(n)}</span><button class="btn" data-cal-mj="${echapper(n)}">Copier le lien</button></div>`).join("")
+      : "<p class=\"calendrier-aide\">Aucun MJ renseigné sur les runs pour l'instant.</p>"}`;
   sidebarContent.querySelectorAll("[data-cal]").forEach((b) =>
     b.addEventListener("click", () => copierLienCalendrier(b.dataset.cal)));
+  sidebarContent.querySelectorAll("[data-cal-mj]").forEach((b) =>
+    b.addEventListener("click", () => copierLienCalendrier("", b.dataset.calMj)));
   ouvrirSidebar();
 });
 
