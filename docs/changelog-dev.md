@@ -5,6 +5,9 @@ sur le site** (le public lit `frontend/changelog.md`, volontairement court et sa
 Une section par version, la plus récente en tête : ce qui a été touché, pourquoi, les
 pièges. Voir CLAUDE.md pour la règle.
 
+## 0.29.1 - 2026-10-14
+- `frontend/app.js` : retrait de la parenthèse « pratique pour les caler… » dans l'aide de la section Agenda MJ du panneau Calendrier. Aucun changement backend.
+
 ## 0.29.0 - 2026-10-14
 - Demande d'un MJ : un flux .ics limité à ses runs, pour le synchroniser avec un agenda perso/familial.
 - `GET /api/calendrier.ics` et `GET /api/calendrier/url` acceptent `mj=<nom>` : filtre sur `run["mj"]`

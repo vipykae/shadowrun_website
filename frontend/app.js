@@ -250,7 +250,7 @@ document.getElementById("btn-calendrier").addEventListener("click", () => {
       ? pj.map((p) => `<div class="calendrier-ligne"><span>${echapper(p.nom)}</span><button class="btn" data-cal="${echapper(p.id)}">Copier le lien</button></div>`).join("")
       : "<p class=\"calendrier-aide\">Aucun personnage joueuse pour l'instant.</p>"}
     <div class="section-title">Agenda MJ</div>
-    <p class="calendrier-aide">Ne contient que les runs animées par ce MJ (pratique pour les caler dans son agenda perso ou familial).</p>
+    <p class="calendrier-aide">Ne contient que les runs animées par ce MJ.</p>
     ${listeMj.length
       ? listeMj.map((n) => `<div class="calendrier-ligne"><span>${echapper(n)}</span><button class="btn" data-cal-mj="${echapper(n)}">Copier le lien</button></div>`).join("")
       : "<p class=\"calendrier-aide\">Aucun MJ renseigné sur les runs pour l'instant.</p>"}`;
