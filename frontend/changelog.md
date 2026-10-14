@@ -1,3 +1,6 @@
+## 0.29.0 - 2026-10-14
+- Calendrier : un agenda par MJ (seulement les runs qu'il anime), à ajouter à son appli calendrier
+
 ## 0.28.1 - 2026-10-12
 - Enregistrer un personnage ou une run ne peut plus échouer à cause du remplissage automatique du navigateur (« PJ inconnu »)
 

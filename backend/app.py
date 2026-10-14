@@ -27,6 +27,7 @@ import secrets
 import sqlite3
 import time
 import uuid
+from urllib.parse import quote
 from collections import defaultdict, deque
 from datetime import date as date_type
 from datetime import datetime, timedelta
@@ -990,20 +991,23 @@ def _pj_ou_404(perso_id: str) -> dict:
 
 
 @app.get("/api/calendrier/url")
-def calendrier_url(request: Request, perso: str = "", role: str = Depends(role_courant)):
+def calendrier_url(request: Request, perso: str = "", mj: str = "", role: str = Depends(role_courant)):
     """Lien d'abonnement : toutes les runs, ou (avec `perso`, l'id d'un PJ)
-    seulement celles où ce personnage est inscrit."""
+    seulement celles où ce personnage est inscrit, ou (avec `mj`, un nom)
+    seulement celles que ce MJ anime."""
     if not CALENDRIER_TOKEN:
         raise HTTPException(503, "Calendrier non configuré (CALENDRIER_TOKEN absent côté serveur).")
     base = str(request.base_url).rstrip("/")
     url = f"{base}/api/calendrier.ics?cle={CALENDRIER_TOKEN}"
     if perso:
         url += f"&perso={_pj_ou_404(perso)['id']}"
+    if mj.strip():
+        url += f"&mj={quote(mj.strip())}"
     return {"url": url}
 
 
 @app.get("/api/calendrier.ics")
-def calendrier_ics(cle: str = "", perso: str = ""):
+def calendrier_ics(cle: str = "", perso: str = "", mj: str = ""):
     if not CALENDRIER_TOKEN or not hmac.compare_digest(cle, CALENDRIER_TOKEN):
         raise HTTPException(404)  # pas 401 : ne pas laisser deviner que l'endpoint existe
     # Les inscriptions sont du texte libre : on reconnaît un PJ à son nom ou à
@@ -1017,12 +1021,18 @@ def calendrier_ics(cle: str = "", perso: str = ""):
         noms_perso = {str(n).strip().lower() for n in (pj.get("nom"), pj.get("joueuse")) if n}
         with db() as con:
             inscrites = inscrites_par_run(con)
+    # Le champ `mj` d'une run est du texte libre : comparaison sans casse.
+    nom_mj = mj.strip().lower()
+    if nom_mj:
+        nom_cal += f" — MJ {mj.strip()}"
     lignes = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Seattle2080//FR", "CALSCALE:GREGORIAN",
               "X-WR-TIMEZONE:Europe/Paris", f"X-WR-CALNAME:{_echapper_ics(nom_cal)}", *VTIMEZONE_PARIS]
     for run in contenu.runs:
         if run.get("statut") == "annulee":
             continue
         if noms_perso is not None and not any(n.strip().lower() in noms_perso for n in inscrites.get(run["id"], [])):
+            continue
+        if nom_mj and str(run.get("mj") or "").strip().lower() != nom_mj:
             continue
         debut = _date_run_ics(run.get("date"))
         if debut is None:
